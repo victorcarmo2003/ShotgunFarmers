@@ -1,0 +1,127 @@
+{
+  "columns": [
+    "todo",
+    "in-progress",
+    "done"
+  ],
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Snapshot System (Server Rewind Base)",
+      "description": "Gravar posições (CFrame) de todos os jogadores a cada tick do servidor (~60Hz) em um buffer circular. Armazenar os últimos ~1s de snapshots (60 frames). Cada snapshot deve conter: timestamp, playerId, CFrame da HumanoidRootPart e hitbox bounds. Isso é a fundação para lag compensation.",
+      "column": "in-progress",
+      "priority": "high",
+      "tags": [
+        "server",
+        "networking",
+        "rewind"
+      ],
+      "updatedAt": "2026-06-28"
+    },
+    {
+      "id": "2",
+      "title": "Server Rewind - Interpolação de Posição",
+      "description": "Dado um timestamp do cliente, encontrar os dois snapshots mais próximos e interpolar a posição do alvo naquele instante. Considerar latência do jogador (ping/2). Limitar o rewind máximo a ~300ms para evitar abuse.",
+      "column": "todo",
+      "priority": "high",
+      "tags": [
+        "server",
+        "networking",
+        "rewind"
+      ],
+      "dependencies": [
+        "1"
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Hit Validation - Server Raycast",
+      "description": "No HitService: receber do cliente origin, direction e timestamp do disparo. Rebobinar as posições dos jogadores para o timestamp usando o Snapshot System. Fazer raycast server-side contra as hitboxes rebobinadas. Validar: distância máxima da arma, rate of fire, munição disponível, ângulo do tiro vs posição do atirador. Aplicar dano via VitalService se hit confirmado.",
+      "column": "todo",
+      "priority": "high",
+      "tags": [
+        "server",
+        "combat",
+        "anti-cheat"
+      ],
+      "dependencies": [
+        "2"
+      ]
+    },
+    {
+      "id": "4",
+      "title": "Hit Validation - Sanity Checks Anti-Exploit",
+      "description": "Adicionar validações extras no servidor: rate limiter por jogador (máx disparos/segundo por arma), verificar se o jogador está vivo, verificar se a arma está equipada, checar se a origin do tiro é próxima da posição real do jogador (tolerância de ~5 studs). Logar tentativas suspeitas.",
+      "column": "todo",
+      "priority": "medium",
+      "tags": [
+        "server",
+        "anti-cheat",
+        "security"
+      ],
+      "dependencies": [
+        "3"
+      ]
+    },
+    {
+      "id": "5",
+      "title": "Client Prediction - Disparo e Feedback Visual",
+      "description": "No cliente: ao atirar, fazer raycast local imediato para feedback visual (hitmarker, efeito de impacto, tracer). Enviar dados do tiro ao servidor (origin, direction, timestamp). NÃO aplicar dano no cliente — apenas efeitos visuais. Mostrar hitmarker provisório que é confirmado/negado pelo servidor.",
+      "column": "todo",
+      "priority": "high",
+      "tags": [
+        "client",
+        "prediction",
+        "vfx"
+      ],
+      "dependencies": [
+        "3"
+      ]
+    },
+    {
+      "id": "6",
+      "title": "Client Prediction - Reconciliação de Hit",
+      "description": "Servidor retorna resultado do hit (confirmado/negado + dano). Cliente reconcilia: se confirmado, mantém hitmarker. Se negado, remove hitmarker e mostra feedback visual de 'miss'. Lidar com edge cases: jogador morreu antes do confirm, alvo morreu por outro jogador, etc.",
+      "column": "todo",
+      "priority": "medium",
+      "tags": [
+        "client",
+        "prediction",
+        "networking"
+      ],
+      "dependencies": [
+        "5"
+      ]
+    },
+    {
+      "id": "7",
+      "title": "Sistema de Dano + Kill/Death via VitalService",
+      "description": "Integrar o resultado do hit validation com VitalService. Aplicar dano respeitando: escudo absorve antes da vida, headshot multiplier 2x, dano por arma conforme GDD. Registrar kill/death, triggar respawn em 3s com Shovel + Peavolver. Emitir eventos para killfeed e pontuação.",
+      "column": "todo",
+      "priority": "high",
+      "tags": [
+        "server",
+        "combat",
+        "gameplay"
+      ],
+      "dependencies": [
+        "3"
+      ]
+    },
+    {
+      "id": "8",
+      "title": "Seed Planting - Projétil que erra planta semente",
+      "description": "Quando o servidor confirma que o tiro errou (hit no chão/terreno), spawnar uma semente do tipo da arma usada na posição de impacto. Semente visível para todos. Após 3-12s cresce e vira arma coletável. Colheita cedo = 30% munição, tardia = 100%. Colher substitui arma atual.",
+      "column": "todo",
+      "priority": "high",
+      "tags": [
+        "server",
+        "gameplay",
+        "core-mechanic"
+      ],
+      "dependencies": [
+        "3"
+      ]
+    }
+  ]
+}

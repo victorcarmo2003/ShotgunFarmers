@@ -1,0 +1,273 @@
+{
+  "columns": [
+    "todo",
+    "in-progress",
+    "done"
+  ],
+  "tasks": [
+    {
+      "id": "task-tower-001",
+      "title": "Criar TowerConfig.luau (dados de combate)",
+      "description": "Criar src/shared/Datas/TowerConfig.luau com types TowerLevelStats e TowerConfig. Implementar Get(animalId), GetLevelStats(animalId, level), GetUpgradeCost(animalId, currentLevel), GetSellValue(animalId, level), IsValid(animalId). REFUND_RATIO = 0.6. Definir stats iniciais pra pelo menos 2 animals do AnimalDatabase.",
+      "column": "done",
+      "tags": [
+        "tower-system",
+        "shared"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-27"
+    },
+    {
+      "id": "task-enemy-001",
+      "title": "Adicionar Reward no Enemy.luau",
+      "description": "Adicionar campo Reward: number no src/shared/Datas/Enemy.luau. Common: 10, Fast: 8, Boss: 100. depends: nenhum",
+      "column": "todo",
+      "tags": [
+        "enemy-system",
+        "shared"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-economy-001",
+      "title": "Criar MatchEconomyService",
+      "description": "Criar src/server/Services/MatchEconomyService.luau. API: GetCash(player), AddCash(player, amount), TrySpend(player, amount): boolean, ResetForMatch(player?). Sinal: CashChanged(Player, number). Pacote: MatchCash server→client { Cash: number }. Import: PlayerService. Moeda in-match NÃO persiste entre matches. depends: task-enemy-001",
+      "column": "todo",
+      "tags": [
+        "economy",
+        "server"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-enemy-002",
+      "title": "Criar EnemyDeathService",
+      "description": "Criar src/server/Services/EnemyDeathService.luau. API: DealDamage(enemyGUID, rawDamage, attacker?), KillEnemy(enemyGUID, killer?), EnemyReachedBase(enemyGUID). Fórmula: effective = max(1, raw - Defense). Sinais: EnemyDamaged, EnemyKilled, EnemyReachedEnd. Pacotes: EnemyHealth e EnemyDied server→client. Conectar no path-end do EnemyService. depends: task-economy-001, task-enemy-001",
+      "column": "todo",
+      "tags": [
+        "enemy-system",
+        "server"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-tower-002",
+      "title": "Criar PlacedTower type (shared)",
+      "description": "Criar src/shared/Datas/PlacedTower.luau com type PlacedTowerData: GUID, Owner, AnimalId, Level, Position, Rotation, Targeting, LastAttack, CurrentTargetGUID?. depends: task-tower-001",
+      "column": "todo",
+      "tags": [
+        "tower-system",
+        "shared"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-tower-003",
+      "title": "Criar TowerService (placement/upgrade/sell)",
+      "description": "Criar src/server/Services/TowerService.luau. API: ValidatePlacement, PlaceTower, UpgradeTower, SellTower, SetTargeting, ClearPlayerTowers. Pacotes: RequestPlaceTower/UpgradeTower/SellTower/SetTargeting (client→server), ReplicateTower/RemoveTower/PlacementResult (server→client). Imports: MatchEconomyService, PlayerService, WaypointsService. depends: task-tower-001, task-tower-002, task-economy-001",
+      "column": "in-progress",
+      "tags": [
+        "tower-system",
+        "server"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-27"
+    },
+    {
+      "id": "task-tower-004",
+      "title": "Criar TowerCombatService (targeting/attack loop)",
+      "description": "Criar src/server/Services/TowerCombatService.luau. Loop 60Hz com OnSimulation. API: AcquireTarget(tower), GetEnemyServerPosition(enemyData), Attack(tower, enemyGUID). Targeting modes: First, Last, Closest, Strongest, Weakest. Pacote: TowerAttack server→client { TowerGUID, EnemyGUID, AttackType }. Imports: TowerService, EnemyService, EnemyDeathService, WaypointsService. depends: task-tower-003, task-enemy-002",
+      "column": "in-progress",
+      "tags": [
+        "tower-system",
+        "server"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-27"
+    },
+    {
+      "id": "task-preview-001",
+      "title": "Fix bugs do TowerPreviewController",
+      "description": "1) ValidatePosition sempre retorna true — falta return após setar false. 2) VisualWorldPosition calculado mas não usado no PivotTo. 3) Adicionar highlight vermelho/verde conforme posição válida. Arquivo: src/client/Controllers/TowerPreviewController.luau",
+      "column": "todo",
+      "tags": [
+        "tower-system",
+        "client",
+        "code-issue"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-preview-002",
+      "title": "Adicionar GetPlacement e rotação no Preview",
+      "description": "No TowerPreviewController: adicionar GetPlacement(): (Vector3?, boolean) pra não acessar campos internos. Adicionar suporte a rotação (R/Q ou scroll). depends: task-preview-001",
+      "column": "todo",
+      "tags": [
+        "tower-system",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-tower-005",
+      "title": "Redesign TowerController (client)",
+      "description": "Refazer src/client/Controllers/TowerController. Flow: UI/hotbar → BeginPlacement(animalId) → preview → confirmar → envia RequestPlaceTower → recebe PlacementResult → sucesso: StopPreview / falha: NotificationController. Recebe ReplicateTower → clona modelo permanente. Recebe RemoveTower → remove modelo. Remover código demo (zenitsu hardcoded, HumanoidRootPart.Touched). depends: task-tower-003, task-preview-002",
+      "column": "todo",
+      "tags": [
+        "tower-system",
+        "client"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-wave-001",
+      "title": "Implementar WaveService",
+      "description": "Implementar src/server/Services/WaveService.luau (já existe como shell vazio). Usar WaveSettings pra wave progression, enemy spawn scheduling, difficulty scaling, boss waves a cada 5. Detectar wave completion (todos inimigos mortos). depends: task-enemy-002",
+      "column": "todo",
+      "tags": [
+        "wave-system",
+        "server"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-game-001",
+      "title": "Fix GameService FSM + integrar WaveService",
+      "description": "Corrigir GameService:OnInit — Transition('Begin') é inválido (estados: Break, Boss, Wave). Integrar com WaveService pra controle de rounds. Resetar cash/towers/enemies entre matches. depends: task-wave-001, task-tower-003, task-economy-001",
+      "column": "todo",
+      "tags": [
+        "game-flow",
+        "server",
+        "code-issue"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-issue-001",
+      "title": "Fix Resources.luau nomes vazios",
+      "description": "13 de 14 resources em src/shared/Datas/Resources.luau têm Name = ''. Preencher os nomes corretamente.",
+      "column": "todo",
+      "tags": [
+        "data",
+        "shared",
+        "code-issue"
+      ],
+      "priority": "low",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-issue-002",
+      "title": "Renomear Tower.luau → AnimalDatabase.luau",
+      "description": "src/shared/Datas/Tower.luau contém AnimalDatabase, não dados de torre. Renomear pra clareza. Atualizar todos os requires.",
+      "column": "todo",
+      "tags": [
+        "data",
+        "shared",
+        "code-issue"
+      ],
+      "priority": "low",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-ui-001",
+      "title": "Tower placement UI (hotbar)",
+      "description": "UI de inventário/hotbar mostrando towers disponíveis com custo e ícone. Integrar com TowerController.BeginPlacement. Usar ScreenController pra janela.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-ui-002",
+      "title": "Tower info/upgrade UI",
+      "description": "UI que aparece ao clicar numa torre colocada: stats, opções de upgrade, botão de vender, targeting mode. Integrar com TowerController.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-ui-003",
+      "title": "Wave info + currency display UI",
+      "description": "UI mostrando wave atual, inimigos restantes, e cash in-match. Atualizar via pacotes WaveInfo e MatchCash.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-ui-004",
+      "title": "Enemy health bars",
+      "description": "BillboardGui com barra de HP acima dos modelos de inimigo. Atualizar via pacote EnemyHealth. Remover quando inimigo morre.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-shell-001",
+      "title": "Implementar LeaderstatsService",
+      "description": "src/server/Services/LeaderstatsService.luau existe como shell vazio. Implementar leaderboard stats (Wins, Gems, etc.) usando dados do ProfileService.",
+      "column": "todo",
+      "tags": [
+        "misc",
+        "server"
+      ],
+      "priority": "low",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    },
+    {
+      "id": "task-shell-002",
+      "title": "Implementar NotificationController",
+      "description": "src/client/Controllers/NotificationController.luau existe como shell vazio. Implementar sistema de notificações toast/popup. Usado pelo TowerController pra feedback de placement.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "client"
+      ],
+      "priority": "low",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-06-26"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+    "luau-lsp.plugin.enabled": true,
+    "luau-lsp.sourcemap.enabled": true,
+    "luau-lsp.sourcemap.autogenerate": true,
+    "luau-lsp.sourcemap.sourcemapFile": "sourcemap.json",
+    "luau-lsp.sourcemap.includeNonScripts": true,
+    "discord.enabled": false,
+    "editor.formatOnSave": true,
+    "[lua]": {
+        "editor.defaultFormatter": "JohnnyMorganz.stylua"
+    },
+    "[luau]": {
+        "editor.defaultFormatter": "JohnnyMorganz.stylua"
+    },
+    "modux.sync.cloudflareUrl": "https://modux-sync-relay.victorcarmo2003.workers.dev"
+}
