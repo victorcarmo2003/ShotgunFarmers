@@ -58,8 +58,12 @@ export type HandlerType = {
 	_onReleaseCallbacks: { [number]: () -> () },
 }
 export type Context = "Gameplay" | "Menu" | "Cutscene"
-type MainGui = ScreenGuiRoot
-type WindowId = UIWindowId
+export type BulletData = {
+	instance: BasePart,
+	startPos: Vector3,
+	endPos: Vector3,
+	ammoType: GetGun.AmmoType,
+}
 type AnimationHandle<T> = {
 	Completed: RBXScriptSignal,
 	IsPlaying: (self: AnimationHandle<T>) -> boolean,
@@ -102,6 +106,10 @@ type SequenceAnimationHandle = {
 	GetCurrentPos: (self: SequenceAnimationHandle) -> any,
 	Destroy: (self: SequenceAnimationHandle) -> SequenceAnimationHandle,
 }
+export type Scope = Scope.ScopeHandle
+export type MainGuiType = {
+	TimerLabel: TextLabel,
+} & ScreenGui
 export type State<T> = PubTypes.Value<T> & {
 	_value: T
 }
@@ -464,6 +472,7 @@ export type Network = {
 	HitPart: number,
 	Origin: Vector3int16,
 	Direction: Vector3int16,
+	TimeStamp: number,
 }, {
 	Accepted: boolean,
 	Damage: number,

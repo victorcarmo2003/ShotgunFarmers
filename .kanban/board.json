@@ -8,7 +8,7 @@
     {
       "id": "1",
       "title": "Snapshot System (Server Rewind Base)",
-      "description": "Gravar posições (CFrame) de todos os jogadores a cada tick do servidor (~60Hz) em um buffer circular. Armazenar os últimos ~1s de snapshots (60 frames). Cada snapshot deve conter: timestamp, playerId, CFrame da HumanoidRootPart e hitbox bounds. Isso é a fundação para lag compensation.",
+      "description": "SnapshotService.luau existe mas está incompleto. Bugs a corrigir: (1) RegisterSnapshot é chamado com `self:RegisterSnapshot(data)` mas recebe apenas `data` sem o `sender` — precisa ser `RegisterSnapshot(sender, data)`; (2) AllSnapshots nunca é populado, armazenamento do buffer circular não implementado; (3) ExpireSnapshot está vazio; (4) OnTick está vazio. Implementar buffer circular real: AllSnapshots[playerID] = array de SnapshotData, manter últimos ~60 frames (~1s a 60Hz), expirar via ExpirateAt no OnTick. depends: task-snapshot-client-001",
       "column": "in-progress",
       "priority": "high",
       "tags": [
@@ -16,7 +16,7 @@
         "networking",
         "rewind"
       ],
-      "updatedAt": "2026-06-28"
+      "updatedAt": "2026-06-30"
     },
     {
       "id": "2",
@@ -36,8 +36,8 @@
     {
       "id": "3",
       "title": "Hit Validation - Server Raycast",
-      "description": "No HitService: receber do cliente origin, direction e timestamp do disparo. Rebobinar as posições dos jogadores para o timestamp usando o Snapshot System. Fazer raycast server-side contra as hitboxes rebobinadas. Validar: distância máxima da arma, rate of fire, munição disponível, ângulo do tiro vs posição do atirador. Aplicar dano via VitalService se hit confirmado.",
-      "column": "todo",
+      "description": "HitService.luau existe mas vai direto para DealDamage sem nenhuma validação real — sem rewind, sem raycast. HitController.luau não envia timestamp no pacote HitValidate (crítico para lag compensation). Pendente: (1) adicionar `Timestamp = workspace:GetServerTimeNow()` no pacote enviado pelo HitController; (2) no HitService, usar SnapshotService para rebobinar posições até o timestamp recebido; (3) fazer raycast server-side contra hitboxes rebobinadas; (4) só então chamar DealDamage. depends: task-hit-timestamp-001, 2",
+      "column": "in-progress",
       "priority": "high",
       "tags": [
         "server",
@@ -46,7 +46,8 @@
       ],
       "dependencies": [
         "2"
-      ]
+      ],
+      "updatedAt": "2026-06-30"
     },
     {
       "id": "4",
@@ -96,8 +97,8 @@
     {
       "id": "7",
       "title": "Sistema de Dano + Kill/Death via VitalService",
-      "description": "Integrar o resultado do hit validation com VitalService. Aplicar dano respeitando: escudo absorve antes da vida, headshot multiplier 2x, dano por arma conforme GDD. Registrar kill/death, triggar respawn em 3s com Shovel + Peavolver. Emitir eventos para killfeed e pontuação.",
-      "column": "todo",
+      "description": "VitalService.luau operacional: handle GetVitals, VitalComponent adicionado ao player via CollectionService. HitService aplica dano via VitalComponent:TakeDamage(). Base funcional. Pendente para versão completa: registrar kill/death, respawn em 3s com loadout inicial (Shovel + Peavolver), emitir eventos para killfeed e pontuação.",
+      "column": "done",
       "priority": "high",
       "tags": [
         "server",
@@ -106,7 +107,8 @@
       ],
       "dependencies": [
         "3"
-      ]
+      ],
+      "updatedAt": "2026-06-30"
     },
     {
       "id": "8",
@@ -122,6 +124,62 @@
       "dependencies": [
         "3"
       ]
+    },
+    {
+      "id": "task-snapshot-client-001",
+      "title": "SnapshotController (Cliente) - Envio de Snapshots",
+      "description": "BLOQUEADOR crítico da task 1. O cliente nunca envia snapshots ao servidor — SnapshotService.OnInit espera o pacote PlayerSnapshot mas nenhum controller o envia. Criar SnapshotController (ou adicionar ao MovementController) com OnTick a 60Hz que envia: Position (Vector3int16), LookAt (Vector3int16), State (número do estado de animação), MoveDir (Vector2), WeaponID (número da arma equipada). Usar workspace:GetServerTimeNow() como timestamp do pacote.",
+      "column": "todo",
+      "priority": "high",
+      "tags": [
+        "client",
+        "networking",
+        "rewind"
+      ],
+      "createdAt": "2026-06-30",
+      "updatedAt": "2026-06-30"
+    },
+    {
+      "id": "task-hit-timestamp-001",
+      "title": "Fix HitController - Adicionar Timestamp ao Disparo",
+      "description": "HitController.TryHit envia o pacote HitValidate sem timestamp. O servidor precisa desse valor para rebobinar os snapshots até o momento exato do disparo. Adicionar `Timestamp = workspace:GetServerTimeNow()` no payload do HitValidate:request. Também avaliar trocar Direction (lookAtPosition) por um Vector3 de direção normalizado em vez de um ponto no espaço, para facilitar o raycast server-side.",
+      "column": "todo",
+      "priority": "high",
+      "tags": [
+        "client",
+        "combat",
+        "networking"
+      ],
+      "createdAt": "2026-06-30",
+      "updatedAt": "2026-06-30"
+    },
+    {
+      "id": "task-weapon-001",
+      "title": "WeaponController (Cliente) - Lógica Client-Side",
+      "description": "WeaponController.luau existe mas está vazio. Implementar: (1) receber do servidor via pacote de rede qual arma o jogador possui ao spawnar; (2) armazenar estado da arma equipada (tipo, munição atual, munição máxima); (3) lógica de cooldown/rate-of-fire no cliente para travar o InputController durante rechamada; (4) disparar animação de tiro e chamar HitController:TryHit(); (5) emitir evento para UI de munição via VitalController ou novo UIController.",
+      "column": "todo",
+      "priority": "high",
+      "tags": [
+        "client",
+        "combat",
+        "gameplay"
+      ],
+      "createdAt": "2026-06-30",
+      "updatedAt": "2026-06-30"
+    },
+    {
+      "id": "task-weapon-002",
+      "title": "WeaponService (Servidor) - Gerenciamento de Armas",
+      "description": "WeaponService.luau existe mas está vazio. Implementar: (1) atribuir loadout inicial ao spawnar (Shovel + Peavolver); (2) sincronizar arma equipada com o cliente via pacote de rede; (3) expor GetEquippedWeapon(Player) para uso no HitService durante validação do hit (checar se a arma correta está equipada); (4) handle de pickup de arma coletável (futuro seed mechanic). Adicionar campo WeaponID e Ammo no Profile template se precisar persistir.",
+      "column": "todo",
+      "priority": "medium",
+      "tags": [
+        "server",
+        "combat",
+        "gameplay"
+      ],
+      "createdAt": "2026-06-30",
+      "updatedAt": "2026-06-30"
     }
   ]
 }

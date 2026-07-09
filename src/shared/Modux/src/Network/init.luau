@@ -172,25 +172,23 @@ Network.Packages = {
 			HitPart = Network.int(0, 15),
 			Origin = Network.vec3int16,
 			Direction = Network.vec3int16,
+			TimeStamp = Network.f64,
 		}),
 		Network.struct({
 			Accepted = Network.bool,
 			Damage = Network.int(0, 255),
 		}),
 		{
-			validate = function(
-				data: { TargetID: number, HitPart: number, Origin: Vector3, Direction: Vector3 },
-				Player: Player
-			)
+			rateLimit = { maxPerSecond = 15, burst = 10 },
+			validate = function(data, Player: Player)
 				-- to be implemented
 				return true
 			end,
-			rateLimit = { maxPerSecond = 15, burst = 10 },
 		}
 	),
 }
 
-Network.start()
 Network.flushRate(60)
+Network.start()
 
 return Network

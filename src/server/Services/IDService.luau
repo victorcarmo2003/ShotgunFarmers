@@ -36,7 +36,19 @@ end
 IDService:OnInit(function(self)
 	self.allPlayers = setmetatable(self.allPlayers, { __mode = "k" })
 	self.PlayerService:OnPlayerAdded(function(Player: Player)
+		warn(Player)
 		self:RegisterPlayer(Player)
 	end)
 end)
+
+-- --> WATCHDOG
+-- IDService:OnTick(function(self, deltaTime: number)
+-- 	for _, Player in game.Players:GetPlayers() do
+-- 		if not Player:GetAttribute("GameID") and Player then
+-- 			self:RegisterPlayer(Player)
+-- 			warn(`[IDSERVICE] - Watchdog caught a player`)
+-- 		end
+-- 	end
+-- end, Modux.TickRate.Hz1)
+
 return IDService

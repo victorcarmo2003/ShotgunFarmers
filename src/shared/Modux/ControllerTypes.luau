@@ -5,6 +5,7 @@
 local CoreTypes = require(script.Parent.CoreTypes)
 local ComponentTypes = require(script.Parent.ComponentTypes)
 local ServiceTypes = require(script.Parent.ServiceTypes)
+type BulletData = CoreTypes.BulletData
 type callbackZone = CoreTypes.callbackZone
 type Context = CoreTypes.Context
 type DataKeyPayload = CoreTypes.DataKeyPayload
@@ -21,6 +22,7 @@ type LyncKeyedPacket<Payload, Key, Value> = CoreTypes.LyncKeyedPacket<Payload, K
 type LyncPacket<T> = CoreTypes.LyncPacket<T>
 type LyncPacketStats = CoreTypes.LyncPacketStats
 type LyncQuery<Req, Resp> = CoreTypes.LyncQuery<Req, Resp>
+type MainGuiType = CoreTypes.MainGuiType
 type Mode = CoreTypes.Mode
 type MovementStates = CoreTypes.MovementStates
 type Network = CoreTypes.Network
@@ -34,6 +36,7 @@ type PromiseStatus = CoreTypes.PromiseStatus
 type R6 = CoreTypes.R6
 type Reject = CoreTypes.Reject
 type Resolve<T> = CoreTypes.Resolve<T>
+type Scope = CoreTypes.Scope
 type Signal<T...> = CoreTypes.Signal<T...>
 type SignalAPI = CoreTypes.SignalAPI
 type SignalConnection = CoreTypes.SignalConnection
@@ -49,19 +52,23 @@ type VitalAttributes = CoreTypes.VitalAttributes
 type ComponentExtendFn = ComponentTypes.ComponentExtendFn
 type ComponentFn = ComponentTypes.ComponentFn
 type ComponentImportFn = ComponentTypes.ComponentImportFn
+type EquipmentComponent = ComponentTypes.EquipmentComponent
 type GetAllComponentsFn = ComponentTypes.GetAllComponentsFn
 type GetComponentFn = ComponentTypes.GetComponentFn
 type GetRequiredComponentFn = ComponentTypes.GetRequiredComponentFn
+type GunMixin = ComponentTypes.GunMixin
 type ImportFn = ComponentTypes.ImportFn
 type MixinExtendFn = ComponentTypes.MixinExtendFn
 type MixinFn = ComponentTypes.MixinFn
 type MovementComponent = ComponentTypes.MovementComponent
 type PlayerZoneComponent = ComponentTypes.PlayerZoneComponent
 type RegionComponent = ComponentTypes.RegionComponent
+type SeedComponent = ComponentTypes.SeedComponent
 type VitalComponent = ComponentTypes.VitalComponent
 type ZoneComponent = ComponentTypes.ZoneComponent
 type CharacterService = ServiceTypes.CharacterService
 type DayNightService = ServiceTypes.DayNightService
+type EquipmentService = ServiceTypes.EquipmentService
 type GameService = ServiceTypes.GameService
 type HitService = ServiceTypes.HitService
 type IDService = ServiceTypes.IDService
@@ -75,8 +82,40 @@ type ServiceFn = ServiceTypes.ServiceFn
 type ServiceImportFn = ServiceTypes.ServiceImportFn
 type SnapshotService = ServiceTypes.SnapshotService
 type VitalService = ServiceTypes.VitalService
+type WeaponService = ServiceTypes.WeaponService
 type ZoneService = ServiceTypes.ZoneService
 --> CONTROLLERS
+export type ArmsController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	Extend: (self: ArmsController, id: "GunMixin" | "PlayerZoneComponent") -> ArmsController,
+	Import: ControllerImportFn,
+	OnInit: (self: ArmsController, cb: (self: ArmsController) -> ()) -> ArmsController,
+	OnStart: (self: ArmsController, cb: (self: ArmsController) -> ()) -> ArmsController,
+	OnTick: (self: ArmsController, cb: (self: ArmsController, deltaTime: number) -> (), rate: number, priority: number?) -> ArmsController,
+	OnSimulation: (self: ArmsController, cb: (self: ArmsController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> ArmsController,
+	OnDestroy: (self: ArmsController, cb: (self: ArmsController) -> ()) -> ArmsController,
+	Tag: (self: ArmsController, tag: string) -> ArmsController,
+	ClassName: (self: ArmsController, className: string) -> ArmsController,
+	AttributeDefaults: (self: ArmsController, schema: { [string]: any }) -> ArmsController,
+	Children: (self: ArmsController, children: { string }) -> ArmsController,
+	RequireComponent: (self: ArmsController, id: string) -> ArmsController,
+	New: (self: ArmsController, ID: string, Type: Type) -> ArmsController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
 export type CameraController = {
 	ID: string,
 	Type: Type,
@@ -86,7 +125,7 @@ export type CameraController = {
 	GetLookPart: (self: CameraController) -> (BasePart?, Player?),
 	GetLookAt: (self: CameraController) -> Vector3?,
 	SetupFilters: (self: CameraController) -> (),
-	Extend: (self: CameraController, id: "PlayerZoneComponent") -> CameraController,
+	Extend: (self: CameraController, id: "GunMixin" | "PlayerZoneComponent") -> CameraController,
 	Import: ControllerImportFn,
 	OnInit: (self: CameraController, cb: (self: CameraController) -> ()) -> CameraController,
 	OnStart: (self: CameraController, cb: (self: CameraController) -> ()) -> CameraController,
@@ -111,13 +150,46 @@ export type CameraController = {
 	Attributes: { [string]: any },
 }
 
+export type ColorCorrectionController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	SetSaturation: (self: ColorCorrectionController, Value: number) -> (),
+	Instance: ColorCorrectionEffect,
+	Extend: (self: ColorCorrectionController, id: "GunMixin" | "PlayerZoneComponent") -> ColorCorrectionController,
+	Import: ControllerImportFn,
+	OnInit: (self: ColorCorrectionController, cb: (self: ColorCorrectionController) -> ()) -> ColorCorrectionController,
+	OnStart: (self: ColorCorrectionController, cb: (self: ColorCorrectionController) -> ()) -> ColorCorrectionController,
+	OnTick: (self: ColorCorrectionController, cb: (self: ColorCorrectionController, deltaTime: number) -> (), rate: number, priority: number?) -> ColorCorrectionController,
+	OnSimulation: (self: ColorCorrectionController, cb: (self: ColorCorrectionController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> ColorCorrectionController,
+	OnDestroy: (self: ColorCorrectionController, cb: (self: ColorCorrectionController) -> ()) -> ColorCorrectionController,
+	Tag: (self: ColorCorrectionController, tag: string) -> ColorCorrectionController,
+	ClassName: (self: ColorCorrectionController, className: string) -> ColorCorrectionController,
+	AttributeDefaults: (self: ColorCorrectionController, schema: { [string]: any }) -> ColorCorrectionController,
+	Children: (self: ColorCorrectionController, children: { string }) -> ColorCorrectionController,
+	RequireComponent: (self: ColorCorrectionController, id: string) -> ColorCorrectionController,
+	New: (self: ColorCorrectionController, ID: string, Type: Type) -> ColorCorrectionController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
 export type DayCycleController = {
 	ID: string,
 	Type: Type,
 	LocalPlayer: Player,
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
-	Extend: (self: DayCycleController, id: "PlayerZoneComponent") -> DayCycleController,
+	Extend: (self: DayCycleController, id: "GunMixin" | "PlayerZoneComponent") -> DayCycleController,
 	Import: ControllerImportFn,
 	OnInit: (self: DayCycleController, cb: (self: DayCycleController) -> ()) -> DayCycleController,
 	OnStart: (self: DayCycleController, cb: (self: DayCycleController) -> ()) -> DayCycleController,
@@ -152,7 +224,7 @@ export type HitController = {
 	CameraController: CameraController,
 	InputController: InputController,
 	TryHit: (self: HitController) -> boolean,
-	Extend: (self: HitController, id: "PlayerZoneComponent") -> HitController,
+	Extend: (self: HitController, id: "GunMixin" | "PlayerZoneComponent") -> HitController,
 	Import: ControllerImportFn,
 	OnInit: (self: HitController, cb: (self: HitController) -> ()) -> HitController,
 	OnStart: (self: HitController, cb: (self: HitController) -> ()) -> HitController,
@@ -188,7 +260,7 @@ export type InputController = {
 	ChangeContext: (self: InputController, newContext: Context) -> (),
 	allHandlers: { [string]: HandlerType },
 	Context: Context,
-	Extend: (self: InputController, id: "PlayerZoneComponent") -> InputController,
+	Extend: (self: InputController, id: "GunMixin" | "PlayerZoneComponent") -> InputController,
 	Import: ControllerImportFn,
 	OnInit: (self: InputController, cb: (self: InputController) -> ()) -> InputController,
 	OnStart: (self: InputController, cb: (self: InputController) -> ()) -> InputController,
@@ -223,7 +295,7 @@ export type MovementController = {
 	GetCurrentPosition: (self: MovementController) -> any,
 	GetMoveDirection: (self: MovementController) -> any,
 	BindKeys: (self: MovementController) -> (),
-	Extend: (self: MovementController, id: "PlayerZoneComponent") -> MovementController,
+	Extend: (self: MovementController, id: "GunMixin" | "PlayerZoneComponent") -> MovementController,
 	Import: ControllerImportFn,
 	OnInit: (self: MovementController, cb: (self: MovementController) -> ()) -> MovementController,
 	OnStart: (self: MovementController, cb: (self: MovementController) -> ()) -> MovementController,
@@ -254,7 +326,7 @@ export type NotificationController = {
 	LocalPlayer: Player,
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
-	Extend: (self: NotificationController, id: "PlayerZoneComponent") -> NotificationController,
+	Extend: (self: NotificationController, id: "GunMixin" | "PlayerZoneComponent") -> NotificationController,
 	Import: ControllerImportFn,
 	OnInit: (self: NotificationController, cb: (self: NotificationController) -> ()) -> NotificationController,
 	OnStart: (self: NotificationController, cb: (self: NotificationController) -> ()) -> NotificationController,
@@ -285,7 +357,7 @@ export type ProfileController = {
 	LocalPlayer: Player,
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
-	Extend: (self: ProfileController, id: "PlayerZoneComponent") -> ProfileController,
+	Extend: (self: ProfileController, id: "GunMixin" | "PlayerZoneComponent") -> ProfileController,
 	Import: ControllerImportFn,
 	OnInit: (self: ProfileController, cb: (self: ProfileController) -> ()) -> ProfileController,
 	OnStart: (self: ProfileController, cb: (self: ProfileController) -> ()) -> ProfileController,
@@ -310,50 +382,60 @@ export type ProfileController = {
 	Attributes: { [string]: any },
 }
 
-export type ScreenController = {
+export type ProjectileController = {
 	ID: string,
 	Type: Type,
 	LocalPlayer: Player,
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
-	UIAnimationsController: UIAnimationsController,
-	GetGui: (self: ScreenController) -> MainGui,
-	GetWindowId: (self: ScreenController, window: GuiObject) -> WindowId,
-	IsInsideGui: (self: ScreenController, instance: Instance) -> boolean,
-	RegisterWindow: ((self: ScreenController, window: GuiObject) -> GuiObject) & ((self: ScreenController, window: GuiObject, id: WindowId?) -> GuiObject),
-	TryRegisterWindow: (self: ScreenController, instance: Instance) -> any | nil,
-	RegisterTaggedWindows: (self: ScreenController) -> (),
-	OnOpen: (self: ScreenController, id: WindowId, callback: (window: GuiObject) -> ()) -> (),
-	OnClose: (self: ScreenController, id: WindowId, callback: (window: GuiObject) -> ()) -> (),
-	GetWindow: (self: ScreenController, id: WindowId) -> GuiObject?,
-	GetCurrentWindow: (self: ScreenController) -> WindowId?,
-	FireWindowCallbacks: (self: ScreenController, callbacks: { [WindowId]: { (window: GuiObject) -> () } }, id: WindowId, window: GuiObject) -> any,
-	CloseWindow: (self: ScreenController) -> any | nil,
-	OpenWindow: (self: ScreenController, id: WindowId) -> any | nil,
-	BindButton: (self: ScreenController, button: GuiButton, id: WindowId) -> RBXScriptConnection,
-	TryBindOpenButton: (self: ScreenController, instance: Instance) -> any | nil,
-	TryBindCloseButton: (self: ScreenController, instance: Instance) -> any | nil,
-	BindTaggedButtons: (self: ScreenController) -> (),
-	Gui: MainGui,
-	Windows: { [WindowId]: GuiObject },
-	CurrentWindow: WindowId?,
-	BoundButtons: { [Instance]: boolean },
-	ButtonConnections: { [Instance]: RBXScriptConnection },
-	OnOpenCallbacks: { [WindowId]: { (window: GuiObject) -> () } },
-	OnCloseCallbacks: { [WindowId]: { (window: GuiObject) -> () } },
-	Extend: (self: ScreenController, id: "PlayerZoneComponent") -> ScreenController,
+	Shoot: (self: ProjectileController, bulletData: BulletData) -> (),
+	AllBullets: {[number]: BulletData},
+	Extend: (self: ProjectileController, id: "GunMixin" | "PlayerZoneComponent") -> ProjectileController,
 	Import: ControllerImportFn,
-	OnInit: (self: ScreenController, cb: (self: ScreenController) -> ()) -> ScreenController,
-	OnStart: (self: ScreenController, cb: (self: ScreenController) -> ()) -> ScreenController,
-	OnTick: (self: ScreenController, cb: (self: ScreenController, deltaTime: number) -> (), rate: number, priority: number?) -> ScreenController,
-	OnSimulation: (self: ScreenController, cb: (self: ScreenController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> ScreenController,
-	OnDestroy: (self: ScreenController, cb: (self: ScreenController) -> ()) -> ScreenController,
-	Tag: (self: ScreenController, tag: string) -> ScreenController,
-	ClassName: (self: ScreenController, className: string) -> ScreenController,
-	AttributeDefaults: (self: ScreenController, schema: { [string]: any }) -> ScreenController,
-	Children: (self: ScreenController, children: { string }) -> ScreenController,
-	RequireComponent: (self: ScreenController, id: string) -> ScreenController,
-	New: (self: ScreenController, ID: string, Type: Type) -> ScreenController,
+	OnInit: (self: ProjectileController, cb: (self: ProjectileController) -> ()) -> ProjectileController,
+	OnStart: (self: ProjectileController, cb: (self: ProjectileController) -> ()) -> ProjectileController,
+	OnTick: (self: ProjectileController, cb: (self: ProjectileController, deltaTime: number) -> (), rate: number, priority: number?) -> ProjectileController,
+	OnSimulation: (self: ProjectileController, cb: (self: ProjectileController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> ProjectileController,
+	OnDestroy: (self: ProjectileController, cb: (self: ProjectileController) -> ()) -> ProjectileController,
+	Tag: (self: ProjectileController, tag: string) -> ProjectileController,
+	ClassName: (self: ProjectileController, className: string) -> ProjectileController,
+	AttributeDefaults: (self: ProjectileController, schema: { [string]: any }) -> ProjectileController,
+	Children: (self: ProjectileController, children: { string }) -> ProjectileController,
+	RequireComponent: (self: ProjectileController, id: string) -> ProjectileController,
+	New: (self: ProjectileController, ID: string, Type: Type) -> ProjectileController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
+export type RoundController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	SetupLabel: (self: RoundController) -> any,
+	UpdateLabel: (self: RoundController) -> any,
+	Extend: (self: RoundController, id: "GunMixin" | "PlayerZoneComponent") -> RoundController,
+	Import: ControllerImportFn,
+	OnInit: (self: RoundController, cb: (self: RoundController) -> ()) -> RoundController,
+	OnStart: (self: RoundController, cb: (self: RoundController) -> ()) -> RoundController,
+	OnTick: (self: RoundController, cb: (self: RoundController, deltaTime: number) -> (), rate: number, priority: number?) -> RoundController,
+	OnSimulation: (self: RoundController, cb: (self: RoundController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> RoundController,
+	OnDestroy: (self: RoundController, cb: (self: RoundController) -> ()) -> RoundController,
+	Tag: (self: RoundController, tag: string) -> RoundController,
+	ClassName: (self: RoundController, className: string) -> RoundController,
+	AttributeDefaults: (self: RoundController, schema: { [string]: any }) -> RoundController,
+	Children: (self: RoundController, children: { string }) -> RoundController,
+	RequireComponent: (self: RoundController, id: string) -> RoundController,
+	New: (self: RoundController, ID: string, Type: Type) -> RoundController,
 	GetComponent: GetComponentFn,
 	GetRequiredComponent: GetRequiredComponentFn,
 	GetAllComponents: GetAllComponentsFn,
@@ -405,7 +487,7 @@ export type UIAnimationsController = {
 	ActiveConnections: { [GuiObject]: RBXScriptConnection },
 	ActiveAnimations: { [Instance]: { [any]: boolean } },
 	TaggedTasks: { [Instance]: { [string]: { any } } },
-	Extend: (self: UIAnimationsController, id: "PlayerZoneComponent") -> UIAnimationsController,
+	Extend: (self: UIAnimationsController, id: "GunMixin" | "PlayerZoneComponent") -> UIAnimationsController,
 	Import: ControllerImportFn,
 	OnInit: (self: UIAnimationsController, cb: (self: UIAnimationsController) -> ()) -> UIAnimationsController,
 	OnStart: (self: UIAnimationsController, cb: (self: UIAnimationsController) -> ()) -> UIAnimationsController,
@@ -436,24 +518,16 @@ export type VitalController = {
 	LocalPlayer: Player,
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
-	ScreenController: ScreenController,
-	UIAnimationsController: UIAnimationsController,
-	AutoConsume: (self: VitalController) -> (),
+	ColorCorrectionController: ColorCorrectionController,
+	OnUpdateHealth: (self: VitalController, Amount: number) -> (),
 	UpdateHealth: (self: VitalController, arg1: number) -> (),
 	Health: number,
 	MaxHealth: number,
-	PlayerStatus: Folder & {
-	Health: Frame & {
-		TextLabel: TextLabel & {
-			UIGradient: UIGradient,
-			UIStroke: UIStroke,
-		},
-	},
-},
+	PlayerStatus: any,
 	Armor: number,
 	Stamina: number,
 	MaxStamina: number,
-	Extend: (self: VitalController, id: "PlayerZoneComponent") -> VitalController,
+	Extend: (self: VitalController, id: "GunMixin" | "PlayerZoneComponent") -> VitalController,
 	Import: ControllerImportFn,
 	OnInit: (self: VitalController, cb: (self: VitalController) -> ()) -> VitalController,
 	OnStart: (self: VitalController, cb: (self: VitalController) -> ()) -> VitalController,
@@ -477,38 +551,80 @@ export type VitalController = {
 	Tools: Tools,
 	Attributes: { [string]: any },
 }
+
+export type InterfaceController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	Scope: Scope,
+	ScreenGui: MainGuiType,
+	Extend: (self: InterfaceController, id: "GunMixin" | "PlayerZoneComponent") -> InterfaceController,
+	Import: ControllerImportFn,
+	OnInit: (self: InterfaceController, cb: (self: InterfaceController) -> ()) -> InterfaceController,
+	OnStart: (self: InterfaceController, cb: (self: InterfaceController) -> ()) -> InterfaceController,
+	OnTick: (self: InterfaceController, cb: (self: InterfaceController, deltaTime: number) -> (), rate: number, priority: number?) -> InterfaceController,
+	OnSimulation: (self: InterfaceController, cb: (self: InterfaceController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> InterfaceController,
+	OnDestroy: (self: InterfaceController, cb: (self: InterfaceController) -> ()) -> InterfaceController,
+	Tag: (self: InterfaceController, tag: string) -> InterfaceController,
+	ClassName: (self: InterfaceController, className: string) -> InterfaceController,
+	AttributeDefaults: (self: InterfaceController, schema: { [string]: any }) -> InterfaceController,
+	Children: (self: InterfaceController, children: { string }) -> InterfaceController,
+	RequireComponent: (self: InterfaceController, id: string) -> InterfaceController,
+	New: (self: InterfaceController, ID: string, Type: Type) -> InterfaceController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
 --> IMPORT FUNCTIONS
 
 export type ControllerImportFn =
+	(<Self>(self: Self, id: "ArmsController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "CameraController", scopeKey: string?) -> Self) &
+	(<Self>(self: Self, id: "ColorCorrectionController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "DayCycleController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "HitController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "InputController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "MovementController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "NotificationController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "ProfileController", scopeKey: string?) -> Self) &
-	(<Self>(self: Self, id: "ScreenController", scopeKey: string?) -> Self) &
+	(<Self>(self: Self, id: "ProjectileController", scopeKey: string?) -> Self) &
+	(<Self>(self: Self, id: "RoundController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "UIAnimationsController", scopeKey: string?) -> Self) &
-	(<Self>(self: Self, id: "VitalController", scopeKey: string?) -> Self)
+	(<Self>(self: Self, id: "VitalController", scopeKey: string?) -> Self) &
+	(<Self>(self: Self, id: "InterfaceController", scopeKey: string?) -> Self)
 
 --> EXTEND FUNCTIONS
 
 export type ControllerExtendFn =
+	(<Self>(self: Self, id: "GunMixin") -> Self) &
 	(<Self>(self: Self, id: "PlayerZoneComponent") -> Self)
 
 --> MODUX OVERLOADS
 
 export type ControllerFn =
+	((id: "ArmsController", mode: Mode?) -> ArmsController) &
 	((id: "CameraController", mode: Mode?) -> CameraController) &
+	((id: "ColorCorrectionController", mode: Mode?) -> ColorCorrectionController) &
 	((id: "DayCycleController", mode: Mode?) -> DayCycleController) &
 	((id: "HitController", mode: Mode?) -> HitController) &
 	((id: "InputController", mode: Mode?) -> InputController) &
 	((id: "MovementController", mode: Mode?) -> MovementController) &
 	((id: "NotificationController", mode: Mode?) -> NotificationController) &
 	((id: "ProfileController", mode: Mode?) -> ProfileController) &
-	((id: "ScreenController", mode: Mode?) -> ScreenController) &
+	((id: "ProjectileController", mode: Mode?) -> ProjectileController) &
+	((id: "RoundController", mode: Mode?) -> RoundController) &
 	((id: "UIAnimationsController", mode: Mode?) -> UIAnimationsController) &
-	((id: "VitalController", mode: Mode?) -> VitalController)
+	((id: "VitalController", mode: Mode?) -> VitalController) &
+	((id: "InterfaceController", mode: Mode?) -> InterfaceController)
 
 -- END AUTO-GENERATED
 

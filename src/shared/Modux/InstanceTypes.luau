@@ -5,27 +5,20 @@
 --> STARTERGUI TYPES
 export type UIWindowId = string
 
-export type ScreenGuiRoot = ScreenGui & {
-	Conteiner: Frame & {
-		Player: Folder & {
-			Health: Frame & {
-				TextLabel: TextLabel & {
-					UIGradient: UIGradient,
-					UIStroke: UIStroke,
-				},
-			},
-		},
-	},
-}
+export type ImageLabelRoot = ImageLabel
 
 export type StarterGuiTypes = {
-	ScreenGui: ScreenGuiRoot,
+	ImageLabel: ImageLabelRoot,
 }
 --> COMPONENT INSTANCE TYPES
+
+export type EquipmentComponentInstance = Player
 
 export type MovementComponentInstance = Instance
 
 export type RegionComponentInstance = Instance
+
+export type SeedComponentInstance = Model
 
 export type VitalComponentInstance = Player
 

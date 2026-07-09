@@ -28,20 +28,17 @@ HitController.TryHit = function(self): boolean
 		HitPart = bodyPartID,
 		Origin = originPosition,
 		Direction = lookAtPosition,
+		TimeStamp = workspace:GetServerTimeNow()
 	})
-	print(isValid)
+
 	return isValid
 end
 
 HitController:OnStart(function(self)
+	
 	local handler = self.InputController:BindAction("TryHit", Enum.UserInputType.MouseButton1)
+	
 	handler.OnPress(function()
-		warn(`[button pressed]`)
-		self:TryHit()
-	end)
-
-	local handler2 = self.InputController:BindAction("TryHitKeyboard", Enum.KeyCode.E)
-	handler2.OnPress(function()
 		warn(`[button pressed]`)
 		self:TryHit()
 	end)

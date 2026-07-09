@@ -1,5 +1,5 @@
 {
-    "luau-lsp.plugin.enabled": true,
+    "luau-lsp.studioPlugin.enabled": true,
     "luau-lsp.sourcemap.enabled": true,
     "luau-lsp.sourcemap.autogenerate": true,
     "luau-lsp.sourcemap.sourcemapFile": "sourcemap.json",
@@ -12,5 +12,6 @@
     "[luau]": {
         "editor.defaultFormatter": "JohnnyMorganz.stylua"
     },
-    "modux.sync.cloudflareUrl": "https://modux-sync-relay.victorcarmo2003.workers.dev"
+    "modux.sync.cloudflareUrl": "https://modux-sync-relay.victorcarmo2003.workers.dev",
+    "modux.studioBridge.port": 9000
 }

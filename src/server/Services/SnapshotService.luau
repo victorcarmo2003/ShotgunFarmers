@@ -24,7 +24,7 @@ SnapshotService.ExpireSnapshot = function(self)
 end
 
 SnapshotService:OnInit(function(self)
-    self.Network.Packages.PlayerSnapshot:on(function(data, sender, timestamp)
+    self.Network.Packages.PlayerSnapshot:on(function(   data, sender, timestamp)
         self:RegisterSnapshot(data)    
     end)
 end)

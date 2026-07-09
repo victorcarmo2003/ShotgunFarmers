@@ -13,9 +13,6 @@ HitService.ValidateHit = function(self, Target: Player, Shooter: Player)
     local targetID = self.IDService:GetPlayerID(Target)
 
     self:DealDamage(Target, Shooter)
-
-    print(shooterID)
-    print(targetID)
 end
 
 HitService:OnInit(function(self) 
@@ -25,10 +22,9 @@ HitService:OnInit(function(self)
         end
 
         local targetPlayer = self.IDService:GetPlayerFromID(request.TargetID)
+        warn(`difference = {workspace:GetServerTimeNow() - request.TimeStamp}`)
         
         self:ValidateHit(targetPlayer, player)
-
-        warn(request)
         return {
             Accepted = true,
             Damage = 50,
