@@ -56,7 +56,16 @@ KillFeedController.GetCachedThumbnail = function(self, player: Player): string
 	return resolved
 end
 
-KillFeedController.PushEntry = function(self, shooter: Player, victim: Player, gunName: string, isHeadshot: boolean)
+-- `persistent` pula o auto-remove (ENTRY_LIFETIME) -- só usado pela entrada de teste em
+-- OnStart, pra dar tempo de ajustar a UI no Studio sem ela sumir sozinha.
+KillFeedController.PushEntry = function(
+	self,
+	shooter: Player,
+	victim: Player,
+	gunName: string,
+	isHeadshot: boolean,
+	persistent: boolean?
+)
 	self.NextEntryID += 1
 	local id = self.NextEntryID
 
@@ -89,6 +98,10 @@ KillFeedController.PushEntry = function(self, shooter: Player, victim: Player, g
 
 	self.Entries:set(entries)
 
+	if persistent then
+		return
+	end
+
 	task.delay(ENTRY_LIFETIME, function()
 		local current = table.clone(Fusion.peek(self.Entries))
 		current[id] = nil
@@ -97,6 +110,13 @@ KillFeedController.PushEntry = function(self, shooter: Player, victim: Player, g
 end
 
 KillFeedController:OnStart(function(self)
+	-- TEMPORÁRIO -- entrada fixa (não expira) só pra ajustar a UI no Studio sem precisar
+	-- matar ninguém. Usa o próprio LocalPlayer como shooter/victim pra pegar nome/
+	-- thumbnail reais. Pedir pra remover quando terminar de mexer no layout.
+	task.spawn(function()
+		self:PushEntry(self.LocalPlayer, self.LocalPlayer, "Shotgun", true, true)
+	end)
+
 	self.Network.Packages.KillFeed:on(function(data)
 		-- GetCachedThumbnail pode yieldar na primeira vez que vê cada Player -- roda numa
 		-- thread própria pra não travar outros handlers deste mesmo pacote (mesma cautela

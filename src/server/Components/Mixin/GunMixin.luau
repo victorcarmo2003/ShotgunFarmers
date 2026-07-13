@@ -78,30 +78,18 @@ local function getSeedsFolder(): Folder
 end
 
 GunMixin.PlantAt = function(self, Position: Vector3)
-	print(`[GunMixin] PlantAt chamado -- GunName={self.GunName} Position={Position}`)
-
+	
 	local dirt = ReplicatedStorage.Assets.Seeds.Dirt:Clone() :: SeedProp
-	-- CFrame.new(Position) sozinho tem rotação identidade -- descartava a rotação que a
-	-- part "Dirt" já vinha modelada (deitada) no Studio, plantando ela sempre em pé.
-	-- Preserva a rotação do clone (dirt.CFrame.Rotation, lido ANTES do PivotTo mudar),
-	-- só reposiciona.
 	dirt:PivotTo(CFrame.new(Position) * dirt.CFrame.Rotation)
-	-- SeedComponent (server, só colheita) e SeedController (client, só visual) leem
-	-- estes 2 atributos: GunName pra saber qual GunData.SeedModel usar, PlantedAt
-	-- (workspace:GetServerTimeNow(), sincronizado entre client/server) pra saber QUANDO
-	-- foi plantada -- toda a lógica de "quanto já cresceu" deriva do tempo decorrido
-	-- desde aqui, ninguém mais guarda/replica um "CurrentScale" ao vivo.
 	dirt:SetAttribute("GunName", self.GunName)
 	dirt:SetAttribute("PlantedAt", workspace:GetServerTimeNow())
 	dirt.Parent = getSeedsFolder()
 	CollectionService:AddTag(dirt, "SeedComponent")
 
-	print(`[GunMixin] Semente plantada em {dirt:GetFullName()}`)
 end
 
 GunMixin.TryPlant = function(self, origin: Vector3, direction: Vector3, Shooter: Player)
 	if direction.Magnitude < 0.5 then
-		print(`[GunMixin] TryPlant abortado -- direction.Magnitude < 0.5 ({direction.Magnitude})`)
 		return
 	end
 
@@ -109,13 +97,11 @@ GunMixin.TryPlant = function(self, origin: Vector3, direction: Vector3, Shooter:
 
 	local result = workspace:Raycast(origin, direction.Unit * PLANT_RAY_RANGE, plantRaycastParams)
 	if not result then
-		print(`[GunMixin] TryPlant -- raycast não bateu em nada (origin={origin})`)
 		return
 	end
 
 	local hasTag = CollectionService:HasTag(result.Instance, PLANTABLE_TAG)
-	print(`[GunMixin] TryPlant -- raycast bateu em {result.Instance:GetFullName()} (tag "{PLANTABLE_TAG}"={hasTag})`)
-
+	
 	if hasTag then
 		self:PlantAt(result.Position)
 	end
@@ -139,7 +125,6 @@ GunMixin.PlayShootSound = function(self, Shooter: Player, soundName: string)
 		soundsFolder = soundsFolder and soundsFolder:FindFirstChild("Sounds")
 		local soundTemplate = soundsFolder and soundsFolder:FindFirstChild(soundName)
 		if not soundTemplate or not soundTemplate:IsA("Sound") then
-			warn(`[GunMixin] Sound "{soundName}" não encontrado em ReplicatedStorage.Assets.Sounds.`)
 			return
 		end
 
@@ -147,12 +132,6 @@ GunMixin.PlayShootSound = function(self, Shooter: Player, soundName: string)
 		local weaponVisual = equipment and equipment.WeaponVisual
 		local soundParent = weaponVisual and weaponVisual.PrimaryPart
 		if not soundParent then
-			-- WeaponVisual pode ainda não existir -- RefreshVisual (EquipmentComponent)
-			-- roda em task.spawn esperando o character terminar de montar, e se o
-			-- jogador atirar bem rápido depois de trocar de arma/respawnar, essa
-			-- espera pode não ter terminado ainda. Cai pro HumanoidRootPart do
-			-- atirador -- não é exatamente a posição da arma, mas perto o bastante
-			-- pra o som nunca falhar silenciosamente.
 			local character = Shooter.Character
 			soundParent = character and character:FindFirstChild("HumanoidRootPart")
 		end
@@ -177,8 +156,6 @@ GunMixin:OnStart(function(self)
 	self.FireRate = 0
 	self.Knockback = 0
 	self.ShootSoundName = "" :: string
-	-- Nome da arma pro KillFeed (deve bater com uma key de GetGun.GunNames) -- cada
-	-- componente sobrescreve com o próprio nome no OnStart.
 	self.GunName = "" :: string
 	self.lastshoot = workspace:GetServerTimeNow() :: number
 end)

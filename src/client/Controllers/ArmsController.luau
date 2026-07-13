@@ -309,11 +309,26 @@ ArmsController.GetMuzzlePosition = function(self): Vector3?
 	return rightArm and rightArm.Position
 end
 
+-- Some com o viewmodel (braços + arma) -- usado quando o jogador morre (ver
+-- DeathCameraController), antes do respawn reconstruir um rig novo via RebuildRig/
+-- CharacterAdded. Sem isso, os braços/arma continuavam flutuando na tela mesmo com o
+-- character destruído, já que nada os escondia entre a morte e o próximo CharacterAdded.
+ArmsController.HideRig = function(self)
+	if self.Rig then
+		self.Rig:Destroy()
+		self.Rig = nil
+	end
+	self.WeaponModel = nil
+end
+
 -- buildViewmodelRig usa WaitForChild (pode não estar tudo pronto assim que
 -- CharacterAdded dispara) -- roda em task.spawn pra não travar OnStart/o evento,
 -- e reconfirma que o character ainda é o atual antes de aplicar (evita aplicar um
 -- rig obsoleto se o jogador respawnar de novo enquanto isso esperava).
 ArmsController.RebuildRig = function(self, character: Model)
+	local rebuildStart = os.clock()
+	print(`[ArmsController] RebuildRig chamado -- {character:GetFullName()}`)
+
 	if self.CharacterGuiConnection then
 		self.CharacterGuiConnection:Disconnect()
 		self.CharacterGuiConnection = nil
@@ -330,7 +345,9 @@ ArmsController.RebuildRig = function(self, character: Model)
 	end)
 
 	task.spawn(function()
+		local buildStart = os.clock()
 		local rig, animator = buildViewmodelRig(character)
+		print(`[ArmsController] buildViewmodelRig levou {os.clock() - buildStart}s`)
 
 		if self.LocalPlayer.Character ~= character then
 			if rig then
@@ -361,6 +378,7 @@ ArmsController.RebuildRig = function(self, character: Model)
 		self.Rig = rig
 		self.Animator = animator
 		self.CurrentOffset = HIP_OFFSET
+		print(`[ArmsController] Rig aplicado {os.clock() - rebuildStart}s depois do RebuildRig`)
 
 		-- Animator do character REAL (não o do viewmodel) -- é nele que EquipCharacterPose
 		-- toca a pose que replica pros outros players verem em 3ª pessoa.

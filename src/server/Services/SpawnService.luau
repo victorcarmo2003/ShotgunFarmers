@@ -13,17 +13,22 @@ end
 -- (Re)carrega o character do jogador imediatamente, sem checar o estado do round.
 -- Uso interno/de baixo nível -- de fora, prefira RequestSpawn.
 SpawnService.SpawnPlayer = function(self, Player: Player)
+	print(`[SpawnService] SpawnPlayer chamado -- {Player.Name}`)
+
 	if not Player:IsDescendantOf(game) then
+		print(`[SpawnService] SpawnPlayer abortado -- {Player.Name} não é mais descendente do game`)
 		return
 	end
 	Player:LoadCharacterAsync()
+	print(`[SpawnService] LoadCharacterAsync concluído -- {Player.Name}, Character={tostring(Player.Character)}`)
 
 	local spawnPoints = self:GetSpawnPoints()
+	print(`[SpawnService] {#spawnPoints} spawn point(s) com a tag "{SPAWN_TAG}"`)
 	if #spawnPoints > 0 then
 		local spawnPoint = spawnPoints[math.random(1, #spawnPoints)]
 		local character = Player.Character
 		if character then
-			character:PivotTo(spawnPoint:GetPivot())
+			character:PivotTo(spawnPoint:GetPivot() + Vector3.new(0, 2, 0))
 		end
 	end
 end

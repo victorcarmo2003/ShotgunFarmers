@@ -11,7 +11,7 @@ export type screenGuiProp = {
 	Parent: string?,
 	ResetOnSpawn: boolean,
 	ZIndexBehavior: string,
-} & {any}
+} & { any }
 
 local defaultProps: screenGuiProp = {
 	Archivable = true,
@@ -19,7 +19,7 @@ local defaultProps: screenGuiProp = {
 	Enabled = true,
 	IgnoreGuiInset = true,
 	Name = "ScreenGui",
-	ResetOnSpawn = true,
+	ResetOnSpawn = false,
 	ZIndexBehavior = "Sibling",
 }
 

@@ -51,19 +51,11 @@ InterfaceController:OnStart(function(self)
 		PlayerImage = GetThumbnail.HeadShot(self.LocalPlayer),
 	}
 
-	-- local GunNameValues = {
-	-- 	Text = self.Scope:Computed(function(use)
-	-- 		local gun = use(self.WeaponController.GunData)
-	-- 		return gun and gun.DisplayName or "Sem arma"
-	-- 	end),
-	-- }
-
 	local MainGui = Components.SurfaceGui(self.Scope, {
 		Name = "MainUI",
 		Adornee = part1,
 		[Children] = {
 			TimerLabel = TimerLabel(self.Scope),
-			-- GunNameLabel = GunNameLabel(self.Scope, GunNameValues),
 		},
 	})
 
@@ -75,10 +67,6 @@ InterfaceController:OnStart(function(self)
 		},
 	})
 
-	-- Espelha o DEFAULT_LOADOUT do EquipmentComponent (server) só pra saber qual arma
-	-- mostrar em cada slot -- nome/imagem são estáticos porque o loadout é fixo; a
-	-- munição em si vem ao vivo de WeaponController.SlotAmmo (uma por slot, sempre
-	-- visível, independente de qual está ativo agora).
 	local slot1Gun = GetGun:GetByName("Shotgun")
 	local slot2Gun = GetGun:GetByName("Peavolver")
 
@@ -122,12 +110,9 @@ InterfaceController:OnStart(function(self)
 		},
 	})
 
-	-- KillFeed usa a mesma Part da GunUI como Adornee (permitido -- várias SurfaceGuis
-	-- podem adornar a mesma Part, cada uma é um canvas 2D independente por cima dela),
-	-- só que num SurfaceGui próprio pra não competir por espaço/layout com o GunBar.
 	local KillFeedGui = Components.SurfaceGui(self.Scope, {
 		Name = "KillFeedUI",
-		Adornee = part3,
+		Adornee = part1,
 		[Children] = {
 			KillFeed(self.Scope, {
 				Entries = self.KillFeedController.Entries,
@@ -135,14 +120,6 @@ InterfaceController:OnStart(function(self)
 		},
 	})
 
-	-- Crosshair fica num ScreenGui de verdade (não SurfaceGui como o resto do HUD) --
-	-- precisa estar travado no centro exato do viewport, e SurfaceGui adorando uma
-	-- Part introduziria paralaxe/tremor conforme a câmera se move, o que arruinaria a
-	-- mira. AimType vem da arma equipada (Guns.luau); SpreadRatio combina os mesmos
-	-- fatores que o HitService/GunMixin usam de verdade (GameSettings.AimSpreadMultiplier
-	-- e MovingSpreadMultiplier), então o cone visual nunca diverge do cone real validado
-	-- no server. Enquanto mira, a crosshair inteira some (ver Crosshair.luau) -- não faz
-	-- sentido mostrar reticle olhando pela mira da arma.
 	local CrosshairAimType = self.Scope:Computed(function(use)
 		local gun = use(self.WeaponController.GunData)
 		return gun and gun.AimType or "Default"
@@ -166,8 +143,6 @@ InterfaceController:OnStart(function(self)
 				SpreadRatio = CrosshairSpreadRatio,
 				IsAiming = self.ArmsController.IsAimingValue,
 			}),
-			-- Reage a self.HitController.HitMarkerTrigger (contador que só sobe a cada
-			-- acerto CONFIRMADO pelo server -- ver HitService.ProcessFire/HitController.TryHit).
 			HitMarker(self.Scope, {
 				Trigger = self.HitController.HitMarkerTrigger,
 			}),

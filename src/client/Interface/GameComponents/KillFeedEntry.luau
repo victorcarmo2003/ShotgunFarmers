@@ -4,8 +4,8 @@ local Fusion = require(StarterPlayer.StarterPlayerScripts.Client.Interface.Fusio
 
 local Children = Fusion.Children
 
-local THUMB_SIZE = 24
-local GUN_ICON_SIZE = 20
+local THUMB_SIZE = 26
+local GUN_ICON_SIZE = 18
 
 export type KillFeedEntryValues = {
 	LayoutOrder: number,
@@ -37,18 +37,16 @@ local function nameLabel(scope: Fusion.Scope, name: string, text: string, order:
 	return Component.TextLabel(scope, {
 		Name = name,
 		AutomaticSize = Enum.AutomaticSize.X,
-		Size = UDim2.fromScale(0, 1),
+		Size = UDim2.fromScale(0, GUN_ICON_SIZE),
 		BackgroundTransparency = 1,
 		Text = text,
 		TextColor3 = Color3.new(1, 1, 1),
 		TextXAlignment = Enum.TextXAlignment.Left,
-		TextSize = 14,
+		TextSize = 26,
 		LayoutOrder = order,
 	})
 end
--- Uma linha do KillFeed, na ordem pedida: [foto do atirador] [nome] [ícone da arma]
--- [tag de headshot, se for] [foto de quem morreu] [nome]. `LayoutOrder` negativo (ver
--- KillFeedController.PushEntry) garante que a entrada mais nova sempre fica em cima.
+
 return function(scope: Fusion.Scope, values: KillFeedEntryValues)
 	return Component.Frame(scope, {
 		Name = "Entry",
@@ -63,7 +61,7 @@ return function(scope: Fusion.Scope, values: KillFeedEntryValues)
 				FillDirection = Enum.FillDirection.Horizontal,
 				VerticalAlignment = Enum.VerticalAlignment.Center,
 				HorizontalAlignment = Enum.HorizontalAlignment.Right,
-				Padding = UDim.new(0, 6),
+				Padding = UDim.new(.02, 0),
 			}),
 
 			ShooterImage = thumbnail(scope, "ShooterImage", values.ShooterImage, 0),
@@ -71,7 +69,7 @@ return function(scope: Fusion.Scope, values: KillFeedEntryValues)
 
 			GunImage = Component.ImageLabel(scope, {
 				Name = "GunImage",
-				Size = UDim2.fromOffset(GUN_ICON_SIZE, GUN_ICON_SIZE),
+				Size = UDim2.fromScale(0, GUN_ICON_SIZE),
 				BackgroundTransparency = 1,
 				Image = values.GunImage,
 				ScaleType = Enum.ScaleType.Fit,
@@ -85,7 +83,7 @@ return function(scope: Fusion.Scope, values: KillFeedEntryValues)
 				BackgroundTransparency = 1,
 				Text = "HS",
 				TextColor3 = Color3.fromRGB(255, 210, 60),
-				TextSize = 14,
+				TextSize = 26,
 				Visible = values.IsHeadshot,
 				LayoutOrder = 3,
 			}),

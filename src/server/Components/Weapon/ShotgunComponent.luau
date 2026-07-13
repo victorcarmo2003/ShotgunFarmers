@@ -18,13 +18,6 @@ ShotgunComponent.Shoot = function(
 	local confirmedHits: { { Player: Player, HitPart: number } } = {}
 
 	local spread = self:GetEffectiveSpread(Shooter, isAiming)
-	-- Teto anti-cheat: nunca VALIDA mais reivindicações de acerto do que projéteis reais
-	-- desta arma. Importante: isso só limita a validação de HIT -- o loop em si roda
-	-- self.ShootAmount vezes sempre, porque TryPlant precisa rodar pra TODO pellet
-	-- disparado, não só pros que o client reivindicou ter acertado um jogador (HitController
-	-- só inclui uma entrada em claimedPellets quando o raycast local acerta um Player --
-	-- atirar no chão/Farmland sem ninguém por perto manda claimedPellets = {}, e antes
-	-- disso zerava pelletsToCheck e pulava o loop inteiro, TryPlant incluso).
 	local pelletsToCheck = math.min(#claimedPellets, self.ShootAmount)
 	for i = 1, self.ShootAmount do
 		local pelletDirection = self:RandomSpread(direction, spread)

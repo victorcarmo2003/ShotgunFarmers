@@ -37,6 +37,7 @@ return {
 		"Controllers.CameraController",
 		"Controllers.ColorCorrectionController",
 		"Controllers.DayCycleController",
+		"Controllers.DeathCameraController",
 		"Controllers.FOVController",
 		"Controllers.HitController",
 		"Controllers.InputController",

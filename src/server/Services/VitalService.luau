@@ -1,22 +1,22 @@
 local CollectionService = game:GetService("CollectionService")
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
-local VitalService = Modux.Service("VitalService"):Import("PlayerService")
+local VitalService = Modux.Service("VitalService"):Import("PlayerService"):Import("SpawnService")
+
+-- Segundos de ragdoll (BreakJoints) antes do respawn de verdade.
+local RESPAWN_DELAY = 3
 
 VitalService.OnPlayerDie = function(self, Player: Player)
 	local character = Player.Character
 	local HRP = character:FindFirstChild("HumanoidRootPart", true)
 
-	warn(`breaking joints`)
 	if character and HRP then
 		self.Tools.BreakJoints(HRP)
 	end
 
-	warn(`destroying in 3 seconds`)
-	task.delay(3, function()
-		character:Destroy()
+	task.delay(RESPAWN_DELAY, function()
+		print(`[VitalService] Respawnando {Player.Name} depois do delay de ragdoll`)
+		self.SpawnService:RequestSpawn(Player)
 	end)
-
-	warn(`died`)
 end
 
 VitalService:OnInit(function(self)

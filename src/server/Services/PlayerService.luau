@@ -69,6 +69,7 @@ local function triggerPlayerAdded(player: Player)
 	end
 
 	PlayerService:Cleanup(player.CharacterRemoving:Connect(function(character)
+		print(`[PlayerService] CharacterRemoving disparado -- {player.Name} ({#PlayerService._characterRemovedCallbacks} callback(s))`)
 		triggerCharacterRemoved(character, player)
 		local position = table.find(PlayerService.allCharacters, character)
 		if position then

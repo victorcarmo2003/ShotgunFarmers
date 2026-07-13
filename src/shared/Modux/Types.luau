@@ -109,6 +109,7 @@ export type ControllerExtendFn = ControllerTypes.ControllerExtendFn
 export type ControllerFn = ControllerTypes.ControllerFn
 export type ControllerImportFn = ControllerTypes.ControllerImportFn
 export type DayCycleController = ControllerTypes.DayCycleController
+export type DeathCameraController = ControllerTypes.DeathCameraController
 export type FOVController = ControllerTypes.FOVController
 export type HitController = ControllerTypes.HitController
 export type InputController = ControllerTypes.InputController

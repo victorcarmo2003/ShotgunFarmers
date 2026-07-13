@@ -152,6 +152,7 @@ export type ArmsController = {
 	EquipCharacterPose: ((self: ArmsController) -> ()) & ((self: ArmsController, gunData: GunData?) -> ()),
 	PlayShoot: (self: ArmsController) -> (),
 	GetMuzzlePosition: (self: ArmsController) -> Vector3?,
+	HideRig: (self: ArmsController) -> (),
 	RebuildRig: (self: ArmsController, character: Model) -> (),
 	IsAiming: boolean,
 	WeaponModel: Model,
@@ -168,8 +169,8 @@ export type ArmsController = {
 	Looped: boolean,
 	Priority: Enum.AnimationPriority,
 },
-	CharacterGuiConnection: RBXScriptConnection?,
 	Rig: Model?,
+	CharacterGuiConnection: RBXScriptConnection?,
 	Animator: Animator?,
 	CharacterAnimator: Animator?,
 	CurrentOffset: CFrame,
@@ -303,6 +304,41 @@ export type DayCycleController = {
 	Attributes: { [string]: any },
 }
 
+export type DeathCameraController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	ArmsController: ArmsController,
+	GetSpectateCFrame: (self: DeathCameraController, shooterRoot: BasePart) -> CFrame,
+	StopSpectating: (self: DeathCameraController) -> any,
+	StartSpectating: (self: DeathCameraController, shooter: Player) -> any,
+	Extend: (self: DeathCameraController, id: "GunMixin" | "PlayerZoneComponent") -> DeathCameraController,
+	Import: ControllerImportFn,
+	OnInit: (self: DeathCameraController, cb: (self: DeathCameraController) -> ()) -> DeathCameraController,
+	OnStart: (self: DeathCameraController, cb: (self: DeathCameraController) -> ()) -> DeathCameraController,
+	OnTick: (self: DeathCameraController, cb: (self: DeathCameraController, deltaTime: number) -> (), rate: number, priority: number?) -> DeathCameraController,
+	OnSimulation: (self: DeathCameraController, cb: (self: DeathCameraController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> DeathCameraController,
+	OnDestroy: (self: DeathCameraController, cb: (self: DeathCameraController) -> ()) -> DeathCameraController,
+	Tag: (self: DeathCameraController, tag: string) -> DeathCameraController,
+	ClassName: (self: DeathCameraController, className: string) -> DeathCameraController,
+	AttributeDefaults: (self: DeathCameraController, schema: { [string]: any }) -> DeathCameraController,
+	Children: (self: DeathCameraController, children: { string }) -> DeathCameraController,
+	RequireComponent: (self: DeathCameraController, id: string) -> DeathCameraController,
+	New: (self: DeathCameraController, ID: string, Type: Type) -> DeathCameraController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
 export type FOVController = {
 	ID: string,
 	Type: Type,
@@ -420,7 +456,7 @@ export type KillFeedController = {
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
 	GetCachedThumbnail: (self: KillFeedController, player: Player) -> string,
-	PushEntry: (self: KillFeedController, shooter: Player, victim: Player, gunName: string, isHeadshot: boolean) -> (),
+	PushEntry: ((self: KillFeedController, shooter: Player, victim: Player, gunName: string, isHeadshot: boolean) -> ()) & ((self: KillFeedController, shooter: Player, victim: Player, gunName: string, isHeadshot: boolean, persistent: boolean?) -> ()),
 	Scope: Scope,
 	Entries: Value<{ [number]: KillFeedEntryData }>,
 	NextEntryID: number,
@@ -1023,6 +1059,7 @@ export type ControllerImportFn =
 	(<Self>(self: Self, id: "CameraController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "ColorCorrectionController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "DayCycleController", scopeKey: string?) -> Self) &
+	(<Self>(self: Self, id: "DeathCameraController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "FOVController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "HitController", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "InputController", scopeKey: string?) -> Self) &
@@ -1056,6 +1093,7 @@ export type ControllerFn =
 	((id: "CameraController", mode: Mode?) -> CameraController) &
 	((id: "ColorCorrectionController", mode: Mode?) -> ColorCorrectionController) &
 	((id: "DayCycleController", mode: Mode?) -> DayCycleController) &
+	((id: "DeathCameraController", mode: Mode?) -> DeathCameraController) &
 	((id: "FOVController", mode: Mode?) -> FOVController) &
 	((id: "HitController", mode: Mode?) -> HitController) &
 	((id: "InputController", mode: Mode?) -> InputController) &

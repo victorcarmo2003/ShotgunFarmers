@@ -36,7 +36,7 @@ local defaultProps: surfaceGuiProp = {
 	ToolPunchThroughDistance = 0,
 	ZOffset = 0,
 	Name = "SurfaceGui",
-	ResetOnSpawn = true,
+	ResetOnSpawn = false,
 	ZIndexBehavior = "Sibling",
 }
 

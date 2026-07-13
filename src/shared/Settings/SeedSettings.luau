@@ -12,7 +12,7 @@ return {
 	SEED_END_SCALE = 0.4,
 	SEED_GROW_TIME = 2,
 	-- Quanto o model da semente sobe (studs), de dentro da terra até a posição final.
-	SEED_RISE_HEIGHT = 1.5,
+	SEED_RISE_HEIGHT = 2,
 
 	-- Segundos após o plantio (GunMixin.PlantAt define PlantedAt) até o server liberar
 	-- o ProximityPrompt pra colheita -- comparado com workspace:GetServerTimeNow(), não
