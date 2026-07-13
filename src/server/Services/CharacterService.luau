@@ -4,6 +4,11 @@ local CharacterService = Modux.Service("CharacterService"):Import("PlayerService
 
 CharacterService:OnInit(function(self)
 	self.PlayerService:OnCharacterAdded(function(Character, Player: Player)
+		local defaultAnimate = Character:FindFirstChild("Animate")
+		if defaultAnimate then
+			defaultAnimate:Destroy()
+		end
+
 		for _, inst: Instance in Character:GetDescendants() do
 			if not inst:IsA("Accessory") then
 				continue

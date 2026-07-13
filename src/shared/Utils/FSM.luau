@@ -12,6 +12,7 @@ export type FSM<State> = {
 	Is: (self: FSM<State>, state: State) -> boolean,
 	CanTransition: (self: FSM<State>, nextState: State) -> boolean,
 	Transition: (self: FSM<State>, nextState: State) -> boolean,
+	ForceState: (self: FSM<State>, nextState: State) -> (),
 	OnEnter: (self: FSM<State>, state: State, callback: StateCallback<State>) -> Disconnect,
 	OnLeave: (self: FSM<State>, state: State, callback: StateCallback<State>) -> Disconnect,
 	OnTransition: (self: FSM<State>, callback: TransitionCallback<State>) -> Disconnect,
@@ -119,6 +120,36 @@ function FSM.Transition<State>(self: FSM<State>, nextState: State): boolean
 	end)
 
 	return true
+end
+
+-- Ignora `_transitions` e força o estado direto -- para casos como respawn, onde o
+-- estado anterior à morte pode não ter um caminho de volta válido na tabela normal
+-- de transições (ex: Sliding não pode ir direto pra Crouch).
+function FSM.ForceState<State>(self: FSM<State>, nextState: State)
+	if self._destroyed or self.State == nextState then
+		return
+	end
+
+	local previousState = self.State
+	self.State = nextState
+
+	local leaveListeners = self._leaveListeners[previousState]
+	if leaveListeners then
+		fireListeners(leaveListeners, function(listener)
+			listener(previousState, nextState)
+		end)
+	end
+
+	local enterListeners = self._enterListeners[nextState]
+	if enterListeners then
+		fireListeners(enterListeners, function(listener)
+			listener(nextState, previousState)
+		end)
+	end
+
+	fireListeners(self._transitionListeners, function(listener)
+		listener(previousState, nextState)
+	end)
 end
 
 function FSM.OnEnter<State>(self: FSM<State>, state: State, callback: StateCallback<State>): Disconnect

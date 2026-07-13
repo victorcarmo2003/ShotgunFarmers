@@ -4,50 +4,67 @@
 
 local CoreTypes = require(script.Parent.CoreTypes)
 local ComponentTypes = require(script.Parent.ComponentTypes)
+type AimType = CoreTypes.AimType
+type AmmoType = CoreTypes.AmmoType
 type BulletData = CoreTypes.BulletData
 type callbackZone = CoreTypes.callbackZone
+type Child = CoreTypes.Child
 type Context = CoreTypes.Context
 type DataKeyPayload = CoreTypes.DataKeyPayload
 type DataTemplate = CoreTypes.DataTemplate
 type DataTemplateKey = CoreTypes.DataTemplateKey
 type DayCycle = CoreTypes.DayCycle
 type Disconnect = CoreTypes.Disconnect
+type EffectState = CoreTypes.EffectState
 type Executor<T> = CoreTypes.Executor<T>
+type FOVState = CoreTypes.FOVState
 type FSM<State> = CoreTypes.FSM<State>
 type GlobalClock = CoreTypes.GlobalClock
+type GunData = CoreTypes.GunData
+type GunNames = CoreTypes.GunNames
 type HandlerType = CoreTypes.HandlerType
+type KillFeedEntryData = CoreTypes.KillFeedEntryData
 type LyncConnection = CoreTypes.LyncConnection
 type LyncKeyedPacket<Payload, Key, Value> = CoreTypes.LyncKeyedPacket<Payload, Key, Value>
 type LyncPacket<T> = CoreTypes.LyncPacket<T>
 type LyncPacketStats = CoreTypes.LyncPacketStats
 type LyncQuery<Req, Resp> = CoreTypes.LyncQuery<Req, Resp>
-type MainGuiType = CoreTypes.MainGuiType
 type Mode = CoreTypes.Mode
 type MovementStates = CoreTypes.MovementStates
 type Network = CoreTypes.Network
 type NetworkTarget = CoreTypes.NetworkTarget
 type OnCancel = CoreTypes.OnCancel
+type PanelConfig = CoreTypes.PanelConfig
 type PlayerZoneConfig = CoreTypes.PlayerZoneConfig
 type Promise<T> = CoreTypes.Promise<T>
 type PromiseAPI = CoreTypes.PromiseAPI
 type PromiseLike = CoreTypes.PromiseLike
 type PromiseStatus = CoreTypes.PromiseStatus
+type PropertyTable = CoreTypes.PropertyTable
 type R6 = CoreTypes.R6
 type Reject = CoreTypes.Reject
 type Resolve<T> = CoreTypes.Resolve<T>
+type RoundState = CoreTypes.RoundState
 type Scope = CoreTypes.Scope
+type ShootRequest = CoreTypes.ShootRequest
 type Signal<T...> = CoreTypes.Signal<T...>
 type SignalAPI = CoreTypes.SignalAPI
 type SignalConnection = CoreTypes.SignalConnection
-type SnapshotData = CoreTypes.SnapshotData
+type SlotIndex = CoreTypes.SlotIndex
+type SnapshotFrame = CoreTypes.SnapshotFrame
+type SpecialKey = CoreTypes.SpecialKey
 type State<T> = CoreTypes.State<T>
 type StateCallback<State> = CoreTypes.StateCallback<State>
 type TickRate = CoreTypes.TickRate
 type Tools = CoreTypes.Tools
 type TransitionCallback<State> = CoreTypes.TransitionCallback<State>
 type Transitions<State> = CoreTypes.Transitions<State>
+type Tween<T> = CoreTypes.Tween<T>
 type Type = CoreTypes.Type
+type Value<T> = CoreTypes.Value<T>
 type VitalAttributes = CoreTypes.VitalAttributes
+type WeaponAnimations = CoreTypes.WeaponAnimations
+type WeaponAnimationSet = CoreTypes.WeaponAnimationSet
 type ComponentExtendFn = ComponentTypes.ComponentExtendFn
 type ComponentFn = ComponentTypes.ComponentFn
 type ComponentImportFn = ComponentTypes.ComponentImportFn
@@ -60,17 +77,85 @@ type ImportFn = ComponentTypes.ImportFn
 type MixinExtendFn = ComponentTypes.MixinExtendFn
 type MixinFn = ComponentTypes.MixinFn
 type MovementComponent = ComponentTypes.MovementComponent
+type PeavolverComponent = ComponentTypes.PeavolverComponent
 type PlayerZoneComponent = ComponentTypes.PlayerZoneComponent
 type RegionComponent = ComponentTypes.RegionComponent
 type SeedComponent = ComponentTypes.SeedComponent
+type ShotgunComponent = ComponentTypes.ShotgunComponent
 type VitalComponent = ComponentTypes.VitalComponent
 type ZoneComponent = ComponentTypes.ZoneComponent
+type AnimateController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	GetState: (self: AnimateController) -> string,
+	LoadAnimator: (self: AnimateController, humanoid: Humanoid) -> (),
+	SetState: (self: AnimateController, state: string) -> any,
+	Tracks: { [any]: any },
+	Extend: (self: AnimateController, id: "GunMixin" | "PlayerZoneComponent") -> AnimateController,
+	Import: ImportFn,
+	OnInit: (self: AnimateController, cb: (self: AnimateController) -> ()) -> AnimateController,
+	OnStart: (self: AnimateController, cb: (self: AnimateController) -> ()) -> AnimateController,
+	OnTick: (self: AnimateController, cb: (self: AnimateController, deltaTime: number) -> (), rate: number, priority: number?) -> AnimateController,
+	OnSimulation: (self: AnimateController, cb: (self: AnimateController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> AnimateController,
+	OnDestroy: (self: AnimateController, cb: (self: AnimateController) -> ()) -> AnimateController,
+	Tag: (self: AnimateController, tag: string) -> AnimateController,
+	ClassName: (self: AnimateController, className: string) -> AnimateController,
+	AttributeDefaults: (self: AnimateController, schema: { [string]: any }) -> AnimateController,
+	Children: (self: AnimateController, children: { string }) -> AnimateController,
+	RequireComponent: (self: AnimateController, id: string) -> AnimateController,
+	New: (self: AnimateController, ID: string, Type: Type) -> AnimateController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
 type ArmsController = {
 	ID: string,
 	Type: Type,
 	LocalPlayer: Player,
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
+	WeaponController: WeaponController,
+	InputController: InputController,
+	SetAiming: (self: ArmsController, aiming: boolean) -> any,
+	EquipViewmodel: ((self: ArmsController) -> ()) & ((self: ArmsController, gunData: GunData?) -> ()),
+	EquipCharacterPose: ((self: ArmsController) -> ()) & ((self: ArmsController, gunData: GunData?) -> ()),
+	PlayShoot: (self: ArmsController) -> (),
+	GetMuzzlePosition: (self: ArmsController) -> Vector3?,
+	RebuildRig: (self: ArmsController, character: Model) -> (),
+	IsAiming: boolean,
+	WeaponModel: Model,
+	IdleTrack: AnimationTrack?,
+	AimTrack: AnimationTrack?,
+	ShootTrack: AnimationTrack?,
+	CharacterIdleTrack: {
+	Priority: Enum.AnimationPriority,
+},
+	CharacterAimTrack: {
+	Priority: Enum.AnimationPriority,
+},
+	CharacterShootTrack: {
+	Looped: boolean,
+	Priority: Enum.AnimationPriority,
+},
+	CharacterGuiConnection: RBXScriptConnection?,
+	Rig: Model?,
+	Animator: Animator?,
+	CharacterAnimator: Animator?,
+	CurrentOffset: CFrame,
+	LocalPlayer: Player,
+	Scope: Scope,
+	IsAimingValue: Value<boolean>,
 	Extend: (self: ArmsController, id: "GunMixin" | "PlayerZoneComponent") -> ArmsController,
 	Import: ImportFn,
 	OnInit: (self: ArmsController, cb: (self: ArmsController) -> ()) -> ArmsController,
@@ -104,7 +189,11 @@ type CameraController = {
 	LocalHumanoid: Humanoid?,
 	GetLookPart: (self: CameraController) -> (BasePart?, Player?),
 	GetLookAt: (self: CameraController) -> Vector3?,
+	GetLookDirection: (self: CameraController) -> Vector3?,
+	CreateEffect: (self: CameraController, effectName: string, intensity: number) -> (),
+	GetTiltOffset: (self: CameraController, camera: Camera, deltaTime: number) -> CFrame,
 	SetupFilters: (self: CameraController) -> (),
+	Effects: { [string]: EffectState },
 	Extend: (self: CameraController, id: "GunMixin" | "PlayerZoneComponent") -> CameraController,
 	Import: ImportFn,
 	OnInit: (self: CameraController, cb: (self: CameraController) -> ()) -> CameraController,
@@ -194,16 +283,55 @@ type DayCycleController = {
 	Attributes: { [string]: any },
 }
 
+type FOVController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	ArmsController: ArmsController,
+	ApplyFov: (self: FOVController, Style: FOVState) -> (),
+	TweenCamera: Tween,
+	Extend: (self: FOVController, id: "GunMixin" | "PlayerZoneComponent") -> FOVController,
+	Import: ImportFn,
+	OnInit: (self: FOVController, cb: (self: FOVController) -> ()) -> FOVController,
+	OnStart: (self: FOVController, cb: (self: FOVController) -> ()) -> FOVController,
+	OnTick: (self: FOVController, cb: (self: FOVController, deltaTime: number) -> (), rate: number, priority: number?) -> FOVController,
+	OnSimulation: (self: FOVController, cb: (self: FOVController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> FOVController,
+	OnDestroy: (self: FOVController, cb: (self: FOVController) -> ()) -> FOVController,
+	Tag: (self: FOVController, tag: string) -> FOVController,
+	ClassName: (self: FOVController, className: string) -> FOVController,
+	AttributeDefaults: (self: FOVController, schema: { [string]: any }) -> FOVController,
+	Children: (self: FOVController, children: { string }) -> FOVController,
+	RequireComponent: (self: FOVController, id: string) -> FOVController,
+	New: (self: FOVController, ID: string, Type: Type) -> FOVController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
 type HitController = {
 	ID: string,
 	Type: Type,
 	LocalPlayer: Player,
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
-	MovementController: MovementController,
 	CameraController: CameraController,
 	InputController: InputController,
+	WeaponController: WeaponController,
+	ProjectileController: ProjectileController,
+	ArmsController: ArmsController,
 	TryHit: (self: HitController) -> boolean,
+	LastShotTime: number,
+	Scope: Scope,
+	HitMarkerTrigger: Value<number>,
 	Extend: (self: HitController, id: "GunMixin" | "PlayerZoneComponent") -> HitController,
 	Import: ImportFn,
 	OnInit: (self: HitController, cb: (self: HitController) -> ()) -> HitController,
@@ -271,8 +399,29 @@ type InterfaceController = {
 	LocalPlayer: Player,
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
+	VitalController: VitalController,
+	WeaponController: WeaponController,
+	SurfaceUIController: SurfaceUIController,
+	ArmsController: ArmsController,
+	HitController: HitController,
+	KillFeedController: KillFeedController,
+	MovementController: MovementController,
 	Scope: Scope,
-	ScreenGui: MainGuiType,
+	MainGui: {
+	Parent: any,
+},
+	PlayerGui: {
+	Parent: any,
+},
+	GunGui: {
+	Parent: any,
+},
+	KillFeedGui: {
+	Parent: any,
+},
+	CrosshairGui: {
+	Parent: any,
+},
 	Extend: (self: InterfaceController, id: "GunMixin" | "PlayerZoneComponent") -> InterfaceController,
 	Import: ImportFn,
 	OnInit: (self: InterfaceController, cb: (self: InterfaceController) -> ()) -> InterfaceController,
@@ -298,6 +447,43 @@ type InterfaceController = {
 	Attributes: { [string]: any },
 }
 
+type KillFeedController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	GetCachedThumbnail: (self: KillFeedController, player: Player) -> string,
+	PushEntry: (self: KillFeedController, shooter: Player, victim: Player, gunName: string, isHeadshot: boolean) -> (),
+	Scope: Scope,
+	Entries: Value<{ [number]: KillFeedEntryData }>,
+	NextEntryID: number,
+	ThumbnailCache: { [Player]: string },
+	Extend: (self: KillFeedController, id: "GunMixin" | "PlayerZoneComponent") -> KillFeedController,
+	Import: ImportFn,
+	OnInit: (self: KillFeedController, cb: (self: KillFeedController) -> ()) -> KillFeedController,
+	OnStart: (self: KillFeedController, cb: (self: KillFeedController) -> ()) -> KillFeedController,
+	OnTick: (self: KillFeedController, cb: (self: KillFeedController, deltaTime: number) -> (), rate: number, priority: number?) -> KillFeedController,
+	OnSimulation: (self: KillFeedController, cb: (self: KillFeedController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> KillFeedController,
+	OnDestroy: (self: KillFeedController, cb: (self: KillFeedController) -> ()) -> KillFeedController,
+	Tag: (self: KillFeedController, tag: string) -> KillFeedController,
+	ClassName: (self: KillFeedController, className: string) -> KillFeedController,
+	AttributeDefaults: (self: KillFeedController, schema: { [string]: any }) -> KillFeedController,
+	Children: (self: KillFeedController, children: { string }) -> KillFeedController,
+	RequireComponent: (self: KillFeedController, id: string) -> KillFeedController,
+	New: (self: KillFeedController, ID: string, Type: Type) -> KillFeedController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
 type MovementController = {
 	ID: string,
 	Type: Type,
@@ -305,9 +491,23 @@ type MovementController = {
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
 	InputController: InputController,
+	SurfaceUIController: SurfaceUIController,
+	CameraController: CameraController,
 	GetCurrentPosition: (self: MovementController) -> any,
 	GetMoveDirection: (self: MovementController) -> any,
+	OnLanded: (self: MovementController, fallSpeed: number) -> any,
+	TryStartSlide: (self: MovementController) -> any,
+	StopSlide: (self: MovementController) -> any,
+	StepSlide: (self: MovementController, deltaTime: number) -> any,
+	TrackSliding: (self: MovementController) -> (),
+	TrackMoving: (self: MovementController) -> (),
+	TrackFalling: (self: MovementController) -> any,
 	BindKeys: (self: MovementController) -> (),
+	SlideDirection: Vector3,
+	SlideSpeed: number,
+	IsSliding: boolean,
+	Scope: Scope,
+	IsMovingValue: Value<boolean>,
 	Extend: (self: MovementController, id: "GunMixin" | "PlayerZoneComponent") -> MovementController,
 	Import: ImportFn,
 	OnInit: (self: MovementController, cb: (self: MovementController) -> ()) -> MovementController,
@@ -321,6 +521,47 @@ type MovementController = {
 	Children: (self: MovementController, children: { string }) -> MovementController,
 	RequireComponent: (self: MovementController, id: string) -> MovementController,
 	New: (self: MovementController, ID: string, Type: Type) -> MovementController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
+type MusicController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	PlayNext: (self: MusicController) -> any,
+	Playlist: { Sound },
+	PlaylistIndex: number,
+	CurrentSound: {
+	Looped: boolean,
+	Parent: any,
+	Volume: number,
+},
+	EndedConnection: RBXScriptConnection?,
+	MusicFolder: Folder,
+	Extend: (self: MusicController, id: "GunMixin" | "PlayerZoneComponent") -> MusicController,
+	Import: ImportFn,
+	OnInit: (self: MusicController, cb: (self: MusicController) -> ()) -> MusicController,
+	OnStart: (self: MusicController, cb: (self: MusicController) -> ()) -> MusicController,
+	OnTick: (self: MusicController, cb: (self: MusicController, deltaTime: number) -> (), rate: number, priority: number?) -> MusicController,
+	OnSimulation: (self: MusicController, cb: (self: MusicController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> MusicController,
+	OnDestroy: (self: MusicController, cb: (self: MusicController) -> ()) -> MusicController,
+	Tag: (self: MusicController, tag: string) -> MusicController,
+	ClassName: (self: MusicController, className: string) -> MusicController,
+	AttributeDefaults: (self: MusicController, schema: { [string]: any }) -> MusicController,
+	Children: (self: MusicController, children: { string }) -> MusicController,
+	RequireComponent: (self: MusicController, id: string) -> MusicController,
+	New: (self: MusicController, ID: string, Type: Type) -> MusicController,
 	GetComponent: GetComponentFn,
 	GetRequiredComponent: GetRequiredComponentFn,
 	GetAllComponents: GetAllComponentsFn,
@@ -401,8 +642,8 @@ type ProjectileController = {
 	LocalPlayer: Player,
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
-	Shoot: (self: ProjectileController, bulletData: BulletData) -> (),
-	AllBullets: {[number]: BulletData},
+	Shoot: (self: ProjectileController, request: ShootRequest) -> (),
+	AllBullets: { [number]: BulletData },
 	Extend: (self: ProjectileController, id: "GunMixin" | "PlayerZoneComponent") -> ProjectileController,
 	Import: ImportFn,
 	OnInit: (self: ProjectileController, cb: (self: ProjectileController) -> ()) -> ProjectileController,
@@ -434,8 +675,16 @@ type RoundController = {
 	LocalPlayer: Player,
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
-	SetupLabel: (self: RoundController) -> any,
-	UpdateLabel: (self: RoundController) -> any,
+	InterfaceController: InterfaceController,
+	SetupLabel: (self: RoundController) -> (),
+	UpdateLabel: (self: RoundController) -> (),
+	Label: {
+	Text: any,
+},
+	Scope: Scope,
+	Text: Value<string>,
+	CurrentTimer: Value<number>,
+	CurrentState: string,
 	Extend: (self: RoundController, id: "GunMixin" | "PlayerZoneComponent") -> RoundController,
 	Import: ImportFn,
 	OnInit: (self: RoundController, cb: (self: RoundController) -> ()) -> RoundController,
@@ -449,6 +698,110 @@ type RoundController = {
 	Children: (self: RoundController, children: { string }) -> RoundController,
 	RequireComponent: (self: RoundController, id: string) -> RoundController,
 	New: (self: RoundController, ID: string, Type: Type) -> RoundController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
+type SeedController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	RenderSeed: (self: SeedController, dirt: BasePart) -> any,
+	StepSeeds: (self: SeedController) -> (),
+	Extend: (self: SeedController, id: "GunMixin" | "PlayerZoneComponent") -> SeedController,
+	Import: ImportFn,
+	OnInit: (self: SeedController, cb: (self: SeedController) -> ()) -> SeedController,
+	OnStart: (self: SeedController, cb: (self: SeedController) -> ()) -> SeedController,
+	OnTick: (self: SeedController, cb: (self: SeedController, deltaTime: number) -> (), rate: number, priority: number?) -> SeedController,
+	OnSimulation: (self: SeedController, cb: (self: SeedController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> SeedController,
+	OnDestroy: (self: SeedController, cb: (self: SeedController) -> ()) -> SeedController,
+	Tag: (self: SeedController, tag: string) -> SeedController,
+	ClassName: (self: SeedController, className: string) -> SeedController,
+	AttributeDefaults: (self: SeedController, schema: { [string]: any }) -> SeedController,
+	Children: (self: SeedController, children: { string }) -> SeedController,
+	RequireComponent: (self: SeedController, id: string) -> SeedController,
+	New: (self: SeedController, ID: string, Type: Type) -> SeedController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
+type SnapshotController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	CameraController: CameraController,
+	MovementController: MovementController,
+	GetCurrentState: (self: SnapshotController) -> number,
+	SendSnapshot: (self: SnapshotController) -> any,
+	Extend: (self: SnapshotController, id: "GunMixin" | "PlayerZoneComponent") -> SnapshotController,
+	Import: ImportFn,
+	OnInit: (self: SnapshotController, cb: (self: SnapshotController) -> ()) -> SnapshotController,
+	OnStart: (self: SnapshotController, cb: (self: SnapshotController) -> ()) -> SnapshotController,
+	OnTick: (self: SnapshotController, cb: (self: SnapshotController, deltaTime: number) -> (), rate: number, priority: number?) -> SnapshotController,
+	OnSimulation: (self: SnapshotController, cb: (self: SnapshotController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> SnapshotController,
+	OnDestroy: (self: SnapshotController, cb: (self: SnapshotController) -> ()) -> SnapshotController,
+	Tag: (self: SnapshotController, tag: string) -> SnapshotController,
+	ClassName: (self: SnapshotController, className: string) -> SnapshotController,
+	AttributeDefaults: (self: SnapshotController, schema: { [string]: any }) -> SnapshotController,
+	Children: (self: SnapshotController, children: { string }) -> SnapshotController,
+	RequireComponent: (self: SnapshotController, id: string) -> SnapshotController,
+	New: (self: SnapshotController, ID: string, Type: Type) -> SnapshotController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
+type SurfaceUIController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	New: ((self: SurfaceUIController, name: string) -> Part) & ((self: SurfaceUIController, name: string, config: PanelConfig?) -> Part),
+	Get: (self: SurfaceUIController, name: string) -> Part?,
+	Remove: (self: SurfaceUIController, name: string) -> any,
+	CreateEffect: (self: SurfaceUIController, part: Part, effectName: string, intensity: number) -> (),
+	Panels: { [any]: any },
+	Effects: { [Part]: { [string]: EffectState } },
+	Extend: (self: SurfaceUIController, id: "GunMixin" | "PlayerZoneComponent") -> SurfaceUIController,
+	Import: ImportFn,
+	OnInit: (self: SurfaceUIController, cb: (self: SurfaceUIController) -> ()) -> SurfaceUIController,
+	OnStart: (self: SurfaceUIController, cb: (self: SurfaceUIController) -> ()) -> SurfaceUIController,
+	OnTick: (self: SurfaceUIController, cb: (self: SurfaceUIController, deltaTime: number) -> (), rate: number, priority: number?) -> SurfaceUIController,
+	OnSimulation: (self: SurfaceUIController, cb: (self: SurfaceUIController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> SurfaceUIController,
+	OnDestroy: (self: SurfaceUIController, cb: (self: SurfaceUIController) -> ()) -> SurfaceUIController,
+	Tag: (self: SurfaceUIController, tag: string) -> SurfaceUIController,
+	ClassName: (self: SurfaceUIController, className: string) -> SurfaceUIController,
+	AttributeDefaults: (self: SurfaceUIController, schema: { [string]: any }) -> SurfaceUIController,
+	Children: (self: SurfaceUIController, children: { string }) -> SurfaceUIController,
+	RequireComponent: (self: SurfaceUIController, id: string) -> SurfaceUIController,
 	GetComponent: GetComponentFn,
 	GetRequiredComponent: GetRequiredComponentFn,
 	GetAllComponents: GetAllComponentsFn,
@@ -525,6 +878,37 @@ type UIAnimationsController = {
 	Attributes: { [string]: any },
 }
 
+type UnlockCameraController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	Extend: (self: UnlockCameraController, id: "GunMixin" | "PlayerZoneComponent") -> UnlockCameraController,
+	Import: ImportFn,
+	OnInit: (self: UnlockCameraController, cb: (self: UnlockCameraController) -> ()) -> UnlockCameraController,
+	OnStart: (self: UnlockCameraController, cb: (self: UnlockCameraController) -> ()) -> UnlockCameraController,
+	OnTick: (self: UnlockCameraController, cb: (self: UnlockCameraController, deltaTime: number) -> (), rate: number, priority: number?) -> UnlockCameraController,
+	OnSimulation: (self: UnlockCameraController, cb: (self: UnlockCameraController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> UnlockCameraController,
+	OnDestroy: (self: UnlockCameraController, cb: (self: UnlockCameraController) -> ()) -> UnlockCameraController,
+	Tag: (self: UnlockCameraController, tag: string) -> UnlockCameraController,
+	ClassName: (self: UnlockCameraController, className: string) -> UnlockCameraController,
+	AttributeDefaults: (self: UnlockCameraController, schema: { [string]: any }) -> UnlockCameraController,
+	Children: (self: UnlockCameraController, children: { string }) -> UnlockCameraController,
+	RequireComponent: (self: UnlockCameraController, id: string) -> UnlockCameraController,
+	New: (self: UnlockCameraController, ID: string, Type: Type) -> UnlockCameraController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
 type VitalController = {
 	ID: string,
 	Type: Type,
@@ -532,12 +916,16 @@ type VitalController = {
 	LocalCharacter: Model?,
 	LocalHumanoid: Humanoid?,
 	ColorCorrectionController: ColorCorrectionController,
-	OnUpdateHealth: (self: VitalController, Amount: number) -> (),
-	UpdateHealth: (self: VitalController, arg1: number) -> (),
-	Health: number,
+	GetScopes: (self: VitalController) -> Scope,
+	OnUpdateHealth: (self: VitalController, amount: number) -> (),
+	UpdateHealth: (self: VitalController, amount: number) -> (),
+	UpdateArmor: (self: VitalController, amount: number) -> (),
+	Scope: Scope,
+	Health: Value<number>,
+	Armor: Value<number>,
+	OnMobile: Value<boolean>,
 	MaxHealth: number,
-	PlayerStatus: any,
-	Armor: number,
+	MaxArmor: number,
 	Stamina: number,
 	MaxStamina: number,
 	Extend: (self: VitalController, id: "GunMixin" | "PlayerZoneComponent") -> VitalController,
@@ -553,6 +941,49 @@ type VitalController = {
 	Children: (self: VitalController, children: { string }) -> VitalController,
 	RequireComponent: (self: VitalController, id: string) -> VitalController,
 	New: (self: VitalController, ID: string, Type: Type) -> VitalController,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
+type WeaponController = {
+	ID: string,
+	Type: Type,
+	LocalPlayer: Player,
+	LocalCharacter: Model?,
+	LocalHumanoid: Humanoid?,
+	InputController: InputController,
+	GetScopes: (self: WeaponController) -> Scope,
+	UpdateWeaponID: (self: WeaponController, weaponID: number) -> (),
+	UpdateSlotAmmo: (self: WeaponController, slot: number, ammo: number) -> (),
+	UpdateActiveSlot: (self: WeaponController, slot: number) -> (),
+	SwitchSlot: (self: WeaponController, slot: number) -> (),
+	Scope: Scope,
+	WeaponID: Value<number>,
+	ActiveSlot: Value<number>,
+	SlotAmmo: { Value<number> },
+	GunData: any,
+	Ammo: any,
+	Extend: (self: WeaponController, id: "GunMixin" | "PlayerZoneComponent") -> WeaponController,
+	Import: ImportFn,
+	OnInit: (self: WeaponController, cb: (self: WeaponController) -> ()) -> WeaponController,
+	OnStart: (self: WeaponController, cb: (self: WeaponController) -> ()) -> WeaponController,
+	OnTick: (self: WeaponController, cb: (self: WeaponController, deltaTime: number) -> (), rate: number, priority: number?) -> WeaponController,
+	OnSimulation: (self: WeaponController, cb: (self: WeaponController, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> WeaponController,
+	OnDestroy: (self: WeaponController, cb: (self: WeaponController) -> ()) -> WeaponController,
+	Tag: (self: WeaponController, tag: string) -> WeaponController,
+	ClassName: (self: WeaponController, className: string) -> WeaponController,
+	AttributeDefaults: (self: WeaponController, schema: { [string]: any }) -> WeaponController,
+	Children: (self: WeaponController, children: { string }) -> WeaponController,
+	RequireComponent: (self: WeaponController, id: string) -> WeaponController,
+	New: (self: WeaponController, ID: string, Type: Type) -> WeaponController,
 	GetComponent: GetComponentFn,
 	GetRequiredComponent: GetRequiredComponentFn,
 	GetAllComponents: GetAllComponentsFn,
@@ -635,44 +1066,19 @@ export type DayNightService = {
 	Attributes: { [string]: any },
 }
 
-export type EquipmentService = {
-	ID: string,
-	Type: Type,
-	PlayerService: PlayerService,
-	Extend: (self: EquipmentService, id: "GunMixin" | "PlayerZoneComponent") -> EquipmentService,
-	Import: ServiceImportFn,
-	OnInit: (self: EquipmentService, cb: (self: EquipmentService) -> ()) -> EquipmentService,
-	OnStart: (self: EquipmentService, cb: (self: EquipmentService) -> ()) -> EquipmentService,
-	OnTick: (self: EquipmentService, cb: (self: EquipmentService, deltaTime: number) -> (), rate: number, priority: number?) -> EquipmentService,
-	OnSimulation: (self: EquipmentService, cb: (self: EquipmentService, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> EquipmentService,
-	OnDestroy: (self: EquipmentService, cb: (self: EquipmentService) -> ()) -> EquipmentService,
-	Tag: (self: EquipmentService, tag: string) -> EquipmentService,
-	ClassName: (self: EquipmentService, className: string) -> EquipmentService,
-	AttributeDefaults: (self: EquipmentService, schema: { [string]: any }) -> EquipmentService,
-	Children: (self: EquipmentService, children: { string }) -> EquipmentService,
-	RequireComponent: (self: EquipmentService, id: string) -> EquipmentService,
-	New: (self: EquipmentService, ID: string, Type: Type) -> EquipmentService,
-	GetComponent: GetComponentFn,
-	GetRequiredComponent: GetRequiredComponentFn,
-	GetAllComponents: GetAllComponentsFn,
-	Cleanup: <T>(self: any, task: T) -> T,
-	Network: Network,
-	Promise: PromiseAPI,
-	GlobalClock: GlobalClock,
-	Signal: SignalAPI,
-	Tools: Tools,
-	Attributes: { [string]: any },
-}
-
 export type GameService = {
 	ID: string,
 	Type: Type,
 	DayNightService: DayNightService,
-	CurrentState: GameStates,
-	OnBegin: Signal<>,
-	OnNormal: Signal<>,
-	OnDarkMoon: Signal<>,
-	State: FSM<GameStates>,
+	ReplicateRoundState: (self: GameService) -> (),
+	AdvanceState: (self: GameService) -> any,
+	CurrentState: RoundState,
+	TimeLeft: number,
+	OnStarting: Signal<>,
+	OnMatch: Signal<>,
+	OnIntermission: Signal<>,
+	OnVote: Signal<>,
+	State: FSM<RoundState>,
 	Extend: (self: GameService, id: "GunMixin" | "PlayerZoneComponent") -> GameService,
 	Import: ServiceImportFn,
 	OnInit: (self: GameService, cb: (self: GameService) -> ()) -> GameService,
@@ -702,8 +1108,11 @@ export type HitService = {
 	ID: string,
 	Type: Type,
 	IDService: IDService,
-	DealDamage: (self: HitService, Target: Player, Shooter: Player) -> (),
-	ValidateHit: (self: HitService, Target: Player, Shooter: Player) -> (),
+	SnapshotService: SnapshotService,
+	DealDamage: (self: HitService, Target: Player, Shooter: Player, damage: number) -> boolean,
+	ApplyKnockback: (self: HitService, root: BasePart, direction: Vector3, force: number) -> any,
+	ResolvePellet: (self: HitService, Shooter: Player, origin: Vector3, direction: Vector3, claimedTargetID: number, claimedHitPart: number, timestamp: number) -> (boolean, Player?, number?),
+	ProcessFire: (self: HitService, request: any, Shooter: Player) -> { Accepted: boolean, Hits: number },
 	Extend: (self: HitService, id: "GunMixin" | "PlayerZoneComponent") -> HitService,
 	Import: ServiceImportFn,
 	OnInit: (self: HitService, cb: (self: HitService) -> ()) -> HitService,
@@ -927,9 +1336,12 @@ export type SnapshotService = {
 	ID: string,
 	Type: Type,
 	IDService: IDService,
+	PlayerService: PlayerService,
 	RegisterSnapshot: (self: SnapshotService, Player: Player, snapshot: any) -> (),
-	ExpireSnapshot: (self: SnapshotService) -> (),
-	AllSnapshots: {[number]: SnapshotData},
+	GetHistory: (self: SnapshotService, targetID: number) -> { SnapshotFrame }?,
+	GetRewoundPosition: (self: SnapshotService, targetID: number, atTime: number) -> Vector3?,
+	ClearHistory: (self: SnapshotService, targetID: number) -> (),
+	History: { [number]: { SnapshotFrame } },
 	Extend: (self: SnapshotService, id: "GunMixin" | "PlayerZoneComponent") -> SnapshotService,
 	Import: ServiceImportFn,
 	OnInit: (self: SnapshotService, cb: (self: SnapshotService) -> ()) -> SnapshotService,
@@ -955,10 +1367,43 @@ export type SnapshotService = {
 	Attributes: { [string]: any },
 }
 
+export type SpawnService = {
+	ID: string,
+	Type: Type,
+	PlayerService: PlayerService,
+	GetSpawnPoints: (self: SpawnService) -> { BasePart },
+	SpawnPlayer: (self: SpawnService, Player: Player) -> any,
+	RequestSpawn: (self: SpawnService, Player: Player) -> (),
+	Extend: (self: SpawnService, id: "GunMixin" | "PlayerZoneComponent") -> SpawnService,
+	Import: ServiceImportFn,
+	OnInit: (self: SpawnService, cb: (self: SpawnService) -> ()) -> SpawnService,
+	OnStart: (self: SpawnService, cb: (self: SpawnService) -> ()) -> SpawnService,
+	OnTick: (self: SpawnService, cb: (self: SpawnService, deltaTime: number) -> (), rate: number, priority: number?) -> SpawnService,
+	OnSimulation: (self: SpawnService, cb: (self: SpawnService, deltaTime: number) -> (), frequency: Enum.StepFrequency?, priority: number?) -> SpawnService,
+	OnDestroy: (self: SpawnService, cb: (self: SpawnService) -> ()) -> SpawnService,
+	Tag: (self: SpawnService, tag: string) -> SpawnService,
+	ClassName: (self: SpawnService, className: string) -> SpawnService,
+	AttributeDefaults: (self: SpawnService, schema: { [string]: any }) -> SpawnService,
+	Children: (self: SpawnService, children: { string }) -> SpawnService,
+	RequireComponent: (self: SpawnService, id: string) -> SpawnService,
+	New: (self: SpawnService, ID: string, Type: Type) -> SpawnService,
+	GetComponent: GetComponentFn,
+	GetRequiredComponent: GetRequiredComponentFn,
+	GetAllComponents: GetAllComponentsFn,
+	Cleanup: <T>(self: any, task: T) -> T,
+	Network: Network,
+	Promise: PromiseAPI,
+	GlobalClock: GlobalClock,
+	Signal: SignalAPI,
+	Tools: Tools,
+	Attributes: { [string]: any },
+}
+
 export type VitalService = {
 	ID: string,
 	Type: Type,
 	PlayerService: PlayerService,
+	OnPlayerDie: (self: VitalService, Player: Player) -> (),
 	Extend: (self: VitalService, id: "GunMixin" | "PlayerZoneComponent") -> VitalService,
 	Import: ServiceImportFn,
 	OnInit: (self: VitalService, cb: (self: VitalService) -> ()) -> VitalService,
@@ -1050,7 +1495,6 @@ export type ZoneService = {
 export type ServiceImportFn =
 	(<Self>(self: Self, id: "CharacterService", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "DayNightService", scopeKey: string?) -> Self) &
-	(<Self>(self: Self, id: "EquipmentService", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "GameService", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "HitService", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "IDService", scopeKey: string?) -> Self) &
@@ -1060,6 +1504,7 @@ export type ServiceImportFn =
 	(<Self>(self: Self, id: "PlayerService", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "ProfileService", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "SnapshotService", scopeKey: string?) -> Self) &
+	(<Self>(self: Self, id: "SpawnService", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "VitalService", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "WeaponService", scopeKey: string?) -> Self) &
 	(<Self>(self: Self, id: "ZoneService", scopeKey: string?) -> Self)
@@ -1075,7 +1520,6 @@ export type ServiceExtendFn =
 export type ServiceFn =
 	((id: "CharacterService", mode: Mode?) -> CharacterService) &
 	((id: "DayNightService", mode: Mode?) -> DayNightService) &
-	((id: "EquipmentService", mode: Mode?) -> EquipmentService) &
 	((id: "GameService", mode: Mode?) -> GameService) &
 	((id: "HitService", mode: Mode?) -> HitService) &
 	((id: "IDService", mode: Mode?) -> IDService) &
@@ -1085,6 +1529,7 @@ export type ServiceFn =
 	((id: "PlayerService", mode: Mode?) -> PlayerService) &
 	((id: "ProfileService", mode: Mode?) -> ProfileService) &
 	((id: "SnapshotService", mode: Mode?) -> SnapshotService) &
+	((id: "SpawnService", mode: Mode?) -> SpawnService) &
 	((id: "VitalService", mode: Mode?) -> VitalService) &
 	((id: "WeaponService", mode: Mode?) -> WeaponService) &
 	((id: "ZoneService", mode: Mode?) -> ZoneService)

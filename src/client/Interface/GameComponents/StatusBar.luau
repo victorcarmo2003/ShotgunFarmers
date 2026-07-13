@@ -3,45 +3,52 @@ local ProgressionBar = require(script.Parent.ProgressionBar)
 local Components = require(StarterPlayer.StarterPlayerScripts.Client.Interface.Components)
 local Fusion = require(StarterPlayer.StarterPlayerScripts.Client.Interface.Fusion)
 
+local localPlayer = game.Players.LocalPlayer
 local Children = Fusion.Children
 
-return function(scope: Fusion.Scope)
-	-- TODO: substituir por Values reais do VitalController quando a rede estiver ligada
+return function(scope: Fusion.Scope, Values)
 	local shieldValues = {
-		Percent = scope:Value(1),
-		Text = scope:Value("100%"),
+		Percent = Values.Armor,
+		Text = scope:Computed(function(use)
+			return `{math.floor(use(Values.Armor) * 100)}%`
+		end),
 	}
 	local healthValues = {
-		Percent = scope:Value(1),
-		Text = scope:Value("100%"),
+		Percent = Values.Health,
+		Text = scope:Computed(function(use)
+			return `{math.floor(use(Values.Health) * 100)}%`
+		end),
 	}
 
 	return Components.CanvasGroup(scope, {
 		Visible = true,
-		Size = UDim2.fromScale(0.25, 0.1),
+		Size = UDim2.fromScale(0.3, 0.2),
 		BackgroundTransparency = 1,
+		Position = UDim2.fromScale(0.15, 0.895),
 
 		[Children] = {
 			UIListLayout = Components.UIListLayout(scope, {
 				FillDirection = "Horizontal",
 				Padding = UDim.new(0.05),
+				Wraps = true,
 			}),
 			UIPadding = Components.UIPadding(scope, {
 				PaddingLeft = UDim.new(0.05, 0),
 			}),
 			PlayerImage = Components.ImageLabel(scope, {
 				LayoutOrder = 1,
-				Size = UDim2.fromScale(0.2, 0.8),
+				Size = UDim2.fromScale(0.2, 0.45),
 				Name = "PlayerImage",
 				Visible = true,
+				Image = Values.PlayerImage,
+				BackgroundColor3 = Color3.new(0.12549, 0.12549, 0.12549),
 			}),
 			StatusFrame = Components.Frame(scope, {
 				LayoutOrder = 2,
 				Name = "PlayerStatus",
 				Visible = true,
 				BackgroundTransparency = 1,
-				Size = UDim2.fromScale(0.65, 0.8),
-
+				Size = UDim2.fromScale(0.7, 0.4),
 				[Children] = {
 					UIGrid = Components.UIGridLayout(scope, {
 						CellSize = UDim2.fromScale(1, 0.5),
@@ -49,12 +56,24 @@ return function(scope: Fusion.Scope)
 					ShieldBar = ProgressionBar(scope, {
 						LayoutOrder = 1,
 						Name = "ShieldBar",
-					}, shieldValues),
+						Visible = true,
+						Color = ColorSequence.new(Color3.new(0, 0.411765, 0.886275)),
+					}, shieldValues, "rbxassetid://84000941134084"),
 					HealthBar = ProgressionBar(scope, {
 						LayoutOrder = 2,
 						Name = "HealthBar",
-					}, healthValues),
+						Visible = true,
+						Color = ColorSequence.new(Color3.new(0, 0.619608, 0.411765)),
+					}, healthValues, "rbxassetid://98924504834257"),
 				},
+			}),
+
+			TextLabel = Components.TextLabel(scope, {
+				LayoutOrder = 0,
+				Text = localPlayer.DisplayName,
+				Size = UDim2.fromScale(1, 0.3),
+				TextSize = 42,
+				TextXAlignment = Enum.TextXAlignment.Left,
 			}),
 		},
 	})

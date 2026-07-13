@@ -12,8 +12,15 @@ local function WaitForChildOfClass<T>(parent, className): T
 	return child
 end
 
+local function BreakJoints(Part)
+	for _, joint in Part:GetJoints() do
+		joint:Destroy()
+	end
+end
+
 return {
 	WaitForChildOfClass = WaitForChildOfClass,
 	Spring = springWrapper,
 	Debounce = debounce,
+	BreakJoints = BreakJoints,
 }

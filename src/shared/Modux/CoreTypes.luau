@@ -6,6 +6,42 @@
 export type Mode = "Singleton" | "Transient"
 export type Type = "Service" | "Controller" | "Component" | "Mixin"
 export type TickRate = number
+export type Child = Instance | Value<Child> | { [unknown]: Child }
+export type PropertyTable = { [string | SpecialKey]: unknown }
+export type SpecialKey = {
+	type: "SpecialKey",
+	kind: string,
+	stage: "self" | "descendants" | "ancestor" | "observer",
+	apply: (self: SpecialKey, scope: Scope, value: unknown, applyTo: Instance) -> (),
+}
+export type Scope = {
+	[any]: any,
+	Value: <T>(self: Scope, initialValue: T) -> Value<T>,
+	New: (self: Scope, className: string) -> (propertyTable: PropertyTable) -> Instance,
+	Hydrate: (self: Scope, target: Instance) -> (propertyTable: PropertyTable) -> Instance,
+	Children: SpecialKey,
+	Out: (self: Scope, propertyName: string) -> SpecialKey,
+	OnEvent: (self: Scope, eventName: string) -> SpecialKey,
+	OnChange: (self: Scope, propertyName: string) -> SpecialKey,
+	Attribute: (self: Scope, attributeName: string) -> SpecialKey,
+	AttributeChange: (self: Scope, attributeName: string) -> SpecialKey,
+	AttributeOut: (self: Scope, attributeName: string) -> SpecialKey,
+}
+export type Value<T> = {
+	scope: any?,
+	oldestTask: any,
+	createdAt: number,
+	dependencySet: { [any]: unknown },
+	dependentSet: { [any]: unknown },
+	lastChange: number?,
+	timeliness: "lazy" | "eager",
+	validity: "valid" | "invalid" | "busy",
+	_evaluate: (any) -> boolean,
+	type: "State",
+	kind: string,
+	_EXTREMELY_DANGEROUS_usedAsValue: T,
+	set: (self: Value<T>, newValue: T, force: boolean?) -> T,
+}
 --> REACHABLE PROJECT TYPES (generated statically)
 export type DataTemplate = {
 	Gems: number,
@@ -51,6 +87,46 @@ export type DataKeyPayload =
 	| { key: "SoundVolume", value: number }
 	| { key: "MusicEnabled", value: boolean }
 	| { key: "SoundEnabled", value: boolean }
+export type AmmoType = "Single" | "Multi" | "Area"
+export type WeaponAnimationSet = {
+	Idle: string,
+	Aim: string,
+	Shoot: string,
+}
+export type WeaponAnimations = {
+	-- Toca no rig do viewmodel (braços esticados por RigBuilder.ARM_SIZE, só o dono vê).
+	Viewmodel: WeaponAnimationSet,
+	-- Toca no Animator do Humanoid REAL (proporção normal) -- replica pra 3ª pessoa
+	-- automaticamente, ver ArmsController.EquipCharacterPose.
+	Character: WeaponAnimationSet,
+}
+export type AimType = "Spread" | "Default"
+export type GunData = {
+	ID: number,
+	DisplayName: string,
+	BulletType: AmmoType,
+	Amount: number,
+	Damage: number,
+	Spread: number,
+	Bullets: number,
+	FireRate: number,
+	ImageID: string,
+	Knockback: number,
+	Animations: WeaponAnimations,
+	-- Name do Sound dentro de ReplicatedStorage.Assets.Sounds tocado a cada tiro (ver
+	-- GunMixin.PlayShootSound) -- "" quando a arma ainda não tem som gravado.
+	ShootSound: string,
+	-- Name do Model dentro de ReplicatedStorage.Assets.Seeds clonado por SeedComponent
+	-- ao germinar (ver GunMixin.PlantAt).
+	SeedModel: string,
+	-- Estilo de crosshair (Interface/GameComponents/Crosshair.luau) -- "Spread" mostra
+	-- as 4 marcas que se afastam com o spread efetivo, "Default" é o "+" estático.
+	-- Opcional: arma sem AimType (as 7 ainda sem componente) cai pro "Default".
+	AimType: AimType?,
+}
+export type EffectState = { Trauma: number, Seed: number }
+export type FOVState = "Run" | "Idle"
+export type Tween<T> = Tween<T>
 export type HandlerType = {
 	OnPress: (() -> ()) -> (),
 	OnRelease: (() -> ()) -> (),
@@ -58,11 +134,29 @@ export type HandlerType = {
 	_onReleaseCallbacks: { [number]: () -> () },
 }
 export type Context = "Gameplay" | "Menu" | "Cutscene"
-export type BulletData = {
-	instance: BasePart,
+export type KillFeedEntryData = {
+	LayoutOrder: number,
+	ShooterName: string,
+	ShooterImage: string,
+	VictimName: string,
+	VictimImage: string,
+	GunName: string,
+	GunImage: string,
+	IsHeadshot: boolean,
+}
+export type ShootRequest = {
 	startPos: Vector3,
 	endPos: Vector3,
 	ammoType: GetGun.AmmoType,
+}
+export type BulletData = ShootRequest & {
+	instance: BasePart,
+	startTime: number,
+	arrivedAt: number?,
+}
+export type PanelConfig = {
+	Depth: number?,
+	Rotation: Vector3?,
 }
 type AnimationHandle<T> = {
 	Completed: RBXScriptSignal,
@@ -106,10 +200,16 @@ type SequenceAnimationHandle = {
 	GetCurrentPos: (self: SequenceAnimationHandle) -> any,
 	Destroy: (self: SequenceAnimationHandle) -> SequenceAnimationHandle,
 }
-export type Scope = Scope.ScopeHandle
-export type MainGuiType = {
-	TimerLabel: TextLabel,
-} & ScreenGui
+export type SlotIndex = number
+export type GunNames = "Shotgun"
+	| "Sniperagus"
+	| "Carrocket"
+	| "Peavolver"
+	| "Gromato Launcher"
+	| "Chilli Thrower"
+	| "M6Bean"
+	| "WatermeLMG"
+	| "Double Cob"
 export type State<T> = PubTypes.Value<T> & {
 	_value: T
 }
@@ -124,6 +224,7 @@ export type FSM<State> = {
 	Is: (self: FSM<State>, state: State) -> boolean,
 	CanTransition: (self: FSM<State>, nextState: State) -> boolean,
 	Transition: (self: FSM<State>, nextState: State) -> boolean,
+	ForceState: (self: FSM<State>, nextState: State) -> (),
 	OnEnter: (self: FSM<State>, state: State, callback: StateCallback<State>) -> Disconnect,
 	OnLeave: (self: FSM<State>, state: State, callback: StateCallback<State>) -> Disconnect,
 	OnTransition: (self: FSM<State>, callback: TransitionCallback<State>) -> Disconnect,
@@ -135,10 +236,10 @@ export type FSM<State> = {
 	_transitionListeners: { TransitionCallback<State> },
 	_destroyed: boolean,
 }
-export type MovementStates = "Walking" | "Running" | "Crouch" | "Jumping" | "Dead"
+export type MovementStates = "Walking" | "Running" | "Crouch" | "Sliding" | "Jumping" | "Dead"
 export type VitalAttributes = "Armor" | "Health"
 export type DayCycle = "Day" | "Night" | "Idle" | "Transition"
-type GameStates = "Begin" | "Normal" | "DarkMoon"
+export type RoundState = "Starting" | "Match" | "Intermission" | "Vote"
 export type R6 = {
 	Head: {
 		Mesh: SpecialMesh,
@@ -229,13 +330,13 @@ export type R6 = {
 	} & LocalScript,
 	Body_Colors: BodyColors,
 } & Model
-export type SnapshotData = {
-    Position: Vector3int16,
-    LookAt: Vector3int16,
-    State: number,
-    MoveDir: Vector2,
-    WeaponID: number,
-    ExpirateAt: number,
+export type SnapshotFrame = {
+	Position: Vector3,
+	LookAt: Vector3,
+	State: number,
+	MoveDir: Vector2,
+	WeaponID: number,
+	Timestamp: number,
 }
 export type PlayerZoneConfig = {
 	MinHeight: number,
@@ -323,6 +424,7 @@ export type Tools = {
 	WaitForChildOfClass: any,
 	Spring: typeof(require(script.Parent.src.Tools.SpringWrapper)),
 	Debounce: typeof(require(script.Parent.src.Tools.Debounce)),
+	BreakJoints: (Part: Instance) -> (),
 }
 
 export type SignalConnection = {
@@ -361,6 +463,10 @@ export type Network = {
 }>,
 		ChangeWalkSpeed: LyncPacket<{
 	WalkSpeed: number,
+}>,
+		RoundState: LyncPacket<{
+	State: string,
+	Seconds: number,
 }>,
 		Data: LyncPacket<DataTemplate>,
 		DataKey: LyncKeyedPacket<{
@@ -460,22 +566,40 @@ export type Network = {
 	Health: number,
 	Stamina: number,
 }>,
+		GetWeapon: LyncQuery<nil, {
+	WeaponID: number,
+	Ammo: { number },
+	ActiveSlot: number,
+}>,
+		SwitchSlot: LyncPacket<{
+	Slot: number,
+}>,
 		PlayerSnapshot: LyncPacket<{
 	Position: Vector3int16,
 	LookAt: Vector3int16,
 	State: number,
 	MoveDir: Vector2,
 	WeaponID: number,
+	Timestamp: number,
 }>,
-		HitValidate: LyncQuery<{
+		Fire: LyncQuery<{
+	Origin: Vector3int16,
+	Direction: Vector3,
+	Pellets: { {
 	TargetID: number,
 	HitPart: number,
-	Origin: Vector3int16,
-	Direction: Vector3int16,
+} },
+	IsAiming: boolean,
 	TimeStamp: number,
 }, {
 	Accepted: boolean,
-	Damage: number,
+	Hits: number,
+}>,
+		KillFeed: LyncPacket<{
+	ShooterID: number,
+	VictimID: number,
+	GunName: string,
+	IsHeadshot: boolean,
 }>,
 	},
 	all: NetworkTarget,

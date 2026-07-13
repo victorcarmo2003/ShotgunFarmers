@@ -1,3 +1,5 @@
+local StarterPlayer = game:GetService("StarterPlayer")
+local Fusion = require(StarterPlayer.StarterPlayerScripts.Client.Interface.Fusion)
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 local VitalController = Modux.Controller("VitalController"):Import("ColorCorrectionController")
 
@@ -8,48 +10,58 @@ local clampSaturation = function(health: number, maxHealth: number): number
 		return 0.5
 	end
 	local t = percent / 0.5
-	return -1 + (1.5 * t)
+	return -2 + (1.5 * t)
 end
 
-VitalController.OnUpdateHealth = function(self, Amount: number)
-	local clamped = clampSaturation(self.Health, self.MaxHealth)
+VitalController.GetScopes = function(self): Fusion.Scope
+	return self.Scope
+end
+
+VitalController.OnUpdateHealth = function(self, amount: number)
+	local clamped = clampSaturation(amount, self.MaxHealth)
 	self.ColorCorrectionController:SetSaturation(clamped)
 end
 
-VitalController.UpdateHealth = function(self, number: number)
-	local healthConteiner = self.PlayerStatus.Health
-	local text = healthConteiner.TextLabel
-	text.Text = `HEALTH: {number}%`
-	VitalController:OnUpdateHealth(number)
+VitalController.UpdateHealth = function(self, amount: number)
+	local health = math.min(amount, self.MaxHealth)
+	self.Health:set(health)
+	self:OnUpdateHealth(health)
 end
 
--- VitalController:OnInit(function(self)
--- 	self.Health = 100
--- 	self.MaxHealth = 100
--- 	self.Network.Packages.VitalKey:onKey(function(key, value)
--- 		if key == "Health" then
--- 			self.Health = value
--- 			self:UpdateHealth(value)
--- 		end
--- 	end)
--- end)
+VitalController.UpdateArmor = function(self, amount: number)
+	local armor = math.min(amount, self.MaxArmor)
+	self.Armor:set(armor)
+end
 
--- VitalController:OnStart(function(self)
--- 	local screenGui = self.ScreenController:GetGui()
--- 	self.PlayerStatus = screenGui.Conteiner.Player
--- 	task.spawn(function()
--- 		local Vitals = self.Network.Packages.GetVitals:request()
+VitalController:OnInit(function(self)
+	local scoped = Fusion.scoped(Fusion)
+	self.Scope = scoped
+	self.Health = scoped:Value(100)
+	self.Armor = scoped:Value(100)
+	self.OnMobile = scoped:Value(false)
+	self.MaxHealth = 100
+	self.MaxArmor = 100
 
--- 		if Vitals then
--- 			self.Armor = Vitals.Armor
--- 			self.Health = Vitals.Health
--- 			self.Stamina = Vitals.Stamina
--- 			self.MaxHealth = (Vitals.MaxHealth :: number) or 100
--- 			self.MaxStamina = (Vitals.MaxStamina :: number) or 100
+	self.Network.Packages.VitalKey:onKey(function(key, value)
+		if key == "Health" then
+			self:UpdateHealth(value)
+		elseif key == "Armor" then
+			self:UpdateArmor(value)
+		end
+	end)
+end)
 
--- 			self:UpdateHealth(self.Health)
--- 		end
--- 	end)
--- end)
+VitalController:OnStart(function(self)
+	task.spawn(function()
+		local Vitals = self.Network.Packages.GetVitals:request()
+		if Vitals then
+			self.Armor:set(Vitals.Armor)
+			self.Stamina = Vitals.Stamina
+			self.MaxHealth = (Vitals.MaxHealth :: number) or 100
+			self.MaxStamina = (Vitals.MaxStamina :: number) or 100
+			self:UpdateHealth(Vitals.Health)
+		end
+	end)
+end)
 
 return VitalController

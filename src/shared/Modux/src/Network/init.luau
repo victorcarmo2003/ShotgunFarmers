@@ -76,6 +76,10 @@ Network.Packages = {
 	DayCycle = Network.packet("DayCycle", Network.struct({ CurrentDay = Network.int(0, 10000) })),
 	ChangeMovement = Network.packet("ChangeMovement", Network.struct({ ActionName = Network.string(10) })),
 	ChangeWalkSpeed = Network.packet("ChangeWalkSpeed", Network.struct({ WalkSpeed = Network.int(0, 48) })),
+	RoundState = Network.packet(
+		"RoundState",
+		Network.struct({ State = Network.string(12), Seconds = Network.int(0, 3600) })
+	),
 
 	Data = Network.packet(
 		"Data",
@@ -153,6 +157,27 @@ Network.Packages = {
 		})
 	),
 
+	-- Ammo carrega {Slot, Amount} -- a munição é rastreada por slot do loadout, não só
+	-- da arma ativa, então toda atualização precisa dizer A QUAL slot ela pertence.
+	WeaponKey = Network.keyPacket("WeaponKey", {
+		WeaponID = Network.int(0, 255),
+		Ammo = Network.struct({ Slot = Network.int(1, 3), Amount = Network.int(0, 255) }),
+		ActiveSlot = Network.int(1, 3),
+	}),
+
+	GetWeapon = Network.query(
+		"GetWeapon",
+		Network.nothing,
+		Network.struct({
+			WeaponID = Network.int(0, 255),
+			-- índice 1..3 = munição do slot correspondente do loadout (0 pra slot vazio).
+			Ammo = Network.array(Network.int(0, 255), 3),
+			ActiveSlot = Network.int(1, 3),
+		})
+	),
+
+	SwitchSlot = Network.packet("SwitchSlot", Network.struct({ Slot = Network.int(1, 3) })),
+
 	PlayerSnapshot = Network.packet(
 		"PlayerSnapshot",
 		Network.struct({
@@ -161,30 +186,49 @@ Network.Packages = {
 			State = Network.int(0, 7),
 			MoveDir = Network.vec2(-1, 1, 0.001),
 			WeaponID = Network.int(0, 255),
+			Timestamp = Network.f64,
 		}),
 		{ unreliable = true, timestamp = "full" }
 	),
-
-	HitValidate = Network.query(
-		"HitValidation",
+	Fire = Network.query(
+		"Fire",
 		Network.struct({
-			TargetID = Network.int(0, 255),
-			HitPart = Network.int(0, 15),
 			Origin = Network.vec3int16,
-			Direction = Network.vec3int16,
+			Direction = Network.vec3(-1, 1, 0.001),
+			Pellets = Network.array(
+				Network.struct({
+					TargetID = Network.int(0, 255),
+					HitPart = Network.int(0, 15),
+				}),
+				8
+			),
+			IsAiming = Network.bool,
 			TimeStamp = Network.f64,
 		}),
 		Network.struct({
 			Accepted = Network.bool,
-			Damage = Network.int(0, 255),
+			Hits = Network.int(0, 8),
 		}),
 		{
 			rateLimit = { maxPerSecond = 15, burst = 10 },
 			validate = function(data, Player: Player)
-				-- to be implemented
+				local now = workspace:GetServerTimeNow()
+				local delta = now - data.TimeStamp
+				if delta < -0.25 or delta > 1 then
+					return false, "timestamp fora da janela aceitável"
+				end
 				return true
 			end,
 		}
+	),
+	KillFeed = Network.packet(
+		"KillFeed",
+		Network.struct({
+			ShooterID = Network.int(0, 255),
+			VictimID = Network.int(0, 255),
+			GunName = Network.string(20),
+			IsHeadshot = Network.bool,
+		})
 	),
 }
 

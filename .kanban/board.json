@@ -8,21 +8,21 @@
     {
       "id": "1",
       "title": "Snapshot System (Server Rewind Base)",
-      "description": "SnapshotService.luau existe mas está incompleto. Bugs a corrigir: (1) RegisterSnapshot é chamado com `self:RegisterSnapshot(data)` mas recebe apenas `data` sem o `sender` — precisa ser `RegisterSnapshot(sender, data)`; (2) AllSnapshots nunca é populado, armazenamento do buffer circular não implementado; (3) ExpireSnapshot está vazio; (4) OnTick está vazio. Implementar buffer circular real: AllSnapshots[playerID] = array de SnapshotData, manter últimos ~60 frames (~1s a 60Hz), expirar via ExpirateAt no OnTick. depends: task-snapshot-client-001",
-      "column": "in-progress",
+      "description": "## Implementado (2026-07-11)\n`src/server/Services/SnapshotService.luau` foi reescrito:\n- `RegisterSnapshot(self, Player, snapshot)` agora é chamado como `self:RegisterSnapshot(sender, data)` (o bug de argumento faltando foi corrigido).\n- `History: {[GameID]: {SnapshotFrame}}` é um buffer real por jogador, populado a cada `PlayerSnapshot` recebido (mais antigo primeiro).\n- Em vez de um `ExpireSnapshot` avulso, o `OnTick` (Hz60) poda entradas mais velhas que `GameSettings.SnapshotHistorySeconds` (0.5s) diretamente do início do buffer.\n- `ClearHistory` é chamado em `PlayerService:OnPlayerRemoved` pra não vazar memória por jogador que saiu.\n\n## Settings\n`src/shared/Settings/GameSettings.luau` trocou `SnapshotExpiration = 10` (não fazia sentido pra um buffer de rewind) por `SnapshotHistorySeconds = 0.5` e `MaxRewindSeconds = 0.3`.\n\n## API / Rede\n`Network.Packages.PlayerSnapshot` ganhou um campo `Timestamp = Network.f64` — o `timestamp` que o transporte do lync já fornecia (`{ timestamp = \"full\" }`) usa `os.clock()` do remetente, que **não é comparável** ao `workspace:GetServerTimeNow()` usado em `HitValidate.TimeStamp`. Por isso o timestamp agora vai explícito no payload, mesmo padrão que `HitValidate` já usava.\n\ndepends: task-snapshot-client-001 (também concluída)\n\n## Regressão encontrada no playtest (2026-07-11)\nAdicionar `Timestamp` mudou o tamanho total do pacote `PlayerSnapshot` de 18 pra 26 bytes. Como esse pacote nunca teve remetente real antes do `SnapshotController` existir, esse foi o primeiro tráfego de verdade — e apareceu `[Lync] Reader: \"PlayerSnapshot\" count ... exceeds remaining bytes; aborting`. Padrão clássico de client/server terem carregado versões diferentes do schema (sessão de Play não reiniciada do zero após o sync do Rojo). Recomendado: Stop + Play completo no Studio antes de assumir bug real de schema. Ainda não confirmado se resolve.",
+      "column": "done",
       "priority": "high",
       "tags": [
         "server",
         "networking",
         "rewind"
       ],
-      "updatedAt": "2026-06-30"
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "2",
       "title": "Server Rewind - Interpolação de Posição",
-      "description": "Dado um timestamp do cliente, encontrar os dois snapshots mais próximos e interpolar a posição do alvo naquele instante. Considerar latência do jogador (ping/2). Limitar o rewind máximo a ~300ms para evitar abuse.",
-      "column": "todo",
+      "description": "## Implementado (2026-07-11)\n`SnapshotService:GetRewoundPosition(targetID, atTime)`: percorre o histórico, acha o snapshot imediatamente antes e imediatamente depois de `atTime`, e faz `before.Position:Lerp(after.Position, alpha)`. Se só existir um lado (histórico muito curto), usa esse sem interpolar. `atTime` é sempre clampado pra no máximo `GameSettings.MaxRewindSeconds` (0.3s) no passado antes de buscar — limite de rewind pra evitar abuso, conforme pedido.\n\n## Consumidor\n`HitService.ValidateHit` (task 3) chama isso com `request.TimeStamp` do tiro.\n\ndepends: 1 (concluída)",
+      "column": "done",
       "priority": "high",
       "tags": [
         "server",
@@ -31,13 +31,14 @@
       ],
       "dependencies": [
         "1"
-      ]
+      ],
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "3",
       "title": "Hit Validation - Server Raycast",
-      "description": "HitService.luau existe mas vai direto para DealDamage sem nenhuma validação real — sem rewind, sem raycast. HitController.luau não envia timestamp no pacote HitValidate (crítico para lag compensation). Pendente: (1) adicionar `Timestamp = workspace:GetServerTimeNow()` no pacote enviado pelo HitController; (2) no HitService, usar SnapshotService para rebobinar posições até o timestamp recebido; (3) fazer raycast server-side contra hitboxes rebobinadas; (4) só então chamar DealDamage. depends: task-hit-timestamp-001, 2",
-      "column": "in-progress",
+      "description": "## Correção: claim anterior estava errada\n`Origin`/`Direction` eram mandados pelo `HitController` como `Vector3` comum, mas o schema de rede declarava `Network.vec3int16` — o `_typeCheck` do lync (`Gate.luau`) rejeitaria valores com tipo errado. **Isso estava errado** — o usuário confirmou que os tiros sempre funcionaram e causavam dano. Rastreando `Reader.luau`: o `_typeCheck` roda depois de `regCodec.read(...)` decodificar os bytes, não sobre o valor bruto enviado — e a escrita (`writeVec3I16`) só lê `.X/.Y/.Z` por duck typing, então `Vector3` codificava igual a `Vector3int16`. Nunca foi um bug real ali. A conversão de `Origin` pra `Vector3int16` explícito não era necessária (mas não prejudica).\n\nA troca do codec de `Direction` pra `Network.vec3(-1, 1, 0.001)` continua sendo uma correção real e separada: `vec3int16` é inteiro puro e truncaria qualquer componente de um vetor unitário normalizado pra 0 — bug de perda de precisão no `write`, não relacionado ao `_typeCheck`.\n\n## Implementado (2026-07-11)\n`HitService.ValidateHit` agora: valida que o atirador está vivo, que a `Origin` alegada está a no máximo 8 studs da posição real do atirador, resolve o alvo por `TargetID`, pega a posição rebobinada via `SnapshotService:GetRewoundPosition` (task 2), faz um `workspace:Raycast` real excluindo atirador+alvo, e confirma o hit calculando a distância do ponto mais próximo no raio até a posição rebobinada do alvo (raio de \"hitbox\" de 4.5 studs — uma esfera única por character, não o skeleton real).\n\n## Limitação conhecida (fora do escopo de hoje)\nO dano aplicado continua um placeholder (`PLACEHOLDER_DAMAGE = 10`), não vem de `Guns.luau`/`GetGun` — isso depende da cadeia de arma (`EquipmentComponent.EquippedGun` nunca é setado hoje), que é o escopo de task-weapon-001/002. Documentado com comentário no código.\n\ndepends: task-hit-timestamp-001 (concluída), 2 (concluída)",
+      "column": "done",
       "priority": "high",
       "tags": [
         "server",
@@ -47,13 +48,13 @@
       "dependencies": [
         "2"
       ],
-      "updatedAt": "2026-06-30"
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "4",
       "title": "Hit Validation - Sanity Checks Anti-Exploit",
-      "description": "Adicionar validações extras no servidor: rate limiter por jogador (máx disparos/segundo por arma), verificar se o jogador está vivo, verificar se a arma está equipada, checar se a origin do tiro é próxima da posição real do jogador (tolerância de ~5 studs). Logar tentativas suspeitas.",
-      "column": "todo",
+      "description": "## Implementado (2026-07-11), parcial\n- Jogador vivo: ✅ (`shooterVital.Health <= 0` rejeita).\n- `Origin` próxima da posição real: ✅ (tolerância de 8 studs).\n- Rate limit por jogador: ✅ básico — `MIN_SHOT_INTERVAL = 0.1` (10 tiros/s), independente de arma, em cima do rate limit de pacote que já existia (15/s, burst 10). Guarda de sanidade de `TimeStamp` (clock skew) também foi pro hook `validate` do próprio pacote `HitValidate`.\n- Logar tentativas suspeitas: não implementado.\n\n## Bloqueado — depende da cadeia de arma (task-weapon-001/002)\n- Rate limit **por arma** (usar `FireRate` de `Guns.luau` em vez do valor fixo de 0.1s).\n- Checar se a arma equipada bate com o que o client alega (`EquipmentComponent.EquippedGun` nunca é setado hoje).\n\ndepends: 3 (concluída para a parte não bloqueada por arma)",
+      "column": "in-progress",
       "priority": "medium",
       "tags": [
         "server",
@@ -62,12 +63,13 @@
       ],
       "dependencies": [
         "3"
-      ]
+      ],
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "5",
       "title": "Client Prediction - Disparo e Feedback Visual",
-      "description": "No cliente: ao atirar, fazer raycast local imediato para feedback visual (hitmarker, efeito de impacto, tracer). Enviar dados do tiro ao servidor (origin, direction, timestamp). NÃO aplicar dano no cliente — apenas efeitos visuais. Mostrar hitmarker provisório que é confirmado/negado pelo servidor.",
+      "description": "## Controllers (client)\n- `src/client/Controllers/WeaponController.luau` — **arquivo vazio hoje** (0 linhas). É onde esse fluxo deveria morar.\n- `src/client/Controllers/ProjectileController.luau` — já tem um método `Shoot()` que clona um trail de bala, mas o `OnSimulation` (Hz60) que animaria/limparia a bala está vazio, e **ninguém chama `Shoot()` hoje** — instâncias de bala nunca seriam criadas na prática.\n- `src/client/Controllers/ArmsController.luau` — stub total, seria o viewmodel (braços + arma) reagindo ao disparo.\n\n## O que fazer\nAo atirar: raycast local imediato (reaproveitar `CameraController:GetLookPart()`, já usado por `HitController`) pra feedback visual instantâneo — hitmarker, trail via `ProjectileController`, efeito de impacto. **Não aplicar dano no client** — só efeito visual. Mostrar hitmarker provisório até a confirmação do server.\n\n## Atualização (2026-07-11)\n`HitController.TryHit` agora retorna de fato `result.Accepted` (antes retornava o objeto de resposta inteiro sem checar o campo) — a base pra reconciliação (task 6) já existe, só falta o client consumir isso.\n\ndepends: 3 (concluída)",
       "column": "todo",
       "priority": "high",
       "tags": [
@@ -77,12 +79,13 @@
       ],
       "dependencies": [
         "3"
-      ]
+      ],
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "6",
       "title": "Client Prediction - Reconciliação de Hit",
-      "description": "Servidor retorna resultado do hit (confirmado/negado + dano). Cliente reconcilia: se confirmado, mantém hitmarker. Se negado, remove hitmarker e mostra feedback visual de 'miss'. Lidar com edge cases: jogador morreu antes do confirm, alvo morreu por outro jogador, etc.",
+      "description": "## Controllers\n`WeaponController.luau` (a criar, task 5) recebendo a resposta de `Network.Packages.HitValidate:request(...)`, que **já retorna** `{ Accepted: bool, Damage: int }` (definido em `Network/init.luau`).\n\n## O que fazer\nSe `Accepted = true`: manter/confirmar o hitmarker do disparo predito (task 5). Se `false`: remover o hitmarker e mostrar feedback de \"miss\". Tratar edge cases: alvo morreu antes da resposta chegar, alvo morreu por outro jogador nesse meio-tempo, etc.\n\ndepends: 5",
       "column": "todo",
       "priority": "medium",
       "tags": [
@@ -92,12 +95,13 @@
       ],
       "dependencies": [
         "5"
-      ]
+      ],
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "7",
       "title": "Sistema de Dano + Kill/Death via VitalService",
-      "description": "VitalService.luau operacional: handle GetVitals, VitalComponent adicionado ao player via CollectionService. HitService aplica dano via VitalComponent:TakeDamage(). Base funcional. Pendente para versão completa: registrar kill/death, respawn em 3s com loadout inicial (Shovel + Peavolver), emitir eventos para killfeed e pontuação.",
+      "description": "## Components\n`src/server/Components/Player/VitalComponent.luau` — **implementado e sólido**, é a peça mais madura do combate hoje: `Health`/`Armor`/`Stamina`, `TakeDamage`, `Heal`, `SetArmor`, `Die()`, regen passivo de 0.5 HP/s via `OnTick(Hz1)`, replicação por chave via `Package:sendKey(...)`.\n\n## Services\n`VitalService.luau` — `OnPlayerDie` quebra joints e destrói o character após 3s. Handler de `GetVitals` funcional. **Bug pontual**: tem um `task.delay(5, function() end)` dentro de `OnPlayerAdded` — delay de 5s pra rodar uma função vazia, resíduo morto, sem efeito (não bloqueia nada, só lixo pra limpar).\n\n## API / Rede\n`Network.Packages.VitalKey` (keyPacket: `Armor`, `Health`, `Stamina`) e `Network.Packages.GetVitals` (query) — ambos funcionais.\n\n## Fluxo hoje\n`HitService.DealDamage` → `VitalComponent:TakeDamage` → `Die()` → `VitalService.OnPlayerDie` → destrói character → `GameService`'s `CharacterRemoving` → `SpawnService:SpawnPlayer` (respawn). Fecha ponta a ponta.\n\n## Respawn implementado (2026-07-11)\n`src/server/Services/SpawnService.luau` deixou de ser stub: `SpawnPlayer(Player)` escolhe aleatoriamente um `BasePart` marcado com a tag `\"FFASpawn\"` (via `CollectionService`), seta `Player.RespawnLocation` e chama `LoadCharacterAsync()`. **Setup manual pendente no Studio**: sem nenhuma instância marcada com essa tag, cai no spawn padrão do Roblox — precisa colocar `SpawnLocation`s no mapa de FFA e taggear com `\"FFASpawn\"`.\n\n`GameService.luau` agora importa `SpawnService` e usa `SpawnPlayer` tanto no spawn inicial quanto no respawn pós-morte (antes usava `LoadCharacterAsync()` genérico). Removido também um delay duplicado (`GameService` esperava mais 3s *depois* dos 3s que `VitalService` já espera antes de destruir o character — respawn total caiu de ~6s pra ~3s) e um bug de vazamento de conexão (`CharacterConnection` era uma única upvalue compartilhada entre todos os jogadores, sobrescrita a cada `PlayerAdded` — corrigido pra uma tabela por jogador).\n\n## Ainda pendente\nLoadout inicial (arma default, depende da cadeia de arma — task-weapon-001/002), killfeed, pontuação/eventos de kill.\n\ndepends: 3",
       "column": "done",
       "priority": "high",
       "tags": [
@@ -108,12 +112,12 @@
       "dependencies": [
         "3"
       ],
-      "updatedAt": "2026-06-30"
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "8",
       "title": "Seed Planting - Projétil que erra planta semente",
-      "description": "Quando o servidor confirma que o tiro errou (hit no chão/terreno), spawnar uma semente do tipo da arma usada na posição de impacto. Semente visível para todos. Após 3-12s cresce e vira arma coletável. Colheita cedo = 30% munição, tardia = 100%. Colher substitui arma atual.",
+      "description": "## Components\n`src/server/Components/SeedComponent.luau` — esqueleto já existe, com **2 bugs confirmados**:\n1. Timer de crescimento: `OnTick` compara `(workspace:GetServerTimeNow() - self.HarvestTime) >= self.HarvestTime` — compara o tempo de servidor contra a própria duração de colheita, não contra o momento do plantio. Deveria ser `(now - self.PlantTime) >= self.HarvestTime`.\n2. `Harvest()` (que conectaria o `ProximityPrompt.Triggered`) **nunca é chamado** em `OnStart` — só `StartAnimations()`/`Setup()` rodam. Mesmo que o prompt apareça, segurar E não faz nada. E mesmo conectado, o corpo do callback está vazio hoje.\n\n## Mixin\n`src/server/Components/Mixin/GunMixin.luau`:\n- `PlantAt(self, Position)` já existe — clona `ReplicatedStorage.Assets.SeedProp`, taggeia `\"SeedComponent\"` — mas **nunca é chamado** por ninguém no código (esse é o gatilho que faltaria disparar quando um tiro erra e acerta o chão/terreno).\n- `GetBullets(self, Amount)` já existe pra creditar munição — também nunca chamado, seria usado na colheita.\n\n## Settings\n`src/shared/Settings/SeedSettings.luau` — `HARVEST_TIME = 4`.\n\n## Fluxo desejado\nServer confirma que o tiro errou (hit no chão) → `GunMixin:PlantAt(posição de impacto)` → cresce em 3-12s → vira arma coletável. Colheita cedo = 30% munição, tardia = 100%. Colher substitui a arma atual (via `EquipmentComponent.EquipGun`, hoje também nunca chamado — ver cadeia de arma).\n\ndepends: 3",
       "column": "todo",
       "priority": "high",
       "tags": [
@@ -123,13 +127,14 @@
       ],
       "dependencies": [
         "3"
-      ]
+      ],
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "task-snapshot-client-001",
       "title": "SnapshotController (Cliente) - Envio de Snapshots",
-      "description": "BLOQUEADOR crítico da task 1. O cliente nunca envia snapshots ao servidor — SnapshotService.OnInit espera o pacote PlayerSnapshot mas nenhum controller o envia. Criar SnapshotController (ou adicionar ao MovementController) com OnTick a 60Hz que envia: Position (Vector3int16), LookAt (Vector3int16), State (número do estado de animação), MoveDir (Vector2), WeaponID (número da arma equipada). Usar workspace:GetServerTimeNow() como timestamp do pacote.",
-      "column": "todo",
+      "description": "## Implementado (2026-07-11)\nCriado `src/client/Controllers/SnapshotController.luau`. `OnTick` a 60Hz manda `Network.Packages.PlayerSnapshot` com `Position`/`LookAt` (convertidos pra `Vector3int16` de verdade — ver nota na task 3 sobre o bug de tipo), `State` (heurística local: Sliding via `MovementController.IsSliding`, Jumping via `Humanoid:GetState() == Freefall`, Crouch via `WalkSpeed <= 15` — mesmo truque que o `AnimateController` já usa —, Running/Walking pelo `MoveDirection`), `MoveDir`, `WeaponID = 0` (placeholder, sem cadeia de arma ainda) e `Timestamp = workspace:GetServerTimeNow()` explícito no payload.\n\ndepends: nenhuma (concluída)",
+      "column": "done",
       "priority": "high",
       "tags": [
         "client",
@@ -137,26 +142,26 @@
         "rewind"
       ],
       "createdAt": "2026-06-30",
-      "updatedAt": "2026-06-30"
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "task-hit-timestamp-001",
-      "title": "Fix HitController - Adicionar Timestamp ao Disparo",
-      "description": "HitController.TryHit envia o pacote HitValidate sem timestamp. O servidor precisa desse valor para rebobinar os snapshots até o momento exato do disparo. Adicionar `Timestamp = workspace:GetServerTimeNow()` no payload do HitValidate:request. Também avaliar trocar Direction (lookAtPosition) por um Vector3 de direção normalizado em vez de um ponto no espaço, para facilitar o raycast server-side.",
-      "column": "todo",
-      "priority": "high",
+      "title": "Fix HitController - Direção como vetor normalizado",
+      "description": "## Implementado (2026-07-11)\n`CameraController.GetLookDirection()` foi adicionado (retorna `screenRay.Direction.Unit`, separado do `GetLookAt` que retorna um ponto no mundo). `HitController.TryHit` agora manda `Direction = self.CameraController:GetLookDirection()` em vez do ponto. O codec de `Direction` no pacote `HitValidate` mudou de `Network.vec3int16` pra `Network.vec3(-1, 1, 0.001)` (ver task 3 — era necessário pra não truncar o vetor unitário pra zero).\n\ndepends: nenhuma (concluída)",
+      "column": "done",
+      "priority": "medium",
       "tags": [
         "client",
         "combat",
         "networking"
       ],
       "createdAt": "2026-06-30",
-      "updatedAt": "2026-06-30"
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "task-weapon-001",
       "title": "WeaponController (Cliente) - Lógica Client-Side",
-      "description": "WeaponController.luau existe mas está vazio. Implementar: (1) receber do servidor via pacote de rede qual arma o jogador possui ao spawnar; (2) armazenar estado da arma equipada (tipo, munição atual, munição máxima); (3) lógica de cooldown/rate-of-fire no cliente para travar o InputController durante rechamada; (4) disparar animação de tiro e chamar HitController:TryHit(); (5) emitir evento para UI de munição via VitalController ou novo UIController.",
+      "description": "## Controllers\n`src/client/Controllers/WeaponController.luau` — **arquivo vazio hoje** (0 linhas), é o stub mais vazio do client.\n\n## Decisão em aberto — sobreposição com HitController\n`HitController.luau` **já implementa** o clique → raycast → `HitValidate:request(...)` de ponta a ponta e funciona hoje. `WeaponController` precisa decidir seu escopo em relação a isso: (a) absorver esse fluxo de disparo do `HitController`, ou (b) só complementar — cooldown/fire-rate local, munição, HUD, animação — deixando o disparo em si onde já está. Recomendo (b) pra não duplicar trabalho: `HitController` continua sendo quem dispara o raycast/request, `WeaponController` vira a camada de estado da arma equipada.\n\n## Responsabilidades propostas\n1. Receber do servidor qual arma está equipada ao spawnar (hoje não existe pacote pra isso — ver task-weapon-002).\n2. Guardar estado local: tipo de arma, munição atual/máxima (dados vêm de `src/shared/Datas/Guns.luau` via `src/shared/Utils/GetGun.luau`, que hoje é um stub com `GetAll`/`GetByID`/`GetByName` de corpo vazio — precisa ser implementado primeiro).\n3. Cooldown/fire-rate local pra travar `InputController` entre disparos (`FireRate` vem de `Guns.luau`).\n4. Disparar animação de tiro e delegar o clique pro `HitController:TryHit()` (ou absorver, ver decisão acima).\n5. Emitir munição pra UI (`VitalController` já existe como referência de padrão, ou um novo controller de HUD).",
       "column": "todo",
       "priority": "high",
       "tags": [
@@ -165,12 +170,12 @@
         "gameplay"
       ],
       "createdAt": "2026-06-30",
-      "updatedAt": "2026-06-30"
+      "updatedAt": "2026-07-11"
     },
     {
       "id": "task-weapon-002",
       "title": "WeaponService (Servidor) - Gerenciamento de Armas",
-      "description": "WeaponService.luau existe mas está vazio. Implementar: (1) atribuir loadout inicial ao spawnar (Shovel + Peavolver); (2) sincronizar arma equipada com o cliente via pacote de rede; (3) expor GetEquippedWeapon(Player) para uso no HitService durante validação do hit (checar se a arma correta está equipada); (4) handle de pickup de arma coletável (futuro seed mechanic). Adicionar campo WeaponID e Ammo no Profile template se precisar persistir.",
+      "description": "## BLOQUEADOR confirmado: duplicação de serviço\n`src/server/Services/WeaponService.luau` e `src/server/Services/EquipmentService.luau` são **literalmente o mesmo código** — os dois só fazem `CollectionService:AddTag(Player, \"EquipmentComponent\")` no `PlayerAdded`, nada além disso. Antes de implementar esta task, decidir qual dos dois fica (recomendação: manter `EquipmentService`, que já casa em nome com `EquipmentComponent`, e deletar `WeaponService` — ou fundir as responsabilidades num só).\n\n## Components\n`src/server/Components/Player/EquipmentComponent.luau` — `EquipGun(self, gunComponent)` já existe e salva `self.EquippedGun`, mas **nunca é chamado** por nada hoje.\n\n`src/server/Components/Mixin/GunMixin.luau` (estendido por `src/server/Components/Weapon/ShotgunComponent.luau`, hoje uma casca vazia) — `Shoot()` só faz `print`, e `CanShoot()` tem bug real: o `if/else` de fire rate sobrescreve o `if/else` de munição, então `Bullets` nunca é checado de fato nem consumido.\n\n## Data\n`src/shared/Datas/Guns.luau` — 9 armas com `ID`/`Damage`/`Spread`/`FireRate`/`Bullets`, mas **ninguém lê esses dados hoje** (`HitService` usa dano placeholder fixo — ver task 3). Tem 2 bugs de copy-paste: `Carrocket` e `Peavolver` têm `DisplayName = \"Sniperagus\"`. `src/shared/Utils/GetGun.luau` é o resolver desses dados por ID/nome — hoje stub vazio.\n\n## Implementar\n1. Atribuir loadout inicial ao spawnar (ex: arma default fixa pro MVP — chamar `EquipmentComponent:EquipGun(...)`).\n2. Sincronizar arma equipada com o client (pacote novo, ou reaproveitar o campo `WeaponID` que já existe em `Network.Packages.PlayerSnapshot` — hoje sempre `0`, ver task-snapshot-client-001).\n3. Expor `GetEquippedWeapon(Player)` pro `HitService` usar na validação do hit (task 4, pra substituir `PLACEHOLDER_DAMAGE` e o rate limit fixo por valores reais de `Guns.luau`).\n4. Handle de pickup de arma coletável (integra com a seed mechanic, task 8).\n5. Se precisar persistir (ex: armas desbloqueadas), avaliar usar o campo genérico `UnlockedItems: {[number]: boolean}` que já existe em `src/shared/Templates/Profile.luau`, mapeando pro `ID` de `Guns.luau` — munição em si é só de partida, não persiste.\n\ndepends: resolver duplicação WeaponService/EquipmentService primeiro",
       "column": "todo",
       "priority": "medium",
       "tags": [
@@ -179,7 +184,7 @@
         "gameplay"
       ],
       "createdAt": "2026-06-30",
-      "updatedAt": "2026-06-30"
+      "updatedAt": "2026-07-11"
     }
   ]
 }

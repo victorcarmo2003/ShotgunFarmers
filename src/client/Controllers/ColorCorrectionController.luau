@@ -5,7 +5,7 @@ local ColorCorrectionController = Modux.Controller("ColorCorrectionController")
 const DEFAULT_SATURATION = 0.5
 
 ColorCorrectionController.SetSaturation = function(self, Value: number)
-	self.Instance.Saturation = math.clamp(Value, (-1), DEFAULT_SATURATION)
+	self.Instance.Saturation = math.clamp(Value, -1.5, DEFAULT_SATURATION)
 end
 
 ColorCorrectionController:OnInit(function(self)
