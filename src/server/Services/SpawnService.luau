@@ -23,7 +23,7 @@ SpawnService.SpawnPlayer = function(self, Player: Player)
 		local spawnPoint = spawnPoints[math.random(1, #spawnPoints)]
 		local character = Player.Character
 		if character then
-			character:PivotTo(spawnPoint:GetPivot() + Vector3.new(0, 3, 0))
+			character:PivotTo(spawnPoint:GetPivot())
 		end
 	end
 end
