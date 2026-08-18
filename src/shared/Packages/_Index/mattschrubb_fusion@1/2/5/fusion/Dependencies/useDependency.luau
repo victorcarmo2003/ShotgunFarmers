@@ -1,10 +1,5 @@
 --!strict
 
---[[
-	If a target set was specified by captureDependencies(), this will add the
-	given dependency to the target set.
-]]
-
 local Package = script.Parent.Parent
 local PubTypes = require(Package.PubTypes)
 local sharedState = require(Package.Dependencies.sharedState)

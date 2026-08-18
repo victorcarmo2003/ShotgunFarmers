@@ -2,6 +2,7 @@ local StarterPlayer = game:GetService("StarterPlayer")
 local Fusion = require(StarterPlayer.StarterPlayerScripts.Client.Interface.Fusion)
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 local VitalController = Modux.Controller("VitalController"):Import("ColorCorrectionController")
+type Self = typeof(VitalController)
 
 local clampSaturation = function(health: number, maxHealth: number): number
 	maxHealth = math.max(maxHealth, 1)
@@ -13,22 +14,22 @@ local clampSaturation = function(health: number, maxHealth: number): number
 	return -2 + (1.5 * t)
 end
 
-VitalController.GetScopes = function(self): Fusion.Scope
+VitalController.GetScopes = function(self: Self): Fusion.Scope
 	return self.Scope
 end
 
-VitalController.OnUpdateHealth = function(self, amount: number)
+VitalController.OnUpdateHealth = function(self: Self, amount: number)
 	local clamped = clampSaturation(amount, self.MaxHealth)
 	self.ColorCorrectionController:SetSaturation(clamped)
 end
 
-VitalController.UpdateHealth = function(self, amount: number)
+VitalController.UpdateHealth = function(self: Self, amount: number)
 	local health = math.min(amount, self.MaxHealth)
 	self.Health:set(health)
 	self:OnUpdateHealth(health)
 end
 
-VitalController.UpdateArmor = function(self, amount: number)
+VitalController.UpdateArmor = function(self: Self, amount: number)
 	local armor = math.min(amount, self.MaxArmor)
 	self.Armor:set(armor)
 end

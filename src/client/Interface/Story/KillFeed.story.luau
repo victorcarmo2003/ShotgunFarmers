@@ -26,8 +26,6 @@ return {
 	story = function(props: StoryProps)
 		local scope = props.scope
 
-		-- Entrada 1 reage aos controles do UI Labs; 2 e 3 são fixas só pra dar contexto
-		-- de empilhamento/espaçamento entre várias linhas ao mesmo tempo.
 		local entries = scope:Computed(function(use)
 			return {
 				[1] = {

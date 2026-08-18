@@ -1,8 +1,8 @@
 --!strict
 
-local CollectionService = game:GetService('CollectionService')
-local Players = game:GetService('Players')
-local RunService = game:GetService('RunService')
+local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local Types = require(script.Parent.Parent.Types)
 local Config = require(script.Parent.Parent.Config)
@@ -42,7 +42,7 @@ local function trackPlayer(group: Types.InternalGroup<any>, player: Player, trac
 		cleanCharacter()
 
 		task.spawn(function()
-			local hrp = character:WaitForChild('HumanoidRootPart', 5)
+			local hrp = character:WaitForChild("HumanoidRootPart", 5)
 
 			if not hrp or not player:IsDescendantOf(Players) then
 				return
@@ -52,7 +52,7 @@ local function trackPlayer(group: Types.InternalGroup<any>, player: Player, trac
 				return
 			end
 
-			if hrp:IsA('BasePart') then
+			if hrp:IsA("BasePart") then
 				currentHrp = hrp
 
 				State.entityToReference[hrp] = player
@@ -99,33 +99,9 @@ local function untrackPlayer(player: Player, trackerStore: { [Player]: () -> () 
 	end
 end
 
---[=[ 
-	Groups represent a collection of entities that should be tracked by the system.
-
-	:::info Observer
-	Every entity must be in a group to be observed.
-	:::
-
-	@class Group
-]=]
 local Group = {}
 Group.__index = Group
 
---[=[ 
-	Creates a generic Group. 
-	Groups manage collections of Entities (any instance with a position in the world like BaseParts, Models, Attachments, etc.) that Observers should track.
-
-	```lua
-	local myGroup = Group.new({
-		entities = { NPC1, NPC2, NPC3 }, -- Add entities
-		autoClean = true, -- Entities in group are cleaned up when entities are destroyed
-	})
-	```
-
-	@tag Constructor
-	@param config { entities: { T }?, autoClean: boolean? }?
-	@return Group
-]=]
 function Group.new<T>(config: {
 	entities: { T }?,
 	autoClean: boolean?,
@@ -156,14 +132,6 @@ function Group.new<T>(config: {
 	return self
 end
 
---[=[ 
-	Creates a dynamic Group that automatically tracks all instances with a specific tag.
-	Instances are only tracked while they are descendants of the Workspace.
-
-	@tag Constructor
-	@param tag string
-	@return Group
-]=]
 function Group.fromTag(tag: string): Types.Group<Types.Entity>
 	local group = Group.new({ autoClean = false }) :: Types.InternalGroup<Types.Entity>
 	group.isManaged = true
@@ -185,11 +153,11 @@ function Group.fromTag(tag: string): Types.Group<Types.Entity>
 
 		if
 			not (
-				instance:IsA('BasePart')
-				or instance:IsA('Model')
-				or instance:IsA('Attachment')
-				or instance:IsA('Bone')
-				or instance:IsA('Camera')
+				instance:IsA("BasePart")
+				or instance:IsA("Model")
+				or instance:IsA("Attachment")
+				or instance:IsA("Bone")
+				or instance:IsA("Camera")
 			)
 		then
 			return
@@ -229,17 +197,6 @@ function Group.fromTag(tag: string): Types.Group<Types.Entity>
 	return group
 end
 
---[=[ 
-	Returns a Group that automatically tracks all Players in the server.
-
-	:::info Behavior
-	* Automatically tracks the `HumanoidRootPart` of every player.
-	* Handles `PlayerAdded` and `CharacterAdded` internally.
-	:::
-
-	@tag Constructor
-	@return Group
-]=]
 function Group.players(): Types.Group<Player>
 	local group = Group.new({ autoClean = false }) :: Types.InternalGroup<Player>
 	group.isManaged = true
@@ -280,20 +237,8 @@ function Group.players(): Types.Group<Player>
 	return group
 end
 
---[=[ 
-	Returns a Group that tracks only the LocalPlayer.
-
-	:::info Behavior
-	* Automatically tracks the `HumanoidRootPart` of the local player.
-	* Handles `CharacterAdded` internally.
-	:::
-
-	@client
-	@tag Constructor
-	@return Group
-]=]
 function Group.localPlayer(): Types.Group<Player>
-	assert(IS_CLIENT, '[QuickZone] QuickZone.LocalPlayerGroup can only be called on the Client.')
+	assert(IS_CLIENT, "[QuickZone] QuickZone.LocalPlayerGroup can only be called on the Client.")
 
 	local group = Group.new({ autoClean = false }) :: Types.InternalGroup<Player>
 	group.isManaged = true
@@ -310,16 +255,6 @@ function Group.localPlayer(): Types.Group<Player>
 	return group
 end
 
---[=[ 
-	Enables or disables automatic cleanup for Instances in this group.
-	When enabled, if an Instance is Destroyed() or parented to nil, it will be 
-	automatically removed from this group.
-
-	@method setAutoClean
-	@within Group
-	@param enabled boolean
-	@return Group
-]=]
 function Group.setAutoClean(self: Types.InternalGroup<any>, enabled: boolean): Types.Group<any>
 	if self.isManaged then
 		warn(`[QuickZone] Cannot set autoClean on a Managed Group.`)
@@ -335,7 +270,7 @@ function Group.setAutoClean(self: Types.InternalGroup<any>, enabled: boolean): T
 
 	if enabled then
 		for _, entity in self.entities do
-			if typeof(entity) == 'Instance' and not cleanups[entity] then
+			if typeof(entity) == "Instance" and not cleanups[entity] then
 				cleanups[entity] = (entity :: Instance).AncestryChanged:Connect(function(_, parent)
 					if not parent then
 						self:_remove(entity)
@@ -353,37 +288,6 @@ function Group.setAutoClean(self: Types.InternalGroup<any>, enabled: boolean): T
 	return self
 end
 
---[=[ 
-	Adds an entity to the group. If the entity is already in another group, 
-	it is automatically removed from the old one first.
-
-	#### Example: Adding Different Entity Types
-	```lua
-	-- Adding a BasePart and a Model
-	myGroup:add(workspace.Part):add(workspace.NPCModel)
-
-	-- Adding a custom table
-	local spell = {
-		CFrame = CFrame.new(0, 10, 0),
-		Name = 'Fireball'
-	}
-	myGroup:add(spell)
-	```
-
-	:::info Strategy Detection
-	QuickZone automatically determines how to track the entity's position:
-	* **BasePart:** Uses `Position`
-	* **Model:** Uses `PrimaryPart.Position` or `GetPivot()`
-	* **Attachment/Bone:** Uses `WorldPosition`
-	* **Camera:** Uses `CFrame`
-	* **Table:** Looks for `.Position`, `.CFrame`, `.WorldPosition`, or `:GetPivot()`.
-	:::
-
-	@method add
-	@within Group
-	@param entity any -- The object to track.
-	@return Group
-]=]
 function Group.add(self: Types.InternalGroup<any>, entity: any): Types.Group<any>
 	if self.isManaged then
 		warn(`[QuickZone] Cannot manually add to a Managed Group.`)
@@ -392,19 +296,6 @@ function Group.add(self: Types.InternalGroup<any>, entity: any): Types.Group<any
 	return self:_add(entity)
 end
 
---[=[ 
-	Adds multiple entities to the group.
-
-	```lua
-	-- Add an entire folder of NPCs at once
-	myGroup:addBulk(workspace.Enemies:GetChildren())
-	```
-
-	@method addBulk
-	@within Group
-	@param entities { any } -- Array of entities to add.
-	@return Group
-]=]
 function Group.addBulk(self: Types.InternalGroup<any>, entities: { any }): Types.Group<any>
 	if self.isManaged then
 		warn(`[QuickZone] Cannot manually addBulk from a Managed Group.`)
@@ -413,14 +304,6 @@ function Group.addBulk(self: Types.InternalGroup<any>, entities: { any }): Types
 	return self:_addBulk(entities)
 end
 
---[=[ 
-	Removes the entity from the group.
-
-	@method remove
-	@within Group
-	@param entity any
-	@return Group
-]=]
 function Group.remove(self: Types.InternalGroup<any>, entity: any): Types.Group<any>
 	if self.isManaged then
 		warn(`[QuickZone] Cannot manually remove from a Managed Group.`)
@@ -429,14 +312,6 @@ function Group.remove(self: Types.InternalGroup<any>, entity: any): Types.Group<
 	return self:_remove(entity)
 end
 
---[=[ 
-	Removes multiple entities from the group.
-	
-	@method removeBulk
-	@within Group
-	@param entities { any }
-	@return Group
-]=]
 function Group.removeBulk(self: Types.InternalGroup<any>, entities: { any }): Types.Group<any>
 	if self.isManaged then
 		warn(`[QuickZone] Cannot manually removeBulk from a Managed Group.`)
@@ -445,14 +320,6 @@ function Group.removeBulk(self: Types.InternalGroup<any>, entities: { any }): Ty
 	return self:_removeBulk(entities)
 end
 
---[=[ 
-	Removes all entities from the group.
-	This fires 'onExit' events for every entity currently inside a zone.
-
-	@method clear
-	@within Group
-	@return Group
-]=]
 function Group.clear(self: Types.InternalGroup<any>): Types.Group<any>
 	if self.isManaged then
 		warn(`[QuickZone] Cannot clear from a Managed Group.`)
@@ -461,38 +328,16 @@ function Group.clear(self: Types.InternalGroup<any>): Types.Group<any>
 	return self:_clear()
 end
 
---[=[ 
-	Checks if a specific entity is currently a member of this group.
-
-	@method contains
-	@within Group
-	@param entity any
-	@return boolean
-]=]
 function Group.contains(self: Types.InternalGroup<any>, entity: any): boolean
 	entity = State.referenceToEntity[entity] or entity
 	local groups = State.entityToGroups[entity]
 	return groups and groups[self.id] == true or false
 end
 
---[=[ 
-	Returns the unique internal ID of the group.
-
-	@method getId
-	@within Group
-	@return number
-]=]
 function Group.getId(self: Types.InternalGroup<any>): number
 	return self.id
 end
 
---[=[ 
-	Returns a list of all entities currently belonging to the group.
-
-	@method getEntities
-	@within Group
-	@return { any }
-]=]
 function Group.getEntities(self: Types.InternalGroup<any>): { any }
 	local result = table.create(#self.entities)
 	for i, entity in ipairs(self.entities) do
@@ -501,39 +346,17 @@ function Group.getEntities(self: Types.InternalGroup<any>): { any }
 	return result
 end
 
---[=[ 
-	Returns a list of all Players currently represented in the group.
-
-	@method getPlayers
-	@within Group
-	@return { Player }
-]=]
 function Group.getPlayers(self: Types.InternalGroup<any>): { Player }
 	local result = {}
 	for entity in self.entityIndices do
 		local ref = State.entityToReference[entity] or entity
-		if typeof(ref) == 'Instance' and ref:IsA('Player') then
+		if typeof(ref) == "Instance" and ref:IsA("Player") then
 			table.insert(result, ref)
 		end
 	end
 	return result
 end
 
---[=[ 
-	Iterates over all entities currently belonging to the group.
-	Provides a zero-allocation way to loop through entities, ideal for high-frequency 
-	checks.
-
-	```lua
-	for entity in myGroup:iterEntities() do
-		print(entity.Name .. " is in the group!")
-	end
-	```
-
-	@method iterEntities
-	@within Group
-	@return () -> any?
-]=]
 function Group.iterEntities(self: Types.InternalGroup<any>): () -> any?
 	local entity = nil
 
@@ -546,13 +369,6 @@ function Group.iterEntities(self: Types.InternalGroup<any>): () -> any?
 	end
 end
 
---[=[ 
-	Iterates over all players currently represented in the group.
-
-	@method iterPlayers
-	@within Group
-	@return () -> Player?
-]=]
 function Group.iterPlayers(self: Types.InternalGroup<any>): () -> Player?
 	local entity = nil
 
@@ -565,28 +381,13 @@ function Group.iterPlayers(self: Types.InternalGroup<any>): () -> Player?
 			end
 
 			local ref = State.entityToReference[entity] or entity
-			if typeof(ref) == 'Instance' and ref:IsA('Player') then
+			if typeof(ref) == "Instance" and ref:IsA("Player") then
 				return ref
 			end
 		end
 	end
 end
 
---[=[ 
-	Fires when `destroy()` is called on the group.
-
-	```lua
-	local disconnect = myGroup:onDestroy(function()
-		print('Group was destroyed!')
-	end)
-	```
-
-	@tag Event
-	@method onDestroy
-	@within Group
-	@param callback () -> ()
-	@return () -> () -- Disconnect function
-]=]
 function Group.onDestroy(self: Types.InternalGroup<any>, callback: () -> ()): () -> ()
 	if not self.onDestroyCallbacks then
 		self.onDestroyCallbacks = {}
@@ -602,14 +403,6 @@ function Group.onDestroy(self: Types.InternalGroup<any>, callback: () -> ()): ()
 	end
 end
 
---[=[ 
-	Cleans up the group, removes all tracked entities, and detaches any 
-	associated observers.
-	
-	@tag Destructor
-	@method destroy
-	@within Group
-]=]
 function Group.destroy(self: Types.InternalGroup<any>): ()
 	if self.onDestroyCallbacks then
 		for _, callback in self.onDestroyCallbacks do
@@ -643,17 +436,17 @@ function Group._add(self: Types.InternalGroup<any>, entity: any): Types.Group<an
 
 	if not State.entityData[entity] then
 		local strat
-		if typeof(entity) == 'Instance' then
-			if entity:IsA('BasePart') then
+		if typeof(entity) == "Instance" then
+			if entity:IsA("BasePart") then
 				strat = STRAT_POS
-			elseif entity:IsA('Attachment') or entity:IsA('Bone') then
+			elseif entity:IsA("Attachment") or entity:IsA("Bone") then
 				strat = STRAT_WORLD
-			elseif entity:IsA('Camera') then
+			elseif entity:IsA("Camera") then
 				strat = STRAT_CFRAME
-			elseif entity:IsA('Model') then
+			elseif entity:IsA("Model") then
 				strat = entity.PrimaryPart and STRAT_PRIM or STRAT_PIVOT
 			end
-		elseif typeof(entity) == 'table' then
+		elseif typeof(entity) == "table" then
 			if entity.Position then
 				strat = STRAT_POS
 			elseif entity.CFrame then
@@ -670,7 +463,7 @@ function Group._add(self: Types.InternalGroup<any>, entity: any): Types.Group<an
 		if not strat then
 			warn(
 				string.format(
-					'[QuickZone] Invalid entity (%s). Expected BasePart, Model, Bone, Attachment, Camera, an EntityTable, or a reference to such an object.',
+					"[QuickZone] Invalid entity (%s). Expected BasePart, Model, Bone, Attachment, Camera, an EntityTable, or a reference to such an object.",
 					tostring(entity)
 				)
 			)
@@ -700,7 +493,7 @@ function Group._add(self: Types.InternalGroup<any>, entity: any): Types.Group<an
 	State.dirtyProfiles[entity] = true
 	State.dirtyTopology[entity] = true
 
-	if self.autoClean and typeof(entity) == 'Instance' and not State.groupEntityCleanups[self.id][entity] then
+	if self.autoClean and typeof(entity) == "Instance" and not State.groupEntityCleanups[self.id][entity] then
 		State.groupEntityCleanups[self.id][entity] = (entity :: Instance).AncestryChanged:Connect(function(_, parent)
 			if not parent then
 				self:_remove(entity)
@@ -788,7 +581,6 @@ function Group._remove(self: Types.InternalGroup<any>, entity: any): Types.Group
 	end
 
 	if next(State.entityToGroups[entity]) == nil then
-		-- Remove from bucket
 		local currentRate = data.updateRate
 		if currentRate and currentRate > 0 and State.buckets[currentRate] then
 			local bucket = State.buckets[currentRate]
@@ -796,7 +588,6 @@ function Group._remove(self: Types.InternalGroup<any>, entity: any): Types.Group
 			local maxEntities = #bucket
 			local lastEntity = bucket[maxEntities]
 
-			-- We swap and then pop to avoid shifting all entities down
 			if bucketIdx ~= maxEntities then
 				bucket[bucketIdx] = lastEntity
 				if State.entityData[lastEntity] then
@@ -825,7 +616,6 @@ function Group._removeBulk(self: Types.InternalGroup<any>, entities: { any }): T
 end
 
 function Group._clear(self: Types.InternalGroup<any>): Types.Group<any>
-	-- Iterate backwards for safe removal
 	local entities = self.entities
 	for idx = #entities, 1, -1 do
 		self:_remove(entities[idx])

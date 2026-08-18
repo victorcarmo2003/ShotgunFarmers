@@ -1,7 +1,7 @@
 --!strict
 --!nolint LocalUnused
 --!nolint LocalShadow
-local task = nil -- Disable usage of Roblox's task scheduler
+local task = nil
 
 local Package = script.Parent.Parent
 local Types = require(Package.Types)
@@ -9,15 +9,13 @@ local poisonScope = require(Package.Memory.poisonScope)
 local ExternalDebug = require(Package.ExternalDebug)
 
 local ENABLE_POOLING = false
-local MAX_POOL_SIZE = 16 -- TODO: need to test what an ideal number for this is
+local MAX_POOL_SIZE = 16
 
 local pool = {}
 local poolSize = 0
 
 return {
-	giveIfEmpty = function<S>(
-		scope: Types.Scope<S>
-	): Types.Scope<S>?
+	giveIfEmpty = function<S>(scope: Types.Scope<S>): Types.Scope<S>?
 		if next(scope) == nil then
 			ExternalDebug.untrackScope(scope)
 			if ENABLE_POOLING and poolSize < MAX_POOL_SIZE then
@@ -31,9 +29,7 @@ return {
 			return scope
 		end
 	end,
-	clearAndGive = function(
-		scope: Types.Scope<unknown>
-	)
+	clearAndGive = function(scope: Types.Scope<unknown>)
 		ExternalDebug.untrackScope(scope)
 		table.clear(scope)
 		if ENABLE_POOLING and poolSize < MAX_POOL_SIZE then
@@ -51,5 +47,5 @@ return {
 			poolSize -= 1
 			return scope
 		end
-	end
+	end,
 }

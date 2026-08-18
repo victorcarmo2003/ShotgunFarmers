@@ -14,7 +14,6 @@ WeaponService:OnInit(function(self)
 			return nil
 		end
 
-		-- Array fixo de 3 posições (índice = slot) -- slot sem arma no loadout manda 0.
 		local ammo = { 0, 0, 0 }
 		for slot, amount in playerEquipment.SlotAmmo do
 			ammo[slot] = amount

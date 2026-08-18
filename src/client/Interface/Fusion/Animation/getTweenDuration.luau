@@ -1,18 +1,11 @@
 --!strict
 --!nolint LocalUnused
 --!nolint LocalShadow
-local task = nil -- Disable usage of Roblox's task scheduler
-
---[[
-	Given a `tweenInfo`, returns how many seconds it will take before the tween
-	finishes moving. The result may be infinite if the tween repeats forever.
-]]
+local task = nil
 
 local TweenService = game:GetService("TweenService")
 
-local function getTweenDuration(
-	tweenInfo: TweenInfo
-): number
+local function getTweenDuration(tweenInfo: TweenInfo): number
 	if tweenInfo.RepeatCount <= -1 then
 		return math.huge
 	end

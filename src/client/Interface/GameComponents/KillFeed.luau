@@ -6,6 +6,7 @@ local KillFeedEntry = require(script.Parent.KillFeedEntry)
 local Children = Fusion.Children
 
 export type KillFeedValues = {
+
 	Entries: Fusion.StateObject<{ [number]: KillFeedEntry.KillFeedEntryValues }>,
 }
 

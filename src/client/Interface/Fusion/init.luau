@@ -1,10 +1,7 @@
 --!strict
 --!nolint LocalUnused
 --!nolint LocalShadow
-local task = nil -- Disable usage of Roblox's task scheduler
---[[
-	The entry point for the Fusion library.
-]]
+local task = nil
 
 local Types = require(script.Types)
 local External = require(script.External)
@@ -31,30 +28,25 @@ export type Use = Types.Use
 export type Value<T, S = T> = Types.Value<T, S>
 export type Version = Types.Version
 
--- Down the line, this will be conditional based on whether Fusion is being
--- compiled for Roblox.
 do
 	local RobloxExternal = require(script.RobloxExternal)
 	External.setExternalProvider(RobloxExternal)
 end
 
-local Fusion: Fusion = table.freeze {
-	-- General
-	version = {major = 0, minor = 3, isRelease = true},
+local Fusion: Fusion = table.freeze({
+
+	version = { major = 0, minor = 3, isRelease = true },
 	Contextual = require(script.Utility.Contextual),
 	Safe = require(script.Utility.Safe),
 
-	-- Memory
 	cleanup = require(script.Memory.legacyCleanup),
 	deriveScope = require(script.Memory.deriveScope),
 	doCleanup = require(script.Memory.doCleanup),
 	innerScope = require(script.Memory.innerScope),
 	scoped = require(script.Memory.scoped),
-	
-	-- Graph
+
 	Observer = require(script.Graph.Observer),
 
-	-- State
 	Computed = require(script.State.Computed),
 	ForKeys = require(script.State.ForKeys) :: Types.ForKeysConstructor,
 	ForPairs = require(script.State.ForPairs) :: Types.ForPairsConstructor,
@@ -62,7 +54,6 @@ local Fusion: Fusion = table.freeze {
 	peek = require(script.State.peek),
 	Value = require(script.State.Value),
 
-	-- Roblox API
 	Attribute = require(script.Instances.Attribute),
 	AttributeChange = require(script.Instances.AttributeChange),
 	AttributeOut = require(script.Instances.AttributeOut),
@@ -74,9 +65,8 @@ local Fusion: Fusion = table.freeze {
 	OnEvent = require(script.Instances.OnEvent),
 	Out = require(script.Instances.Out),
 
-	-- Animation
 	Tween = require(script.Animation.Tween),
 	Spring = require(script.Animation.Spring),
-}
+})
 
 return Fusion

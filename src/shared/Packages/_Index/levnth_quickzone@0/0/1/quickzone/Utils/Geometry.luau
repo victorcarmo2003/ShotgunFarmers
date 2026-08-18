@@ -43,7 +43,6 @@ function Geometry.getObjectBounds(cframe: CFrame, halfSize: Vector3): (Vector3, 
 	local up = cframe.UpVector
 	local look = cframe.LookVector
 
-	-- Calculate the projection of the box extents onto the global axes
 	local x = math.abs(right.X) * halfSize.X + math.abs(up.X) * halfSize.Y + math.abs(look.X) * halfSize.Z
 	local y = math.abs(right.Y) * halfSize.X + math.abs(up.Y) * halfSize.Y + math.abs(look.Y) * halfSize.Z
 	local z = math.abs(right.Z) * halfSize.X + math.abs(up.Z) * halfSize.Y + math.abs(look.Z) * halfSize.Z

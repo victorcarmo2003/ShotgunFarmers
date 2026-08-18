@@ -2,7 +2,7 @@
 --!optimize 2
 --!strict
 
-local RunService = game:GetService('RunService')
+local RunService = game:GetService("RunService")
 
 local Config = require(script.Parent.Parent.Config)
 local Types = require(script.Parent.Parent.Types)
@@ -62,7 +62,7 @@ local autoUpdateConnection: RBXScriptConnection?
 
 local bucketList = State.bucketList
 local buckets = State.buckets
-local nextBucketIndex = 1 -- Round-robin pointer
+local nextBucketIndex = 1
 local bucketLastProcessedIndex = {} :: { [number]: number }
 local BUDGET_CHECK = 32
 
@@ -79,7 +79,6 @@ local function processProfileChange(entity: Types.Entity)
 		return
 	end
 
-	-- Track linked observers for quick lookup in hot loop
 	local linkedObservers = entityToObservers[entity]
 	if linkedObservers then
 		table.clear(linkedObservers)
@@ -90,7 +89,6 @@ local function processProfileChange(entity: Types.Entity)
 	local minPrecSq = math.huge
 	local maxRate = 0
 
-	-- Find the highest settings across all subscribed observers
 	for groupId, _ in groups do
 		local observers = groupToObservers[groupId]
 		if not observers then
@@ -115,16 +113,13 @@ local function processProfileChange(entity: Types.Entity)
 	local data = entityData[entity]
 	local currentRate = data.updateRate
 
-	-- Swap buckets
 	if currentRate ~= maxRate then
-		-- Remove from old bucket
 		if currentRate and currentRate > 0 and buckets[currentRate] then
 			local oldBucket = buckets[currentRate]
 			local idx = data.bucketIndex
 			local maxEntities = #oldBucket
 			local lastEntity = oldBucket[maxEntities]
 
-			-- We swap and then pop to avoid shifting all entities down
 			if idx ~= maxEntities then
 				oldBucket[idx] = lastEntity
 				if entityData[lastEntity] then
@@ -135,7 +130,6 @@ local function processProfileChange(entity: Types.Entity)
 			oldBucket[maxEntities] = nil
 		end
 
-		-- Add to new bucket
 		if maxRate > 0 then
 			if not buckets[maxRate] then
 				buckets[maxRate] = {}
@@ -150,7 +144,7 @@ local function processProfileChange(entity: Types.Entity)
 			newBucket[newIdx] = entity
 			data.bucketIndex = newIdx
 		else
-			data.bucketIndex = 0 -- Entity is not in a bucket, so no processing
+			data.bucketIndex = 0
 		end
 
 		data.updateRate = maxRate
@@ -216,7 +210,6 @@ local function processZoneHit(zoneId: number)
 					ctx_highestWin = pri
 				end
 			elseif ctx_currentMemberships[observerId] == zoneId then
-				-- Hold onto the zone for transitions
 				ctx_candidateIndex[observerId] = zoneId
 			end
 		end
@@ -252,7 +245,6 @@ local Scheduler = {}
 function Scheduler.update(dt: number)
 	local start = os.clock()
 
-	-- Route entities that have changed groups or observers since the last update
 	for entity, _ in dirtyProfiles do
 		dirtyProfiles[entity] = nil
 		if entityData[entity] then
@@ -260,8 +252,6 @@ function Scheduler.update(dt: number)
 		end
 	end
 
-	-- Route entities of which the topology changed
-	-- Must be after profile change
 	for entity, _ in dirtyTopology do
 		dirtyTopology[entity] = nil
 		if entityData[entity] then
@@ -269,7 +259,6 @@ function Scheduler.update(dt: number)
 		end
 	end
 
-	-- Auto-sync zone positions if enabled
 	if autoSyncRate > 0 then
 		local syncInterval = 1 / autoSyncRate
 		autoSyncTimer += dt
@@ -284,7 +273,7 @@ function Scheduler.update(dt: number)
 					continue
 				end
 
-				local newCF = reference:IsA('Attachment') and reference.WorldCFrame or reference.CFrame
+				local newCF = reference:IsA("Attachment") and reference.WorldCFrame or reference.CFrame
 				local oldCF = dynamicCFrames[id]
 
 				if oldCF == newCF then
@@ -312,7 +301,6 @@ function Scheduler.update(dt: number)
 		return
 	end
 
-	-- Pointer may have gotten out of bounds
 	if nextBucketIndex > numBuckets then
 		nextBucketIndex = 1
 	end
@@ -321,7 +309,6 @@ function Scheduler.update(dt: number)
 	local staticVersion = State.staticVersion
 	local logicVersion = State.logicVersion
 
-	-- Round-robin scheduling to prevent starvation
 	for _ = 1, numBuckets do
 		local rate = bucketList[nextBucketIndex]
 		nextBucketIndex = (nextBucketIndex % numBuckets) + 1
@@ -347,7 +334,6 @@ function Scheduler.update(dt: number)
 			local entity = list[idx]
 			local data = entityData[entity] :: Types.EntityData
 
-			-- Strategy
 			local pos
 			local strategy = data.strategy
 			if strategy == STRAT_POS then
@@ -407,7 +393,6 @@ function Scheduler.update(dt: number)
 
 				local current = data.activeObserverMemberships
 
-				-- Exits
 				for observerId, oldZoneId in current do
 					local newPri = ctx_candidatePriority[observerId]
 					if newPri and newPri >= ctx_highestWin then
@@ -429,7 +414,6 @@ function Scheduler.update(dt: number)
 					fireCallback(cbs, ref, z, safety)
 				end
 
-				-- Entries & Transitions
 				for i = 1, ctx_cCount do
 					local observerId = ctx_candidateList[i]
 					local pri = ctx_candidatePriority[observerId]
@@ -448,11 +432,10 @@ function Scheduler.update(dt: number)
 						continue
 					end
 
-					-- Update the tracker.
 					current[observerId] = zoneIdx
 					local safety = observerSafety[observerId]
 
-					if not currentZoneId then -- New entry
+					if not currentZoneId then
 						observerTrackingEntities[observerId][entity] = true
 
 						local cbs = observerEnteredCallbacks[observerId]
@@ -462,7 +445,7 @@ function Scheduler.update(dt: number)
 
 						local z = zoneIdToZoneObj[zoneIdx]
 						fireCallback(cbs, ref, z, safety)
-					else -- Transition
+					else
 						local cbs = observerTransitionedCallbacks[observerId]
 						if not cbs then
 							continue
@@ -488,7 +471,6 @@ function Scheduler.update(dt: number)
 			end
 			processed += 1
 
-			-- Global budget check
 			budgetCheckCountdown -= 1
 			if budgetCheckCountdown == 0 then
 				budgetCheckCountdown = BUDGET_CHECK
@@ -528,7 +510,7 @@ function Scheduler.setAutoSyncRate(hz: number)
 end
 
 function Scheduler.setFrameBudget(n: number)
-	assert(n > 0, '[QuickZone] frameBudget must be greater than 0')
+	assert(n > 0, "[QuickZone] frameBudget must be greater than 0")
 
 	frameBudget = n
 end

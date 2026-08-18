@@ -1,20 +1,18 @@
 local CollectionService = game:GetService("CollectionService")
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 
--- Tag a colocar (no Studio) em instâncias SpawnLocation espalhadas pelo mapa de FFA.
 local SPAWN_TAG = "FFASpawn"
 
 local SpawnService = Modux.Service("SpawnService"):Import("PlayerService")
+type Self = typeof(SpawnService)
 
-SpawnService.GetSpawnPoints = function(self): { BasePart }
+local RESPAWN_DELAY = 3
+
+SpawnService.GetSpawnPoints = function(self: Self): { BasePart }
 	return CollectionService:GetTagged(SPAWN_TAG) :: { BasePart }
 end
 
--- (Re)carrega o character do jogador imediatamente, sem checar o estado do round.
--- Uso interno/de baixo nível -- de fora, prefira RequestSpawn.
-SpawnService.SpawnPlayer = function(self, Player: Player)
-	print(`[SpawnService] SpawnPlayer chamado -- {Player.Name}`)
-
+SpawnService.SpawnPlayer = function(self: Self, Player: Player)
 	if not Player:IsDescendantOf(game) then
 		print(`[SpawnService] SpawnPlayer abortado -- {Player.Name} não é mais descendente do game`)
 		return
@@ -23,7 +21,6 @@ SpawnService.SpawnPlayer = function(self, Player: Player)
 	print(`[SpawnService] LoadCharacterAsync concluído -- {Player.Name}, Character={tostring(Player.Character)}`)
 
 	local spawnPoints = self:GetSpawnPoints()
-	print(`[SpawnService] {#spawnPoints} spawn point(s) com a tag "{SPAWN_TAG}"`)
 	if #spawnPoints > 0 then
 		local spawnPoint = spawnPoints[math.random(1, #spawnPoints)]
 		local character = Player.Character
@@ -33,19 +30,19 @@ SpawnService.SpawnPlayer = function(self, Player: Player)
 	end
 end
 
--- FFA não pausa respawn entre fases do round -- Starting/Intermission/Vote só
--- afetam o timer/HUD (ver GameService), o corpo sempre renasce em ponto aleatório
--- alguns segundos depois de morrer (delay do ragdoll fica em VitalService.OnPlayerDie).
-SpawnService.RequestSpawn = function(self, Player: Player)
+SpawnService.RequestSpawn = function(self: Self, Player: Player)
 	self:SpawnPlayer(Player)
+end
+
+SpawnService.HandlePlayerDeath = function(self: Self, Player: Player)
+	task.delay(RESPAWN_DELAY, function()
+		print(`[SpawnService] Respawnando {Player.Name} depois do delay de ragdoll`)
+		self:RequestSpawn(Player)
+	end)
 end
 
 SpawnService:OnInit(function(self)
 	self.PlayerService:OnPlayerAdded(function(Player: Player)
-		self:RequestSpawn(Player)
-	end)
-
-	self.PlayerService:OnCharacterRemoved(function(_character, Player: Player)
 		self:RequestSpawn(Player)
 	end)
 end)

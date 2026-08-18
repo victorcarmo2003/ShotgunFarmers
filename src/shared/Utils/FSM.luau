@@ -122,9 +122,6 @@ function FSM.Transition<State>(self: FSM<State>, nextState: State): boolean
 	return true
 end
 
--- Ignora `_transitions` e força o estado direto -- para casos como respawn, onde o
--- estado anterior à morte pode não ter um caminho de volta válido na tabela normal
--- de transições (ex: Sliding não pode ir direto pra Crouch).
 function FSM.ForceState<State>(self: FSM<State>, nextState: State)
 	if self._destroyed or self.State == nextState then
 		return

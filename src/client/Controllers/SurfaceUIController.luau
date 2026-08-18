@@ -2,6 +2,7 @@ local RunService = game:GetService("RunService")
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 
 local SurfaceUIController = Modux.Controller("SurfaceUIController")
+type Self = typeof(SurfaceUIController)
 
 export type PanelConfig = {
 	Depth: number?,
@@ -10,47 +11,46 @@ export type PanelConfig = {
 
 local RENDER_BIND_NAME = "SurfaceUIController_UpdatePanels"
 local RENDER_PRIORITY = Enum.RenderPriority.Camera.Value + 1
-local REFERENCE_DEPTH = 3 -- distância usada para calcular o Size fixo (cobertura de tela)
+local REFERENCE_DEPTH = 3
 
-local SHAKE_DECAY = 2.5 -- o quanto o trauma cai por segundo
-local SHAKE_FREQUENCY = 12 -- velocidade da oscilação do ruído
-local SHAKE_POSITION_AMPLITUDE = 0.15 -- deslocamento máximo em studs
-local SHAKE_ROTATION_AMPLITUDE = 4 -- rotação máxima em graus
+local SHAKE_DECAY = 2.5
+local SHAKE_FREQUENCY = 12
+local SHAKE_POSITION_AMPLITUDE = 0.15
+local SHAKE_ROTATION_AMPLITUDE = 4
 
 type EffectState = { Trauma: number, Seed: number }
 
--- Registro de efeitos: cada um sabe iniciar seu estado, receber um "trigger" com intensidade,
--- e devolver a cada frame a CFrame de offset resultante (multiplicada em cima do Offset do painel).
 local EFFECT_HANDLERS: {
 	[string]: {
 		Init: () -> EffectState,
 		Trigger: (state: EffectState, intensity: number) -> (),
 		Update: (state: EffectState, deltaTime: number) -> CFrame,
 	},
-} = {
-	Shake = {
-		Init = function()
-			return { Trauma = 0, Seed = math.random() * 1000 }
-		end,
-		Trigger = function(state, intensity)
-			state.Trauma = math.clamp(state.Trauma + intensity, 0, 1)
-		end,
-		Update = function(state, deltaTime)
-			state.Trauma = math.max(0, state.Trauma - SHAKE_DECAY * deltaTime)
-			if state.Trauma <= 0 then
-				return CFrame.identity
-			end
+} =
+	{
+		Shake = {
+			Init = function()
+				return { Trauma = 0, Seed = math.random() * 1000 }
+			end,
+			Trigger = function(state, intensity)
+				state.Trauma = math.clamp(state.Trauma + intensity, 0, 1)
+			end,
+			Update = function(state, deltaTime)
+				state.Trauma = math.max(0, state.Trauma - SHAKE_DECAY * deltaTime)
+				if state.Trauma <= 0 then
+					return CFrame.identity
+				end
 
-			local shake = state.Trauma ^ 2
-			local time = os.clock() * SHAKE_FREQUENCY
-			local offsetX = math.noise(state.Seed, time) * SHAKE_POSITION_AMPLITUDE * shake
-			local offsetY = math.noise(state.Seed + 100, time) * SHAKE_POSITION_AMPLITUDE * shake
-			local rotZ = math.noise(state.Seed + 200, time) * SHAKE_ROTATION_AMPLITUDE * shake
+				local shake = state.Trauma ^ 2
+				local time = os.clock() * SHAKE_FREQUENCY
+				local offsetX = math.noise(state.Seed, time) * SHAKE_POSITION_AMPLITUDE * shake
+				local offsetY = math.noise(state.Seed + 100, time) * SHAKE_POSITION_AMPLITUDE * shake
+				local rotZ = math.noise(state.Seed + 200, time) * SHAKE_ROTATION_AMPLITUDE * shake
 
-			return CFrame.new(offsetX, offsetY, 0) * CFrame.Angles(0, 0, math.rad(rotZ))
-		end,
-	},
-}
+				return CFrame.new(offsetX, offsetY, 0) * CFrame.Angles(0, 0, math.rad(rotZ))
+			end,
+		},
+	}
 
 local function findPanelByPart(panels: { [string]: any }, part: Part): boolean
 	for _, panel in panels do
@@ -78,7 +78,7 @@ local function buildOffset(config: PanelConfig): CFrame
 	return CFrame.new(0, 0, -depth) * CFrame.Angles(math.rad(rotation.X), math.rad(rotation.Y), math.rad(rotation.Z))
 end
 
-SurfaceUIController.New = function(self, name: string, config: PanelConfig?): Part
+SurfaceUIController.New = function(self: Self, name: string, config: PanelConfig?): Part
 	assert(not self.Panels[name], `[SurfaceUIController] Panel "{name}" já existe.`)
 	local resolvedConfig: PanelConfig = config or {}
 
@@ -103,12 +103,12 @@ SurfaceUIController.New = function(self, name: string, config: PanelConfig?): Pa
 	return part
 end
 
-SurfaceUIController.Get = function(self, name: string): Part?
+SurfaceUIController.Get = function(self: Self, name: string): Part?
 	local panel = self.Panels[name]
 	return panel and panel.Part
 end
 
-SurfaceUIController.Remove = function(self, name: string)
+SurfaceUIController.Remove = function(self: Self, name: string)
 	local panel = self.Panels[name]
 	if not panel then
 		return
@@ -118,12 +118,13 @@ SurfaceUIController.Remove = function(self, name: string)
 	self.Panels[name] = nil
 end
 
--- Dispara/intensifica um efeito numa Part específica (ex: uma retornada por :New()).
--- effectName precisa existir em EFFECT_HANDLERS (hoje só "Shake").
-SurfaceUIController.CreateEffect = function(self, part: Part, effectName: string, intensity: number)
+SurfaceUIController.CreateEffect = function(self: Self, part: Part, effectName: string, intensity: number)
 	local handler = EFFECT_HANDLERS[effectName]
 	assert(handler, `[SurfaceUIController] Efeito "{effectName}" não existe.`)
-	assert(findPanelByPart(self.Panels, part), `[SurfaceUIController] A Part informada não pertence a nenhum painel registrado.`)
+	assert(
+		findPanelByPart(self.Panels, part),
+		`[SurfaceUIController] A Part informada não pertence a nenhum painel registrado.`
+	)
 
 	local partEffects = self.Effects[part]
 	if not partEffects then

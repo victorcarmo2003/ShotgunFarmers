@@ -76,6 +76,11 @@ Network.Packages = {
 	DayCycle = Network.packet("DayCycle", Network.struct({ CurrentDay = Network.int(0, 10000) })),
 	ChangeMovement = Network.packet("ChangeMovement", Network.struct({ ActionName = Network.string(10) })),
 	ChangeWalkSpeed = Network.packet("ChangeWalkSpeed", Network.struct({ WalkSpeed = Network.int(0, 48) })),
+	-- Nome semântico do estado da FSM do MovementComponent (Walking/Running/Crouch/
+	-- Sliding/Jumping/Dead) -- ChangeWalkSpeed sozinho não dá pra distinguir Walk de
+	-- Run (os dois mandam WalkSpeed=28), e o AnimateController precisa do nome pra
+	-- escolher o clipe certo. Só pro dono (server manda com target = Player).
+	MovementState = Network.packet("MovementState", Network.struct({ State = Network.string(10) })),
 	RoundState = Network.packet(
 		"RoundState",
 		Network.struct({ State = Network.string(12), Seconds = Network.int(0, 3600) })
@@ -159,10 +164,15 @@ Network.Packages = {
 
 	-- Ammo carrega {Slot, Amount} -- a munição é rastreada por slot do loadout, não só
 	-- da arma ativa, então toda atualização precisa dizer A QUAL slot ela pertence.
+	-- DrawLock carrega a duração (segundos) do lock de saque que acabou de começar --
+	-- o client soma isso ao `timestamp` do próprio pacote (server time de envio, não o
+	-- relógio de chegada) pra saber quando pode atirar de novo, no mesmo domínio de
+	-- tempo que o server usa em GunMixin.CanShoot.
 	WeaponKey = Network.keyPacket("WeaponKey", {
 		WeaponID = Network.int(0, 255),
 		Ammo = Network.struct({ Slot = Network.int(1, 3), Amount = Network.int(0, 255) }),
 		ActiveSlot = Network.int(1, 3),
+		DrawLock = Network.f32,
 	}),
 
 	GetWeapon = Network.query(

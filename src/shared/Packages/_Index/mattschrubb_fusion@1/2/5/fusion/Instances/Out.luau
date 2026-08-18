@@ -1,10 +1,5 @@
 --!strict
 
---[[
-	A special key for property tables, which allows users to extract values from
-	an instance into an automatically-updated Value object.
-]]
-
 local Package = script.Parent.Parent
 local PubTypes = require(Package.PubTypes)
 local logError = require(Package.Logging.logError)

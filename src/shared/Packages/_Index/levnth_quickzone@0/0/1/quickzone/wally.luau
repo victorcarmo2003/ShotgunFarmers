@@ -1,7 +1,7 @@
 return {
 	package = {
-		authors = {"Lev"},
-		exclude = {"aftman.toml"},
+		authors = { "Lev" },
+		exclude = { "aftman.toml" },
 		license = "MIT",
 		name = "levnth/quickzone",
 		realm = "shared",

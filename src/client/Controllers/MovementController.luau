@@ -8,32 +8,34 @@ local MovementController = Modux.Controller("MovementController")
 	:Import("InputController")
 	:Import("SurfaceUIController")
 	:Import("CameraController")
+type Self = typeof(MovementController)
 
--- Abaixo disso, MoveDirection é tratado como "parado" (evita jitter de ponto flutuante).
+export type MovementStates = "Walking" | "Running" | "Crouch" | "Sliding" | "Jumping" | "Dead"
+
 local MOVING_THRESHOLD = 0.05
 
-local MIN_FALL_SPEED = 1 -- studs/s abaixo disso não gera shake
-local MAX_FALL_SPEED = 20 -- studs/s a partir daqui o shake é máximo
+local MIN_FALL_SPEED = 1
+local MAX_FALL_SPEED = 20
 local MAX_FALL_SHAKE_INTENSITY = 1.2
 
-local MIN_SLIDE_SPEED = 10 -- studs/s mínimos (no plano XZ) pra poder iniciar o slide
-local MAX_SLIDE_SPEED = 50 -- teto pra velocidade inicial do slide
-local SLIDE_END_SPEED = 6 -- abaixo disso o slide termina sozinho
-local SLIDE_TURN_RATE = 4 -- quão rápido a direção do slide gruda na câmera (maior = mais colado)
-local SLIDE_FRICTION = 1.4 -- taxa de decaimento exponencial da velocidade do slide
+local MIN_SLIDE_SPEED = 10
+local MAX_SLIDE_SPEED = 50
+local SLIDE_END_SPEED = 6
+local SLIDE_TURN_RATE = 4
+local SLIDE_FRICTION = 1.4
 
-MovementController.GetCurrentPosition = function(self)
+MovementController.GetCurrentPosition = function(self: Self)
 	local primaryPart = self.LocalCharacter.PrimaryPart
 	local origin = primaryPart.Position
 	return origin
 end
 
-MovementController.GetMoveDirection = function(self)
+MovementController.GetMoveDirection = function(self: Self)
 	local moveDirection = self.LocalHumanoid.MoveDirection
 	return moveDirection
 end
 
-MovementController.OnLanded = function(self, fallSpeed: number)
+MovementController.OnLanded = function(self: Self, fallSpeed: number)
 	if fallSpeed <= MIN_FALL_SPEED then
 		return
 	end
@@ -50,7 +52,7 @@ MovementController.OnLanded = function(self, fallSpeed: number)
 	self.CameraController:CreateEffect("Shake", alpha * MAX_FALL_SHAKE_INTENSITY)
 end
 
-MovementController.TryStartSlide = function(self)
+MovementController.TryStartSlide = function(self: Self)
 	local rootPart = self.LocalCharacter and self.LocalCharacter.PrimaryPart
 	local humanoid = self.LocalHumanoid
 	if not rootPart or not humanoid then
@@ -74,7 +76,7 @@ MovementController.TryStartSlide = function(self)
 	humanoid.AutoRotate = false
 end
 
-MovementController.StopSlide = function(self)
+MovementController.StopSlide = function(self: Self)
 	if not self.IsSliding then
 		return
 	end
@@ -86,7 +88,7 @@ MovementController.StopSlide = function(self)
 	self.Network.Packages.ChangeMovement:send({ ActionName = "Slide" })
 end
 
-MovementController.StepSlide = function(self, deltaTime: number)
+MovementController.StepSlide = function(self: Self, deltaTime: number)
 	if not self.IsSliding then
 		return
 	end
@@ -124,16 +126,13 @@ MovementController.StepSlide = function(self, deltaTime: number)
 	rootPart.CFrame = CFrame.new(rootPart.Position, rootPart.Position + self.SlideDirection)
 end
 
-MovementController.TrackSliding = function(self)
+MovementController.TrackSliding = function(self: Self)
 	self:Cleanup(RunService.Heartbeat:Connect(function(deltaTime: number)
 		self:StepSlide(deltaTime)
 	end))
 end
 
--- Reativo pra UI (crosshair) acompanhar em tempo real -- o spread REAL de movimento
--- (GunMixin.GetEffectiveSpread) lê Humanoid.MoveDirection direto no momento do tiro,
--- isso aqui é só o espelho contínuo pra animação visual entre um tiro e outro.
-MovementController.TrackMoving = function(self)
+MovementController.TrackMoving = function(self: Self)
 	self:Cleanup(RunService.Heartbeat:Connect(function()
 		local humanoid = self.LocalHumanoid
 		local isMoving = humanoid ~= nil and humanoid.MoveDirection.Magnitude > MOVING_THRESHOLD
@@ -143,7 +142,7 @@ MovementController.TrackMoving = function(self)
 	end))
 end
 
-MovementController.TrackFalling = function(self)
+MovementController.TrackFalling = function(self: Self)
 	local fallSpeed = 0
 	local previousState: Enum.HumanoidStateType? = nil
 
@@ -172,32 +171,26 @@ MovementController.TrackFalling = function(self)
 	end))
 end
 
-MovementController.BindKeys = function(self)
-	-- local ShiftHandler = self.InputController:BindAction("Sprint", Enum.KeyCode.LeftShift, true, 10)
-	-- ShiftHandler.OnPress(function()
-	-- 	self.Network.Packages.ChangeMovement:send({ ActionName = "Sprint" })
-	-- end)
-
-	-- ShiftHandler.OnRelease(function()
-	-- 	self.Network.Packages.ChangeMovement:send({ ActionName = "Walk" })
-	-- end)
-
+MovementController.BindKeys = function(self: Self)
 	local CHandler = self.InputController:BindAction("Crouch", Enum.KeyCode.C, true, 10)
 
 	CHandler.OnPress(function()
 		self.Network.Packages.ChangeMovement:send({ ActionName = "Crouch" })
 	end)
-
-	-- Slide fica de reserva por enquanto: sem tecla vinculada.
-	-- Pra reativar, bind uma tecla e chame self:TryStartSlide() / self:StopSlide() (igual o Crouch acima).
 end
 
 MovementController:OnInit(function(self)
 	self.Scope = Fusion.scoped(Fusion)
 	self.IsMovingValue = self.Scope:Value(false) :: Fusion.Value<boolean>
 
+	self.MovementState = self.Scope:Value("Walking" :: MovementStates) :: Fusion.Value<MovementStates>
+
 	self.Network.Packages.ChangeWalkSpeed:on(function(data: { WalkSpeed: number })
 		self.LocalHumanoid.WalkSpeed = data.WalkSpeed
+	end)
+
+	self.Network.Packages.MovementState:on(function(data: { State: MovementStates })
+		self.MovementState:set(data.State)
 	end)
 end)
 

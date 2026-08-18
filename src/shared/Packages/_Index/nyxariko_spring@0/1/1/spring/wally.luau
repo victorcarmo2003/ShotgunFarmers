@@ -1,10 +1,9 @@
 return {
-	dependencies = {
-	},
+	dependencies = {},
 	package = {
-		authors = {"nyxariko"},
+		authors = { "nyxariko" },
 		description = "spring",
-		exclude = {"aftman.toml"},
+		exclude = { "aftman.toml" },
 		name = "nyxariko/spring",
 		realm = "shared",
 		registry = "https://github.com/UpliftGames/wally-index",

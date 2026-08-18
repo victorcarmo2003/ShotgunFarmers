@@ -3,8 +3,10 @@ local CollectionService = game:GetService("CollectionService")
 local ServerStorage = game:GetService("ServerStorage")
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 local GetGun = require(ReplicatedStorage.Shared.Utils.GetGun)
+local GameSettings = require(ReplicatedStorage.Shared.Settings.GameSettings)
 
 local EquipmentComponent = Modux.Component("EquipmentComponent"):Tag("EquipmentComponent"):ClassName("Player")
+type Self = typeof(EquipmentComponent)
 
 local WEAPON_VISUAL_WAIT_TIMEOUT = 5
 
@@ -71,7 +73,7 @@ local function attachWeaponVisual(character: Model, gunData: GetGun.GunData): Mo
 	return weaponModel
 end
 
-EquipmentComponent.RefreshVisual = function(self)
+EquipmentComponent.RefreshVisual = function(self: Self)
 	if self.WeaponVisual then
 		self.WeaponVisual:Destroy()
 		self.WeaponVisual = nil
@@ -94,7 +96,14 @@ EquipmentComponent.RefreshVisual = function(self)
 		end
 	end)
 end
-EquipmentComponent.EquipGun = function(self, Slot: SlotIndex): boolean
+
+EquipmentComponent.StartDrawLock = function(self: Self, gunData: GetGun.GunData?)
+	self.LastEquipTime = workspace:GetServerTimeNow() :: number
+	local drawTime = (gunData and gunData.DrawTime) or GameSettings.WeaponDrawLock
+	self.Package:sendKey("DrawLock", drawTime, self.Instance)
+end
+
+EquipmentComponent.EquipGun = function(self: Self, Slot: SlotIndex): boolean
 	local gunName = self.Loadout[Slot]
 	local weaponInstance = self.SlotWeaponInstance[Slot]
 	if not gunName or not weaponInstance then
@@ -114,11 +123,12 @@ EquipmentComponent.EquipGun = function(self, Slot: SlotIndex): boolean
 	self.Package:sendKey("WeaponID", self.WeaponID, self.Instance)
 
 	self:RefreshVisual()
+	self:StartDrawLock(gunData)
 
 	return true
 end
 
-EquipmentComponent.ResetAmmo = function(self)
+EquipmentComponent.ResetAmmo = function(self: Self)
 	for slot, gunName in self.Loadout do
 		local gunData = GetGun:GetByName(gunName)
 		local fullAmmo = gunData and gunData.Amount or 0
@@ -127,7 +137,7 @@ EquipmentComponent.ResetAmmo = function(self)
 	end
 end
 
-EquipmentComponent.SwitchSlot = function(self, Slot: SlotIndex): boolean
+EquipmentComponent.SwitchSlot = function(self: Self, Slot: SlotIndex): boolean
 	if not self:EquipGun(Slot) then
 		return false
 	end
@@ -138,7 +148,7 @@ EquipmentComponent.SwitchSlot = function(self, Slot: SlotIndex): boolean
 	return true
 end
 
-EquipmentComponent.HasGun = function(self, GunName: string): boolean
+EquipmentComponent.HasGun = function(self: Self, GunName: string): boolean
 	for _, loadoutGun in self.Loadout do
 		if loadoutGun == GunName then
 			return true
@@ -147,12 +157,10 @@ EquipmentComponent.HasGun = function(self, GunName: string): boolean
 	return false
 end
 
-EquipmentComponent.AddAmmo = function(self, GunName: string, Amount: number)
+EquipmentComponent.AddAmmo = function(self: Self, GunName: string, Amount: number)
 	for slot, loadoutGun in self.Loadout do
 		if loadoutGun == GunName then
-			--local gunData = GetGun:GetByName(GunName :: GetGun.GunNames)
-			--local maxAmmo = gunData and gunData.Amount or self.SlotAmmo[slot]
-			local newAmmo = self.SlotAmmo[slot] + Amount --math.min(self.SlotAmmo[slot] + Amount, maxAmmo)
+			local newAmmo = self.SlotAmmo[slot] + Amount
 			self.SlotAmmo[slot] = newAmmo
 			self.Package:sendKey("Ammo", { Slot = slot, Amount = newAmmo }, self.Instance)
 			return
@@ -160,7 +168,7 @@ EquipmentComponent.AddAmmo = function(self, GunName: string, Amount: number)
 	end
 end
 
-EquipmentComponent.GrantWeapon = function(self, GunName: GetGun.GunNames): boolean
+EquipmentComponent.GrantWeapon = function(self: Self, GunName: GetGun.GunNames): boolean
 	local gunData = GetGun:GetByName(GunName)
 	if not gunData then
 		return false
@@ -199,6 +207,7 @@ EquipmentComponent:OnInit(function(self)
 	self.ActiveSlot = 1 :: SlotIndex
 	self.Package = self.Network.Packages.WeaponKey --modux ignore line
 	self._destroyed = false :: boolean
+	self.LastEquipTime = 0 :: number
 
 	self.SlotAmmo = {} :: { [SlotIndex]: number }
 	self.SlotWeaponInstance = {} :: { [SlotIndex]: Model }
@@ -214,6 +223,8 @@ EquipmentComponent:OnInit(function(self)
 	self:Cleanup((self.Instance :: Player).CharacterAdded:Connect(function()
 		self:ResetAmmo()
 		self:RefreshVisual()
+
+		self:StartDrawLock(self.EquippedGun and GetGun:GetByName(self.EquippedGun))
 	end))
 
 	self:EquipGun(self.ActiveSlot)

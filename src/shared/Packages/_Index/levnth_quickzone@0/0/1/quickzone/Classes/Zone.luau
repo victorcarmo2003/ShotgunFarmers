@@ -1,5 +1,5 @@
 --!strict
-local CollectionService = game:GetService('CollectionService')
+local CollectionService = game:GetService("CollectionService")
 
 local State = require(script.Parent.Parent.Core.State)
 local Types = require(script.Parent.Parent.Types)
@@ -24,15 +24,15 @@ local SHAPE_MAP = {
 }
 
 local function getShapeEnumValue(part: BasePart): number
-	if part:IsA('Part') then
+	if part:IsA("Part") then
 		return part.Shape.Value
 	end
 
-	if part:IsA('WedgePart') then
+	if part:IsA("WedgePart") then
 		return Enum.PartType.Wedge.Value
 	end
 
-	if part:IsA('CornerWedgePart') then
+	if part:IsA("CornerWedgePart") then
 		return Enum.PartType.CornerWedge.Value
 	end
 
@@ -54,10 +54,10 @@ local function setupAutoSync(zone: Types.InternalZone, reference: BasePart | Att
 
 	local connections = zone.syncConnections or {}
 
-	if reference:IsA('BasePart') then
+	if reference:IsA("BasePart") then
 		table.insert(
 			connections,
-			reference:GetPropertyChangedSignal('Size'):Connect(function()
+			reference:GetPropertyChangedSignal("Size"):Connect(function()
 				local newHalfSize = reference.Size * 0.5
 				if dynamicHalfSizes[zone.id] ~= newHalfSize then
 					dynamicHalfSizes[zone.id] = newHalfSize
@@ -67,10 +67,10 @@ local function setupAutoSync(zone: Types.InternalZone, reference: BasePart | Att
 		)
 	end
 
-	if reference:IsA('Part') then
+	if reference:IsA("Part") then
 		table.insert(
 			connections,
-			reference:GetPropertyChangedSignal('Shape'):Connect(function()
+			reference:GetPropertyChangedSignal("Shape"):Connect(function()
 				local newShape = reference.Shape.Value
 				if dynamicTypes[zone.id] ~= newShape then
 					dynamicTypes[zone.id] = newShape
@@ -89,7 +89,6 @@ local function updateObserverZoneCount(observerId: number, isDynamic: boolean, d
 	local newCount = current + delta
 	dict[observerId] = newCount
 
-	-- Only flag entities dirty if the observer's topology fundamentally changed
 	if (current == 0 and newCount == 1) or (current == 1 and newCount == 0) then
 		for groupId, observers in State.groupToObservers do
 			if not observers[observerId] then
@@ -108,23 +107,6 @@ local function updateObserverZoneCount(observerId: number, isDynamic: boolean, d
 	end
 end
 
---[=[ 
-	Zones define physical areas in world space. They can be static or dynamic 
-	and support shapes like Blocks, Balls, and Cylinders.
-	
-	Zones themselves are 'passive', meaning they must be attached to an Observer before any detection occurs.
-
-	:::caution Performance
-	If a zone moves (e.g., attached to a moving platform) or changes size, 
-	you should make the zone dynamic by setting `isDynamic` to `true`. 
-
-	Static zones are optimized into a large, pre-calculated tree. Updating a 
-	static zone forces a full recalculation of that tree, which is expensive. 
-	Dynamic zones are handled separately and are much cheaper to update.
-	:::
-
-	@class Zone
-]=]
 local Zone = {}
 Zone.__index = Zone
 
@@ -180,32 +162,6 @@ local function newZoneInternal(
 	return self
 end
 
---[=[ 
-	Creates a Zone object.
-
-	```lua
-	local zone = QuickZone.Zone({
-		cframe = CFrame.new(0, 10, 0),
-		size = Vector3.new(10, 10, 10),
-		shape = 'Block',
-		isDynamic = false,
-		metadata = { Name = "Lobby" },
-		observers = { observer1, observer2 }
-	})
-	```
-
-	:::caution Dynamic Zones
-	If a zone moves, set `isDynamic` to `true` for maximum performance. 
-	:::
-
-	:::caution Rebuild Request
-	Requests a rebuild of corresponding tree (batched per frame).
-	:::
-
-	@tag Constructor
-	@param config { cframe: CFrame, size: Vector3, shape: Types.ShapeType?, reference: (BasePart | Attachment | Bone)?, isDynamic: boolean?, metadata: any?, autoSync: boolean?, observers: { Types.Observer }? }?
-	@return Zone
-]=]
 function Zone.new(config: {
 	cframe: CFrame,
 	size: Vector3,
@@ -239,30 +195,6 @@ function Zone.new(config: {
 	)
 end
 
---[=[ 
-	Creates a Zone automatically based on the Part's properties.
-	Supported shapes: Block, Ball (Spheres), Cylinder, Wedge, and CornerWedge.
-
-	```lua
-	local part = workspace.ZonePart
-	local zone = QuickZone.Zone.fromPart(part, { 
-		observers = { safeObserver, healingObserver } 
-	})
-	```
-
-	:::caution Dynamic Zones
-	If a zone moves, set `isDynamic` to `true` for maximum performance. 
-	:::
-
-	:::caution Rebuild Request
-	Requests a rebuild of corresponding tree (batched per frame).
-	:::
-
-	@tag Constructor
-	@param part BasePart -- The part to derive the zone from.
-	@param config { isDynamic: boolean?, metadata: any?, autoSync: boolean?, observers: { Types.Observer }? }?
-	@return Zone
-]=]
 function Zone.fromPart(
 	part: BasePart,
 	config: {
@@ -273,11 +205,11 @@ function Zone.fromPart(
 	}?
 ): Types.Zone
 	local shapeId = Enum.PartType.Block.Value
-	if part:IsA('Part') then
+	if part:IsA("Part") then
 		shapeId = part.Shape.Value
-	elseif part:IsA('WedgePart') then
+	elseif part:IsA("WedgePart") then
 		shapeId = Enum.PartType.Wedge.Value
-	elseif part:IsA('CornerWedgePart') then
+	elseif part:IsA("CornerWedgePart") then
 		shapeId = Enum.PartType.CornerWedge.Value
 	end
 
@@ -289,15 +221,6 @@ function Zone.fromPart(
 	return newZoneInternal(part.CFrame, part.Size, shapeId, part, isDynamic, metadata, autoSync, observers)
 end
 
---[=[
-	Creates and manages a collection of Zones from a static array of BaseParts.
-	
-	@tag Constructor
-	@within Zone
-	@param parts { BasePart }
-	@param config { isDynamic: boolean?, metadata: any?, autoSync: boolean?, observers: { Observer }? }?
-	@return Zones
-]=]
 function Zone.fromParts(
 	parts: { BasePart },
 	config: {
@@ -324,7 +247,7 @@ function Zone.fromParts(
 	end
 
 	for _, part in parts do
-		if part:IsA('BasePart') then
+		if part:IsA("BasePart") then
 			local newZone = Zone.fromPart(part, {
 				isDynamic = isDynamic,
 				metadata = zones.metadata,
@@ -337,16 +260,6 @@ function Zone.fromParts(
 	return zones
 end
 
---[=[
-	Dynamically creates and manages a Zones object from all BaseParts that are 
-	direct children of the given Instance. Automatically updates as children are added/removed.
-	
-	@tag Constructor
-	@within Zone
-	@param parent Instance
-	@param config { isDynamic: boolean?, metadata: any?, autoSync: boolean?, observers: { Types.Observer }? }?
-	@return Zones
-]=]
 function Zone.fromChildren(
 	parent: Instance,
 	config: {
@@ -375,7 +288,7 @@ function Zone.fromChildren(
 	local instanceToZone = {} :: { [Instance]: Types.Zone }
 
 	local function onAdded(child: Instance)
-		if child:IsA('BasePart') and not instanceToZone[child] then
+		if child:IsA("BasePart") and not instanceToZone[child] then
 			local newZone = Zone.fromPart(child, {
 				isDynamic = isDynamic,
 				metadata = zones.metadata,
@@ -411,22 +324,6 @@ function Zone.fromChildren(
 	return zones
 end
 
---[=[
-	Dynamically creates and manages a Zones object from all BaseParts contained 
-	anywhere within the given Instance. Automatically updates as descendants are added/removed.
-	
-	```lua
-	local mapZones = QuickZone.Zone.fromDescendants(workspace.HazardFolder, {
-		observers = { hazardObserver }
-	})
-	```
-	
-	@tag Constructor
-	@within Zone
-	@param parent Instance -- The container (Model, Folder, etc.) to search through.
-	@param config { isDynamic: boolean?, metadata: any?, autoSync: boolean?, observers: { Types.Observer }? }?
-	@return Zones
-]=]
 function Zone.fromDescendants(
 	parent: Instance,
 	config: {
@@ -455,7 +352,7 @@ function Zone.fromDescendants(
 	local instanceToZone = {} :: { [Instance]: Types.Zone }
 
 	local function onAdded(descendant: Instance)
-		if descendant:IsA('BasePart') and not instanceToZone[descendant] then
+		if descendant:IsA("BasePart") and not instanceToZone[descendant] then
 			local newZone = Zone.fromPart(descendant, {
 				isDynamic = isDynamic,
 				metadata = zones.metadata,
@@ -491,15 +388,6 @@ function Zone.fromDescendants(
 	return zones
 end
 
---[=[
-	Dynamically creates and manages Zones for all BaseParts with a specific CollectionService tag.
-	
-	@tag Constructor
-	@within Zone
-	@param tag string
-	@param config { isDynamic: boolean?, metadata: any?, autoSync: boolean?, observers: { Observer }? }?
-	@return Zones
-]=]
 function Zone.fromTag(
 	tag: string,
 	config: {
@@ -509,7 +397,6 @@ function Zone.fromTag(
 		observers: { Types.Observer<any> }?,
 	}?
 ): Types.Zones
-	-- Create Zones
 	local isDynamic = if config and config.isDynamic ~= nil then config.isDynamic else false
 	local metadata = if config and config.metadata ~= nil then config.metadata else nil
 	local autoSync = if config and config.autoSync ~= nil then config.autoSync else false
@@ -526,14 +413,13 @@ function Zone.fromTag(
 		end
 	end
 
-	-- Handle dynamic creation and destruction of zones based on tag
 	local watchingInstances = {} :: { [Instance]: RBXScriptConnection }
 	local instanceToZone = {} :: { [Instance]: Types.Zone }
 
 	local function checkAncestry(instance: Instance)
 		local inWorkspace = instance:IsDescendantOf(workspace)
 		if inWorkspace and not instanceToZone[instance] then
-			if instance:IsA('BasePart') then
+			if instance:IsA("BasePart") then
 				local newZone = Zone.fromPart(instance, {
 					isDynamic = isDynamic,
 					metadata = zones.metadata,
@@ -549,7 +435,7 @@ function Zone.fromTag(
 	end
 
 	local function startWatching(instance: Instance)
-		if watchingInstances[instance] or not instance:IsA('BasePart') then
+		if watchingInstances[instance] or not instance:IsA("BasePart") then
 			return
 		end
 		watchingInstances[instance] = instance.AncestryChanged:Connect(function()
@@ -590,22 +476,6 @@ function Zone.fromTag(
 	return zones
 end
 
---[=[ 
-	Attaches an Observer to this zone. The observer will begin 
-	monitoring this area for entity overlaps.
-
-	```lua
-	-- You are also able to chain calls
-	zone:attach(damageObserver)
-		:attach(visualObserver)
-		:attach(soundObserver)
-	```
-
-	@method attach
-	@within Zone
-	@param observer Observer -- The observer to link.
-	@return Zone
-]=]
 function Zone.attach(self: Types.InternalZone, observer: Types.InternalObserver<any>): Types.Zone
 	local attached = State.zoneAttachedObservers[self.id] or {}
 	State.zoneAttachedObservers[self.id] = attached
@@ -624,14 +494,6 @@ function Zone.attach(self: Types.InternalZone, observer: Types.InternalObserver<
 	return self
 end
 
---[=[ 
-	Detaches observer from this zone.
-
-	@method detach
-	@within Zone
-	@param observer Observer -- The observer to unlink.
-	@return Zone
-]=]
 function Zone.detach(self: Types.InternalZone, observer: Types.InternalObserver<any>): Types.Zone
 	local attached = State.zoneAttachedObservers[self.id]
 	if not attached then
@@ -661,15 +523,6 @@ function Zone.detach(self: Types.InternalZone, observer: Types.InternalObserver<
 	return self
 end
 
---[=[ 
-	Enables or disables automatic polling and syncing to the tracked BasePart.
-	If the zone is currently static, it will automatically be set to dynamic.
-
-	@method setAutoSync
-	@within Zone
-	@param autoSync boolean
-	@return Zone
-]=]
 function Zone.setAutoSync(self: Types.InternalZone, autoSync: boolean): Types.Zone
 	if self.autoSync == autoSync then
 		return self
@@ -684,7 +537,7 @@ function Zone.setAutoSync(self: Types.InternalZone, autoSync: boolean): Types.Zo
 		if self.reference then
 			setupAutoSync(self, self.reference)
 		else
-			warn('[QuickZone] Cannot autoSync a Zone without a tracked reference.')
+			warn("[QuickZone] Cannot autoSync a Zone without a tracked reference.")
 		end
 	else
 		clearAutoSync(self)
@@ -693,15 +546,6 @@ function Zone.setAutoSync(self: Types.InternalZone, autoSync: boolean): Types.Zo
 	return self
 end
 
---[=[ 
-	Updates the tracked reference for this zone. If `autoSync` is enabled, 
-	the zone will immediately start syncing to the new reference.
-
-	@method setReference
-	@within Zone
-	@param reference (BasePart | Attachment | Bone)?
-	@return Zone
-]=]
 function Zone.setReference(self: Types.InternalZone, reference: (BasePart | Attachment | Bone)?): Types.Zone
 	self.reference = reference
 
@@ -715,31 +559,16 @@ function Zone.setReference(self: Types.InternalZone, reference: (BasePart | Atta
 	return self
 end
 
---[=[ 
-	Update the zone to the reference. For a part-based zone, this will sync the zone's 
-	CFrame, Size and Shape to match the reference's. For attachment/bone-based zones, 
-	only the WorldCFrame is synced.
-
-	:::info Rebuild
-	This method flags the zone for an update. The actual tree rebuild is batched and occurs once per frame.
-	* Static Zones: Expensive. Forces a rebuild of the main static tree.
-	* Dynamic Zones: Cheap. Forces a rebuild of the smaller dynamic tree.
-	:::
-
-	@method sync
-	@within Zone
-	@return Zone
-]=]
 function Zone.sync(self: Types.InternalZone): Types.Zone
 	local reference = self.reference
 	if not reference then
-		warn('[QuickZone] Zone:sync failed. No reference found.')
+		warn("[QuickZone] Zone:sync failed. No reference found.")
 		return self
 	end
 
 	local id = self.id
 
-	if reference:IsA('BasePart') then
+	if reference:IsA("BasePart") then
 		local newCFrame = reference.CFrame
 		local newHalfSize = reference.Size * 0.5
 		local newShape = getShapeEnumValue(reference)
@@ -791,7 +620,7 @@ function Zone.sync(self: Types.InternalZone): Types.Zone
 		return self
 	end
 
-	if reference:IsA('Attachment') or reference:IsA('Bone') then
+	if reference:IsA("Attachment") or reference:IsA("Bone") then
 		local newCFrame = reference.WorldCFrame
 		if self.dynamic then
 			if dynamicCFrames[id] == newCFrame then
@@ -815,19 +644,6 @@ function Zone.sync(self: Types.InternalZone): Types.Zone
 	return self
 end
 
---[=[ 
-	Promotes or demotes a zone between the Static and Dynamic trees.
-	
-	:::info Performance
-	Changing a zone's dynamic state forces both the static and dynamic trees to rebuild. 
-	Use this sparingly (e.g., when a static bridge breaks and becomes dynamic).
-	:::
-
-	@method setDynamic
-	@within Zone
-	@param isDynamic boolean
-	@return Zone
-]=]
 function Zone.setDynamic(self: Types.InternalZone, isDynamic: boolean): Types.Zone
 	if self.dynamic == isDynamic then
 		return self
@@ -872,18 +688,6 @@ function Zone.setDynamic(self: Types.InternalZone, isDynamic: boolean): Types.Zo
 	return self
 end
 
---[=[ 
-	Updates the Zone's CFrame.
-
-	:::caution Rebuild Request
-	Requests a rebuild of corresponding tree (batched per frame).
-	:::
-
-	@method setCFrame
-	@within Zone
-	@param cf CFrame
-	@return Zone
-]=]
 function Zone.setCFrame(self: Types.InternalZone, cf: CFrame): Types.Zone
 	if self.dynamic then
 		dynamicCFrames[self.id] = cf
@@ -895,36 +699,12 @@ function Zone.setCFrame(self: Types.InternalZone, cf: CFrame): Types.Zone
 	return self
 end
 
---[=[ 
-	Updates the Zone's Position while preserving its current Rotation.
-
-	:::caution Rebuild Request
-	Requests a rebuild of corresponding tree (batched per frame).
-	:::
-
-	@method setPosition
-	@within Zone
-	@param pos Vector3
-	@return Zone
-]=]
 function Zone.setPosition(self: Types.InternalZone, pos: Vector3): Types.Zone
 	local currentCF = self.dynamic and dynamicCFrames[self.id] or staticCFrames[self.id]
 	local newCF = currentCF.Rotation + pos
 	return self:setCFrame(newCF)
 end
 
---[=[ 
-	Updates the Zone's Size.
-
-	:::caution Rebuild Request
-	Requests a rebuild of corresponding tree (batched per frame).
-	:::
-	
-	@method setSize
-	@within Zone
-	@param size Vector3
-	@return Zone
-]=]
 function Zone.setSize(self: Types.InternalZone, size: Vector3): Types.Zone
 	local halfSize = size * 0.5
 
@@ -938,14 +718,6 @@ function Zone.setSize(self: Types.InternalZone, size: Vector3): Types.Zone
 	return self
 end
 
---[=[ 
-	Updates the Zone's geometric shape.
-	
-	@method setShape
-	@within Zone
-	@param shape ShapeType
-	@return Zone
-]=]
 function Zone.setShape(self: Types.InternalZone, shape: Types.ShapeType): Types.Zone
 	local shapeType = Enum.PartType.Block.Value
 
@@ -971,118 +743,53 @@ function Zone.setShape(self: Types.InternalZone, shape: Types.ShapeType): Types.
 	return self
 end
 
---[=[ 
-	Set the metadata of the zone.
-
-	@method setMetadata
-	@within Zone
-	@param metadata any?
-	@return Zone
-]=]
 function Zone.setMetadata(self: Types.InternalZone, metadata: any?): Types.Zone
 	self.metadata = metadata
 	return self
 end
 
---[=[ 
-	Returns the metadata of the zone.
-	
-	@method getMetadata
-	@within Zone
-	@return any?
-]=]
 function Zone.getMetadata(self: Types.InternalZone): any?
 	return self.metadata
 end
 
---[=[ 
-	Returns the unique internal ID of the zone.
-
-	@method getId
-	@within Zone
-	@return number
-]=]
 function Zone.getId(self: Types.InternalZone): number
 	return self.id
 end
 
---[=[
-	Returns the reference associated with this zone, if any.
-
-	@method getReference
-	@within Zone
-	@return (BasePart | Attachment | Bone)?
-]=]
 function Zone.getReference(self: Types.InternalZone): (BasePart | Attachment | Bone)?
 	return self.reference
 end
 
---[=[
-	Returns the current position of the zone.
-
-	@method getPosition
-	@within Zone
-	@return CFrame
-]=]
 function Zone.getPosition(self: Types.InternalZone): Vector3
 	local cf = self.dynamic and dynamicCFrames[self.id] or staticCFrames[self.id]
 	return cf.Position
 end
 
---[=[
-	Returns the current CFrame of the zone.
-
-	@method getCFrame
-	@within Zone
-	@return CFrame
-]=]
 function Zone.getCFrame(self: Types.InternalZone): CFrame
 	return self.dynamic and dynamicCFrames[self.id] or staticCFrames[self.id]
 end
 
---[=[
-	Returns the full size of the zone.
-
-	@method getSize
-	@within Zone
-	@return Vector3
-]=]
 function Zone.getSize(self: Types.InternalZone): Vector3
 	local halfSize = self.dynamic and dynamicHalfSizes[self.id] or staticHalfSizes[self.id]
 	return halfSize * 2
 end
 
---[=[ 
-	Returns the geometric shape type of the zone.
-
-	@method getShape
-	@within Zone
-	@return ShapeType
-]=]
 function Zone.getShape(self: Types.InternalZone): Types.ShapeType
 	local shapeType = self.dynamic and dynamicTypes[self.id] or staticTypes[self.id]
 	if shapeType == Enum.PartType.Block.Value then
-		return 'Block'
+		return "Block"
 	elseif shapeType == Enum.PartType.Ball.Value then
-		return 'Ball'
+		return "Ball"
 	elseif shapeType == Enum.PartType.Cylinder.Value then
-		return 'Cylinder'
+		return "Cylinder"
 	elseif shapeType == Enum.PartType.Wedge.Value then
-		return 'Wedge'
+		return "Wedge"
 	elseif shapeType == Enum.PartType.CornerWedge.Value then
-		return 'CornerWedge'
+		return "CornerWedge"
 	end
-	return 'Block'
+	return "Block"
 end
 
---[=[ 
-	Checks if a point is inside this specific zone.
-
-	@method isPointInside
-	@within Zone
-	@param point Vector3
-	@return boolean
-]=]
 function Zone.isPointInside(self: Types.InternalZone, point: Vector3): boolean
 	local id = self.id
 	if self.dynamic then
@@ -1092,32 +799,10 @@ function Zone.isPointInside(self: Types.InternalZone, point: Vector3): boolean
 	end
 end
 
---[=[ 
-	Returns whether the zone is currently registered as a dynamic object.
-	
-	@method isDynamic
-	@within Zone
-	@return boolean
-]=]
 function Zone.isDynamic(self: Types.InternalZone): boolean
 	return self.dynamic
 end
 
---[=[ 
-	Fires when `destroy()` is called on the zone
-
-	```lua
-	local disconnect = myZone:onDestroy(function()
-		print('Zone was destroyed!')
-	end)
-	```
-
-	@tag Event
-	@method onDestroy
-	@within Zone
-	@param callback () -> ()
-	@return () -> () -- Disconnect function
-]=]
 function Zone.onDestroy(self: Types.InternalZone, callback: () -> ()): () -> ()
 	if not self.onDestroyCallbacks then
 		self.onDestroyCallbacks = {}
@@ -1133,17 +818,6 @@ function Zone.onDestroy(self: Types.InternalZone, callback: () -> ()): () -> ()
 	end
 end
 
---[=[ 
-	Cleans up the zone, removes it from the LBVH tree, and detaches all observers.
-
-	:::caution Rebuild Request
-	Requests a rebuild of corresponding tree (batched per frame).
-	:::
-	
-	@tag Destructor
-	@method destroy
-	@within Zone
-]=]
 function Zone.destroy(self: Types.InternalZone): ()
 	if self.onDestroyCallbacks then
 		for _, callback in self.onDestroyCallbacks do
@@ -1154,7 +828,6 @@ function Zone.destroy(self: Types.InternalZone): ()
 
 	clearAutoSync(self)
 
-	-- Force flush so the zone object will not be nil when spatial query is done in the Scheduler
 	local id = self.id
 	local attachedObservers = State.zoneAttachedObservers[id]
 	if attachedObservers then

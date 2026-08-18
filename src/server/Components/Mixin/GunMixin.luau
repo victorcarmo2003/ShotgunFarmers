@@ -5,6 +5,7 @@ local Modux = require(game.ReplicatedStorage.Shared.Modux)
 local GameSettings = require(ReplicatedStorage.Shared.Settings.GameSettings)
 
 local GunMixin = Modux.Mixin("GunMixin")
+type Self = typeof(GunMixin)
 local SOUND_CLEANUP_FALLBACK = 10
 local PLANTABLE_TAG = "Farmland"
 local PLANT_RAY_RANGE = 150
@@ -14,7 +15,7 @@ plantRaycastParams.FilterType = Enum.RaycastFilterType.Exclude
 export type SeedProp = BasePart
 
 GunMixin.Shoot = function(
-	self,
+	self: Self,
 	Shooter: Player,
 	Equipment: any,
 	origin: Vector3,
@@ -27,7 +28,7 @@ GunMixin.Shoot = function(
 	return {}
 end
 
-GunMixin.GetEffectiveSpread = function(self, Shooter: Player, isAiming: boolean): number
+GunMixin.GetEffectiveSpread = function(self: Self, Shooter: Player, isAiming: boolean): number
 	local spread = self.Spread
 
 	local character = Shooter.Character
@@ -43,13 +44,16 @@ GunMixin.GetEffectiveSpread = function(self, Shooter: Player, isAiming: boolean)
 	return spread
 end
 
-GunMixin.CanShoot = function(self, Equipment: any): boolean
+GunMixin.CanShoot = function(self: Self, Equipment: any): boolean
 	local hasAmmo = Equipment.SlotAmmo[Equipment.ActiveSlot] > 0
 	local offCooldown = (workspace:GetServerTimeNow() - self.lastshoot) >= self.FireRate
-	return hasAmmo and offCooldown
+
+	local drawTime = self.DrawTime or GameSettings.WeaponDrawLock
+	local drawReady = (workspace:GetServerTimeNow() - Equipment.LastEquipTime) >= drawTime
+	return hasAmmo and offCooldown and drawReady
 end
 
-GunMixin.ConsumeAndReplicateAmmo = function(self, Equipment: any)
+GunMixin.ConsumeAndReplicateAmmo = function(self: Self, Equipment: any)
 	local slot = Equipment.ActiveSlot
 	local newAmmo = math.max(Equipment.SlotAmmo[slot] - 1, 0)
 	Equipment.SlotAmmo[slot] = newAmmo
@@ -57,7 +61,7 @@ GunMixin.ConsumeAndReplicateAmmo = function(self, Equipment: any)
 	Equipment.Package:sendKey("Ammo", { Slot = slot, Amount = newAmmo }, Equipment.Instance)
 end
 
-GunMixin.RandomSpread = function(self, direction: Vector3, spread: number): Vector3
+GunMixin.RandomSpread = function(self: Self, direction: Vector3, spread: number): Vector3
 	if spread <= 0 then
 		return direction
 	end
@@ -77,19 +81,18 @@ local function getSeedsFolder(): Folder
 	return folder :: Folder
 end
 
-GunMixin.PlantAt = function(self, Position: Vector3)
-	
+GunMixin.PlantAt = function(self: Self, Position: Vector3)
 	local dirt = ReplicatedStorage.Assets.Seeds.Dirt:Clone() :: SeedProp
 	dirt:PivotTo(CFrame.new(Position) * dirt.CFrame.Rotation)
 	dirt:SetAttribute("GunName", self.GunName)
 	dirt:SetAttribute("PlantedAt", workspace:GetServerTimeNow())
 	dirt.Parent = getSeedsFolder()
 	CollectionService:AddTag(dirt, "SeedComponent")
-
 end
 
-GunMixin.TryPlant = function(self, origin: Vector3, direction: Vector3, Shooter: Player)
+GunMixin.TryPlant = function(self: Self, origin: Vector3, direction: Vector3, Shooter: Player)
 	if direction.Magnitude < 0.5 then
+		-- print(`[GunMixin] TryPlant abortado -- direction.Magnitude < 0.5 ({direction.Magnitude})`)
 		return
 	end
 
@@ -97,17 +100,18 @@ GunMixin.TryPlant = function(self, origin: Vector3, direction: Vector3, Shooter:
 
 	local result = workspace:Raycast(origin, direction.Unit * PLANT_RAY_RANGE, plantRaycastParams)
 	if not result then
+		-- print(`[GunMixin] TryPlant -- raycast não bateu em nada (origin={origin})`)
 		return
 	end
 
 	local hasTag = CollectionService:HasTag(result.Instance, PLANTABLE_TAG)
-	
+
 	if hasTag then
 		self:PlantAt(result.Position)
 	end
 end
 
-GunMixin.GetOrigin = function(self): Vector3
+GunMixin.GetOrigin = function(self: Self): Vector3
 	local muzzle = self.Instance.Muzzle
 	if not muzzle then
 		return self.Instance.PrimaryPart.Position
@@ -115,7 +119,7 @@ GunMixin.GetOrigin = function(self): Vector3
 	return muzzle.WorldPosition
 end
 
-GunMixin.PlayShootSound = function(self, Shooter: Player, soundName: string)
+GunMixin.PlayShootSound = function(self: Self, Shooter: Player, soundName: string)
 	task.spawn(function()
 		if soundName == "" then
 			return
@@ -125,6 +129,7 @@ GunMixin.PlayShootSound = function(self, Shooter: Player, soundName: string)
 		soundsFolder = soundsFolder and soundsFolder:FindFirstChild("Sounds")
 		local soundTemplate = soundsFolder and soundsFolder:FindFirstChild(soundName)
 		if not soundTemplate or not soundTemplate:IsA("Sound") then
+			warn(`[GunMixin] Sound "{soundName}" não encontrado em ReplicatedStorage.Assets.Sounds.`)
 			return
 		end
 
@@ -156,8 +161,11 @@ GunMixin:OnStart(function(self)
 	self.FireRate = 0
 	self.Knockback = 0
 	self.ShootSoundName = "" :: string
+
 	self.GunName = "" :: string
 	self.lastshoot = workspace:GetServerTimeNow() :: number
+
+	self.DrawTime = nil :: number?
 end)
 
 GunMixin:OnDestroy(function(self) end)

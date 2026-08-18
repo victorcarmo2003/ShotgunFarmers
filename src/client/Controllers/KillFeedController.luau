@@ -7,10 +7,10 @@ local Fusion = require(StarterPlayer.StarterPlayerScripts.Client.Interface.Fusio
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 
 local KillFeedController = Modux.Controller("KillFeedController")
+type Self = typeof(KillFeedController)
 
--- Quanto tempo (segundos) uma entrada fica visível antes de sumir do feed.
 local ENTRY_LIFETIME = 6
--- Teto de entradas simultâneas -- a mais antiga some na hora se isso estourar.
+
 local MAX_ENTRIES = 5
 
 export type KillFeedEntryData = {
@@ -24,9 +24,6 @@ export type KillFeedEntryData = {
 	IsHeadshot: boolean,
 }
 
--- GameID é a mesma attribute que o IDService (server) já seta em todo Player
--- (replica nativamente) -- HitController já lê ela na direção Player->ID, aqui
--- fazemos o caminho inverso pra resolver quem atirou/morreu a partir do pacote KillFeed.
 local function getPlayerFromGameID(id: number): Player?
 	for _, player in Players:GetPlayers() do
 		if player:GetAttribute("GameID") == id then
@@ -43,9 +40,7 @@ KillFeedController:OnInit(function(self)
 	self.ThumbnailCache = {} :: { [Player]: string }
 end)
 
--- GetUserThumbnailAsync yielda -- cacheado por Player pra não rebater a API toda vez
--- que o mesmo jogador aparece de novo no feed (comum numa partida FFA curta).
-KillFeedController.GetCachedThumbnail = function(self, player: Player): string
+KillFeedController.GetCachedThumbnail = function(self: Self, player: Player): string
 	local cached = self.ThumbnailCache[player]
 	if cached then
 		return cached
@@ -56,10 +51,8 @@ KillFeedController.GetCachedThumbnail = function(self, player: Player): string
 	return resolved
 end
 
--- `persistent` pula o auto-remove (ENTRY_LIFETIME) -- só usado pela entrada de teste em
--- OnStart, pra dar tempo de ajustar a UI no Studio sem ela sumir sozinha.
 KillFeedController.PushEntry = function(
-	self,
+	self: Self,
 	shooter: Player,
 	victim: Player,
 	gunName: string,
@@ -83,7 +76,6 @@ KillFeedController.PushEntry = function(
 		IsHeadshot = isHeadshot,
 	} :: KillFeedEntryData
 
-	-- Estourou o teto? remove a entrada mais antiga (menor id) na hora, sem esperar expirar.
 	local count = 0
 	local oldestID: number? = nil
 	for entryID in entries do
@@ -110,17 +102,11 @@ KillFeedController.PushEntry = function(
 end
 
 KillFeedController:OnStart(function(self)
-	-- TEMPORÁRIO -- entrada fixa (não expira) só pra ajustar a UI no Studio sem precisar
-	-- matar ninguém. Usa o próprio LocalPlayer como shooter/victim pra pegar nome/
-	-- thumbnail reais. Pedir pra remover quando terminar de mexer no layout.
 	task.spawn(function()
 		self:PushEntry(self.LocalPlayer, self.LocalPlayer, "Shotgun", true, true)
 	end)
 
 	self.Network.Packages.KillFeed:on(function(data)
-		-- GetCachedThumbnail pode yieldar na primeira vez que vê cada Player -- roda numa
-		-- thread própria pra não travar outros handlers deste mesmo pacote (mesma cautela
-		-- de GunMixin.PlayShootSound do lado server).
 		task.spawn(function()
 			local shooter = getPlayerFromGameID(data.ShooterID)
 			local victim = getPlayerFromGameID(data.VictimID)

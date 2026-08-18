@@ -42,7 +42,6 @@ return function(
 		Visible = true,
 		Active = true,
 
-		-- Clicar/tocar no slot troca de arma pra ele, igual apertar 1/2/3 (WeaponController.SwitchSlot).
 		[OnEvent("InputBegan")] = function(input: InputObject)
 			if not onSelect then
 				return

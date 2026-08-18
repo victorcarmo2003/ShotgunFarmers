@@ -1,10 +1,11 @@
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 
 local ColorCorrectionController = Modux.Controller("ColorCorrectionController")
+type Self = typeof(ColorCorrectionController)
 
 const DEFAULT_SATURATION = 0.5
 
-ColorCorrectionController.SetSaturation = function(self, Value: number)
+ColorCorrectionController.SetSaturation = function(self: Self, Value: number)
 	self.Instance.Saturation = math.clamp(Value, -1.5, DEFAULT_SATURATION)
 end
 

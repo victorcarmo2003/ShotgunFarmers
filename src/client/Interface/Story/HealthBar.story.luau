@@ -25,7 +25,6 @@ return {
 	story = function(props: StoryProps)
 		local scope = props.scope
 
-		-- controls do UI Labs vêm como StateObject (0-100); StatusBar espera Percent normalizado (0-1)
 		local Values = {
 			Health = scope:Computed(function(use)
 				return use(props.controls.Health) / 100

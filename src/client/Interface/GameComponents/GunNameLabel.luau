@@ -12,6 +12,5 @@ return function(scope: Fusion.Scope, Values: GunNameLabelValues)
 		TextSize = 36,
 		Text = Values.Text,
 		Name = "GunNameLabel",
-		
 	})
 end

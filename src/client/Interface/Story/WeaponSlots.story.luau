@@ -24,7 +24,6 @@ return {
 	story = function(props)
 		local scope = props.scope
 
-		-- controles de munição vêm como números (atual/máximo); formata em texto reativo "atual/máximo"
 		local function ammoText(current, max)
 			return scope:Computed(function(use)
 				return `{use(current)}/{use(max)}`

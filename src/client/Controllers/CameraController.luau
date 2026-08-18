@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 
 local CameraController = Modux.Controller("CameraController")
+type Self = typeof(CameraController)
 
 const MAX_RANGE = 150
 const BLACKLIST_RAYCAST = RaycastParams.new()
@@ -11,13 +12,13 @@ const BLACKLIST_OVERLAP = OverlapParams.new()
 const RENDER_BIND_NAME = "CameraController_Shake"
 const RENDER_PRIORITY = Enum.RenderPriority.Camera.Value + 1
 
-const SHAKE_DECAY = 2.5 -- o quanto o trauma cai por segundo
-const SHAKE_FREQUENCY = 12 -- velocidade da oscilação do ruído
-const SHAKE_POSITION_AMPLITUDE = 0.15 -- deslocamento máximo em studs
-const SHAKE_ROTATION_AMPLITUDE = 4 -- rotação máxima em graus
+const SHAKE_DECAY = 2.5
+const SHAKE_FREQUENCY = 12
+const SHAKE_POSITION_AMPLITUDE = 0.15
+const SHAKE_ROTATION_AMPLITUDE = 4
 
-const TILT_MAX_ANGLE = 1 -- graus, inclinação máxima ao se mover lateralmente
-const TILT_SMOOTH_RATE = 8 -- quão rápido a inclinação persegue o alvo (maior = mais responsivo)
+const TILT_MAX_ANGLE = 1
+const TILT_SMOOTH_RATE = 8
 
 export type EffectState = { Trauma: number, Seed: number }
 
@@ -27,30 +28,31 @@ local EFFECT_HANDLERS: {
 		Trigger: (state: EffectState, intensity: number) -> (),
 		Update: (state: EffectState, deltaTime: number) -> CFrame,
 	},
-} = {
-	Shake = {
-		Init = function()
-			return { Trauma = 0, Seed = math.random() * 1000 }
-		end,
-		Trigger = function(state, intensity)
-			state.Trauma = math.clamp(state.Trauma + intensity, 0, 1)
-		end,
-		Update = function(state, deltaTime)
-			state.Trauma = math.max(0, state.Trauma - SHAKE_DECAY * deltaTime)
-			if state.Trauma <= 0 then
-				return CFrame.identity
-			end
+} =
+	{
+		Shake = {
+			Init = function()
+				return { Trauma = 0, Seed = math.random() * 1000 }
+			end,
+			Trigger = function(state, intensity)
+				state.Trauma = math.clamp(state.Trauma + intensity, 0, 1)
+			end,
+			Update = function(state, deltaTime)
+				state.Trauma = math.max(0, state.Trauma - SHAKE_DECAY * deltaTime)
+				if state.Trauma <= 0 then
+					return CFrame.identity
+				end
 
-			local shake = state.Trauma ^ 2
-			local time = os.clock() * SHAKE_FREQUENCY
-			local offsetX = math.noise(state.Seed, time) * SHAKE_POSITION_AMPLITUDE * shake
-			local offsetY = math.noise(state.Seed + 100, time) * SHAKE_POSITION_AMPLITUDE * shake
-			local rotZ = math.noise(state.Seed + 200, time) * SHAKE_ROTATION_AMPLITUDE * shake
+				local shake = state.Trauma ^ 2
+				local time = os.clock() * SHAKE_FREQUENCY
+				local offsetX = math.noise(state.Seed, time) * SHAKE_POSITION_AMPLITUDE * shake
+				local offsetY = math.noise(state.Seed + 100, time) * SHAKE_POSITION_AMPLITUDE * shake
+				local rotZ = math.noise(state.Seed + 200, time) * SHAKE_ROTATION_AMPLITUDE * shake
 
-			return CFrame.new(offsetX, offsetY, 0) * CFrame.Angles(0, 0, math.rad(rotZ))
-		end,
-	},
-}
+				return CFrame.new(offsetX, offsetY, 0) * CFrame.Angles(0, 0, math.rad(rotZ))
+			end,
+		},
+	}
 
 local function GetPlayerFromPart(part: BasePart): Player?
 	local model = part.Parent
@@ -62,7 +64,7 @@ local function GetPlayerFromPart(part: BasePart): Player?
 	return player
 end
 
-CameraController.GetLookPart = function(self): (BasePart?, Player?)
+CameraController.GetLookPart = function(self: Self): (BasePart?, Player?)
 	local currentCamera = workspace.CurrentCamera
 	local mouse = self.LocalPlayer:GetMouse()
 	local screenRay = currentCamera:ScreenPointToRay(mouse.X, mouse.Y, 0)
@@ -76,7 +78,7 @@ CameraController.GetLookPart = function(self): (BasePart?, Player?)
 	return nil
 end
 
-CameraController.GetLookAt = function(self): Vector3?
+CameraController.GetLookAt = function(self: Self): Vector3?
 	local currentCamera = workspace.CurrentCamera
 	local mouse = self.LocalPlayer:GetMouse()
 	local screenRay = currentCamera:ScreenPointToRay(mouse.X, mouse.Y, 0)
@@ -86,7 +88,7 @@ CameraController.GetLookAt = function(self): Vector3?
 	return screenRay.Origin + screenRay.Direction * 20
 end
 
-CameraController.GetLookDirection = function(self): Vector3?
+CameraController.GetLookDirection = function(self: Self): Vector3?
 	local currentCamera = workspace.CurrentCamera
 	local mouse = self.LocalPlayer:GetMouse()
 	local screenRay = currentCamera:ScreenPointToRay(mouse.X, mouse.Y, 0)
@@ -96,7 +98,7 @@ CameraController.GetLookDirection = function(self): Vector3?
 	return screenRay.Direction.Unit
 end
 
-CameraController.CreateEffect = function(self, effectName: string, intensity: number)
+CameraController.CreateEffect = function(self: Self, effectName: string, intensity: number)
 	local handler = EFFECT_HANDLERS[effectName]
 	assert(handler, `[CameraController] Efeito "{effectName}" não existe.`)
 
@@ -109,7 +111,7 @@ CameraController.CreateEffect = function(self, effectName: string, intensity: nu
 	handler.Trigger(state, intensity)
 end
 
-CameraController.GetTiltOffset = function(self, camera: Camera, deltaTime: number): CFrame
+CameraController.GetTiltOffset = function(self: Self, camera: Camera, deltaTime: number): CFrame
 	local humanoid = self.LocalHumanoid
 	if not humanoid then
 		self._currentTilt = 0
@@ -131,7 +133,7 @@ CameraController.GetTiltOffset = function(self, camera: Camera, deltaTime: numbe
 	return CFrame.Angles(0, 0, math.rad(currentTilt))
 end
 
-CameraController.SetupFilters = function(self)
+CameraController.SetupFilters = function(self: Self)
 	BLACKLIST_RAYCAST.FilterType = Enum.RaycastFilterType.Exclude
 	BLACKLIST_OVERLAP.FilterType = Enum.RaycastFilterType.Exclude
 

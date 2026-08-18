@@ -1,16 +1,3 @@
--- Nenhuma animação gravada ainda -- LoadTrack (WeaponAnimations.luau) trata "" como
--- "sem track", não é erro, a arma só fica sem animação de braço até ser gravada.
--- Sem anotação de tipo explícita de propósito: GetGun.luau já faz require(Guns.luau),
--- então importar GetGun aqui pra anotar o tipo criaria um require circular.
-local function noAnimations()
-	return {
-		Viewmodel = { Idle = "", Aim = "", Shoot = "" },
-		Character = { Idle = "", Aim = "", Shoot = "" },
-	}
-end
-
--- Name do Sound dentro de ReplicatedStorage.Assets.Sounds tocado a cada tiro (ver
--- GunMixin.PlayShootSound) -- "" quando a arma ainda não tem som gravado.
 local NO_SHOOT_SOUND = ""
 
 return {
@@ -25,18 +12,8 @@ return {
 		FireRate = 0.5,
 		Knockback = 80,
 		ImageID = "rbxassetid://133680860540012",
-		Animations = {
-			Viewmodel = {
-				Idle = "rbxassetid://80970480540647",
-				Aim = "rbxassetid://97971442571579",
-				Shoot = "rbxassetid://135936926117428",
-			},
-			Character = {
-				Idle = "rbxassetid://79832104197849",
-				Aim = "rbxassetid://121752543633785",
-				Shoot = "",
-			},
-		},
+		AnimationSet = "Shotgun",
+		PoseKind = "Firearm",
 		AimType = "Spread",
 		ShootSound = "ShotgunShoot",
 		SeedModel = "Shotgun",
@@ -52,7 +29,8 @@ return {
 		FireRate = 1,
 		Knockback = 40,
 		ImageID = "",
-		Animations = noAnimations(),
+		AnimationSet = "Sniperagus",
+		PoseKind = "Firearm",
 		ShootSound = NO_SHOOT_SOUND,
 		SeedModel = "Sniperagus",
 	},
@@ -67,7 +45,8 @@ return {
 		FireRate = 3,
 		Knockback = 60,
 		ImageID = "",
-		Animations = noAnimations(),
+		AnimationSet = "Carrocket",
+		PoseKind = "Firearm",
 		ShootSound = NO_SHOOT_SOUND,
 		SeedModel = "Carrocket",
 	},
@@ -82,14 +61,8 @@ return {
 		FireRate = 0.25,
 		Knockback = 30,
 		ImageID = "rbxassetid://106048482621476",
-		Animations = {
-			Viewmodel = {
-				Idle = "rbxassetid://108857261470275",
-				Aim = "rbxassetid://72216005547900",
-				Shoot = "rbxassetid://120751857377218",
-			},
-			Character = { Idle = "", Aim = "", Shoot = "" },
-		},
+		AnimationSet = "Peavolver",
+		PoseKind = "Firearm",
 		AimType = "Default",
 		ShootSound = "RevolverShoot",
 		SeedModel = "Peavolver",
@@ -105,7 +78,8 @@ return {
 		FireRate = 2,
 		Knockback = 50,
 		ImageID = "",
-		Animations = noAnimations(),
+		AnimationSet = "Gromato Launcher",
+		PoseKind = "Firearm",
 		ShootSound = NO_SHOOT_SOUND,
 		SeedModel = "Gromato Launcher",
 	},
@@ -120,7 +94,8 @@ return {
 		FireRate = 0.15,
 		Knockback = 20,
 		ImageID = "",
-		Animations = noAnimations(),
+		AnimationSet = "Chilli Thrower",
+		PoseKind = "Firearm",
 		ShootSound = NO_SHOOT_SOUND,
 		SeedModel = "Chilli Thrower",
 	},
@@ -135,7 +110,8 @@ return {
 		FireRate = 0.3,
 		Knockback = 15,
 		ImageID = "",
-		Animations = noAnimations(),
+		AnimationSet = "M6Bean",
+		PoseKind = "Firearm",
 		ShootSound = NO_SHOOT_SOUND,
 		SeedModel = "M6Bean",
 	},
@@ -150,7 +126,8 @@ return {
 		FireRate = 0.25,
 		Knockback = 10,
 		ImageID = "",
-		Animations = noAnimations(),
+		AnimationSet = "WatermeLMG",
+		PoseKind = "Firearm",
 		ShootSound = NO_SHOOT_SOUND,
 		SeedModel = "WatermeLMG",
 	},
@@ -165,8 +142,43 @@ return {
 		FireRate = 0.5,
 		Knockback = 45,
 		ImageID = "",
-		Animations = noAnimations(),
+		AnimationSet = "Double Cob",
+		PoseKind = "Firearm",
 		ShootSound = NO_SHOOT_SOUND,
 		SeedModel = "Double Cob",
+	},
+
+	["Hoe"] = {
+		ID = 110,
+		DisplayName = "Hoe",
+		BulletType = "Single",
+		Amount = 0,
+		Damage = 0,
+		Spread = 0,
+		Bullets = 0,
+		FireRate = 0,
+		Knockback = 0,
+		ImageID = "",
+		AnimationSet = "Hoe",
+		PoseKind = "Melee",
+		ShootSound = NO_SHOOT_SOUND,
+		SeedModel = "",
+	},
+
+	["Grenade"] = {
+		ID = 111,
+		DisplayName = "Grenade",
+		BulletType = "Area",
+		Amount = 0,
+		Damage = 0,
+		Spread = 0,
+		Bullets = 0,
+		FireRate = 0,
+		Knockback = 0,
+		ImageID = "",
+		AnimationSet = "Grenade",
+		PoseKind = "Throwable",
+		ShootSound = NO_SHOOT_SOUND,
+		SeedModel = "",
 	},
 }

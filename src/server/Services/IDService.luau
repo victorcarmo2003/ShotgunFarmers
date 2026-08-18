@@ -1,14 +1,15 @@
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 local IDService = Modux.Service("IDService"):Import("PlayerService")
+type Self = typeof(IDService)
 IDService.nextID = 0
 IDService.allPlayers = {} :: { [Player]: number }
 
-IDService.GetNextID = function(self): number
+IDService.GetNextID = function(self: Self): number
 	self.nextID += 1
 	return self.nextID
 end
 
-IDService.GetPlayerFromID = function(self, ID: number): Player?
+IDService.GetPlayerFromID = function(self: Self, ID: number): Player?
 	for player, id in self.allPlayers do
 		if id == ID then
 			return player
@@ -17,7 +18,7 @@ IDService.GetPlayerFromID = function(self, ID: number): Player?
 	return nil
 end
 
-IDService.GetPlayerID = function(self, Player: Player)
+IDService.GetPlayerID = function(self: Self, Player: Player)
 	for player, id in self.allPlayers do
 		if player == Player then
 			return id
@@ -26,7 +27,7 @@ IDService.GetPlayerID = function(self, Player: Player)
 	return self:RegisterPlayer(Player)
 end
 
-IDService.RegisterPlayer = function(self, Player: Player): number
+IDService.RegisterPlayer = function(self: Self, Player: Player): number
 	local id = self:GetNextID()
 	self.allPlayers[Player] = id
 	Player:SetAttribute("GameID", id)
@@ -36,19 +37,9 @@ end
 IDService:OnInit(function(self)
 	self.allPlayers = setmetatable(self.allPlayers, { __mode = "k" })
 	self.PlayerService:OnPlayerAdded(function(Player: Player)
-		warn(Player)
+		-- warn(Player)
 		self:RegisterPlayer(Player)
 	end)
 end)
-
--- --> WATCHDOG
--- IDService:OnTick(function(self, deltaTime: number)
--- 	for _, Player in game.Players:GetPlayers() do
--- 		if not Player:GetAttribute("GameID") and Player then
--- 			self:RegisterPlayer(Player)
--- 			warn(`[IDSERVICE] - Watchdog caught a player`)
--- 		end
--- 	end
--- end, Modux.TickRate.Hz1)
 
 return IDService

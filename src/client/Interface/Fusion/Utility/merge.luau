@@ -1,21 +1,17 @@
 --!strict
 --!nolint LocalUnused
 --!nolint LocalShadow
-local task = nil -- Disable usage of Roblox's task scheduler
-
---[[
-	Attempts to merge a variadic number of tables together.
-]]
+local task = nil
 
 local Package = script.Parent.Parent
 local External = require(Package.External)
 
 local function merge(
 	overwrite: boolean,
-	into: {[unknown]: unknown},
-	...: {[unknown]: unknown}
-): {[unknown]: unknown}
-	local fromTables = {...}
+	into: { [unknown]: unknown },
+	...: { [unknown]: unknown }
+): { [unknown]: unknown }
+	local fromTables = { ... }
 	if #fromTables < 1 then
 		return into
 	else

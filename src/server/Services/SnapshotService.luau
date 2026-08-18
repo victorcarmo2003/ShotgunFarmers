@@ -12,11 +12,11 @@ export type SnapshotFrame = {
 }
 
 local SnapshotService = Modux.Service("SnapshotService"):Import("IDService"):Import("PlayerService")
+type Self = typeof(SnapshotService)
 
--- Histórico por GameID, mais antigo primeiro (ordem de chegada == ordem de Timestamp na prática).
 SnapshotService.History = {} :: { [number]: { SnapshotFrame } }
 
-SnapshotService.RegisterSnapshot = function(self, Player: Player, snapshot)
+SnapshotService.RegisterSnapshot = function(self: Self, Player: Player, snapshot)
 	local targetID = self.IDService:GetPlayerID(Player)
 
 	local frame: SnapshotFrame = {
@@ -37,14 +37,11 @@ SnapshotService.RegisterSnapshot = function(self, Player: Player, snapshot)
 	table.insert(history, frame)
 end
 
-SnapshotService.GetHistory = function(self, targetID: number): { SnapshotFrame }?
+SnapshotService.GetHistory = function(self: Self, targetID: number): { SnapshotFrame }?
 	return self.History[targetID]
 end
 
--- Rebobina a posição de `targetID` pro instante `atTime` (workspace:GetServerTimeNow()),
--- interpolando entre os dois snapshots mais próximos. Limita o rewind a
--- GameSettings.MaxRewindSeconds no passado pra evitar abuso.
-SnapshotService.GetRewoundPosition = function(self, targetID: number, atTime: number): Vector3?
+SnapshotService.GetRewoundPosition = function(self: Self, targetID: number, atTime: number): Vector3?
 	local history = self.History[targetID]
 	if not history or #history == 0 then
 		return nil
@@ -79,7 +76,7 @@ SnapshotService.GetRewoundPosition = function(self, targetID: number, atTime: nu
 	return nil
 end
 
-SnapshotService.ClearHistory = function(self, targetID: number)
+SnapshotService.ClearHistory = function(self: Self, targetID: number)
 	self.History[targetID] = nil
 end
 
@@ -97,8 +94,6 @@ SnapshotService:OnInit(function(self)
 	end)
 end)
 
--- Poda entradas mais velhas que GameSettings.SnapshotHistorySeconds. Roda a 60Hz mas o
--- trabalho por tick é O(jogadores), não O(frames), já que só removemos do início do buffer.
 SnapshotService:OnTick(function(self, deltaTime: number)
 	local cutoff = workspace:GetServerTimeNow() - GameSettings.SnapshotHistorySeconds
 

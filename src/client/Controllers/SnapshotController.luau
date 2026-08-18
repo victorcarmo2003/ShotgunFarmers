@@ -1,10 +1,9 @@
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 
-local SnapshotController = Modux.Controller("SnapshotController"):Import("CameraController"):Import("MovementController")
+local SnapshotController =
+	Modux.Controller("SnapshotController"):Import("CameraController"):Import("MovementController")
+type Self = typeof(SnapshotController)
 
--- Mesma ordem de src/server/Components/Player/MovementComponent.luau (MovementStates),
--- só que numérica pra caber no pacote (Network.int(0,7)). Ninguém consome esse valor
--- ainda -- é reservado pra reconciliação/anti-cheat futuros.
 local STATE_IDS = {
 	Walking = 0,
 	Running = 1,
@@ -19,15 +18,11 @@ local function toVector3int16(v: Vector3): Vector3int16
 end
 
 -- Modux.TickScheduler tem MAX_CATCH_UP = 3: se o frame rate cair, o OnTick abaixo
--- pode disparar 2-3x no mesmo Heartbeat antes do próximo flush do lync. Isso força
--- o pacote PlayerSnapshot a virar um batch multi-item -- caminho que nunca teve
--- tráfego real antes de existir esse controller. Esse guard garante no máximo 1
--- envio real por ~1 frame de 60Hz, absorvendo o catch-up sem depender de mexer no
--- transporte de rede.
+
 local MIN_SEND_INTERVAL = (1 / 60) * 0.75
 local lastSendClock = 0
 
-SnapshotController.GetCurrentState = function(self): number
+SnapshotController.GetCurrentState = function(self: Self): number
 	if self.MovementController.IsSliding then
 		return STATE_IDS.Sliding
 	end
@@ -49,7 +44,7 @@ SnapshotController.GetCurrentState = function(self): number
 	return STATE_IDS.Walking
 end
 
-SnapshotController.SendSnapshot = function(self)
+SnapshotController.SendSnapshot = function(self: Self)
 	local now = os.clock()
 	if now - lastSendClock < MIN_SEND_INTERVAL then
 		return
@@ -70,7 +65,7 @@ SnapshotController.SendSnapshot = function(self)
 		LookAt = toVector3int16(lookAt),
 		State = self:GetCurrentState(),
 		MoveDir = Vector2.new(moveDirection.X, moveDirection.Z),
-		WeaponID = 0, -- TODO: popular quando a cadeia de arma (EquipmentComponent) existir
+		WeaponID = 0,
 		Timestamp = workspace:GetServerTimeNow(),
 	})
 end

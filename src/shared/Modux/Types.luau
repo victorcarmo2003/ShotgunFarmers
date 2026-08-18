@@ -4,16 +4,64 @@
 
 local CoreTypes = require(script.Parent.CoreTypes)
 local InstanceTypes = require(script.Parent.InstanceTypes)
-local ComponentTypes = require(script.Parent.ComponentTypes)
-local ControllerTypes = require(script.Parent.ControllerTypes)
-local ServiceTypes = require(script.Parent.ServiceTypes)
+local EquipmentComponentModule = require(script.Parent.Components.server.EquipmentComponent)
+local MovementComponentModule = require(script.Parent.Components.server.MovementComponent)
+local PeavolverComponentModule = require(script.Parent.Components.server.PeavolverComponent)
+local SeedComponentModule = require(script.Parent.Components.server.SeedComponent)
+local ShotgunComponentModule = require(script.Parent.Components.server.ShotgunComponent)
+local VitalComponentModule = require(script.Parent.Components.server.VitalComponent)
+local ZoneComponentModule = require(script.Parent.Components.server.ZoneComponent)
+local RegionComponentModule = require(script.Parent.Components.shared.RegionComponent)
+local AnimateControllerModule = require(script.Parent.Controllers.client.AnimateController)
+local ArmsControllerModule = require(script.Parent.Controllers.client.ArmsController)
+local CameraControllerModule = require(script.Parent.Controllers.client.CameraController)
+local ColorCorrectionControllerModule = require(script.Parent.Controllers.client.ColorCorrectionController)
+local DayCycleControllerModule = require(script.Parent.Controllers.client.DayCycleController)
+local DeathCameraControllerModule = require(script.Parent.Controllers.client.DeathCameraController)
+local FOVControllerModule = require(script.Parent.Controllers.client.FOVController)
+local HitControllerModule = require(script.Parent.Controllers.client.HitController)
+local InputControllerModule = require(script.Parent.Controllers.client.InputController)
+local InterfaceControllerModule = require(script.Parent.Controllers.client.InterfaceController)
+local KillFeedControllerModule = require(script.Parent.Controllers.client.KillFeedController)
+local MovementControllerModule = require(script.Parent.Controllers.client.MovementController)
+local MusicControllerModule = require(script.Parent.Controllers.client.MusicController)
+local NotificationControllerModule = require(script.Parent.Controllers.client.NotificationController)
+local ProfileControllerModule = require(script.Parent.Controllers.client.ProfileController)
+local ProjectileControllerModule = require(script.Parent.Controllers.client.ProjectileController)
+local RoundControllerModule = require(script.Parent.Controllers.client.RoundController)
+local SeedControllerModule = require(script.Parent.Controllers.client.SeedController)
+local SnapshotControllerModule = require(script.Parent.Controllers.client.SnapshotController)
+local SurfaceUIControllerModule = require(script.Parent.Controllers.client.SurfaceUIController)
+local UIAnimationsControllerModule = require(script.Parent.Controllers.client.UIAnimationsController)
+local UnlockCameraControllerModule = require(script.Parent.Controllers.client.UnlockCameraController)
+local VitalControllerModule = require(script.Parent.Controllers.client.VitalController)
+local WeaponControllerModule = require(script.Parent.Controllers.client.WeaponController)
+local GunMixinModule = require(script.Parent.Mixins.server.GunMixin)
+local PlayerZoneComponentModule = require(script.Parent.Mixins.shared.PlayerZoneComponent)
+local CharacterServiceModule = require(script.Parent.Services.server.CharacterService)
+local DayNightServiceModule = require(script.Parent.Services.server.DayNightService)
+local GameServiceModule = require(script.Parent.Services.server.GameService)
+local HitServiceModule = require(script.Parent.Services.server.HitService)
+local IDServiceModule = require(script.Parent.Services.server.IDService)
+local LeaderstatsServiceModule = require(script.Parent.Services.server.LeaderstatsService)
+local MovementServiceModule = require(script.Parent.Services.server.MovementService)
+local PlayerBilboardServiceModule = require(script.Parent.Services.server.PlayerBilboardService)
+local PlayerServiceModule = require(script.Parent.Services.server.PlayerService)
+local ProfileServiceModule = require(script.Parent.Services.server.ProfileService)
+local SnapshotServiceModule = require(script.Parent.Services.server.SnapshotService)
+local SpawnServiceModule = require(script.Parent.Services.server.SpawnService)
+local VitalServiceModule = require(script.Parent.Services.server.VitalService)
+local WeaponServiceModule = require(script.Parent.Services.server.WeaponService)
+local ZoneServiceModule = require(script.Parent.Services.server.ZoneService)
 --> COMPATIBILITY TYPE EXPORTS
 export type AimType = CoreTypes.AimType
 export type AmmoType = CoreTypes.AmmoType
 export type BulletData = CoreTypes.BulletData
 export type callbackZone = CoreTypes.callbackZone
 export type Child = CoreTypes.Child
+export type Computed<T> = CoreTypes.Computed<T>
 export type Context = CoreTypes.Context
+export type CoreAnimState = CoreTypes.CoreAnimState
 export type DataKeyPayload = CoreTypes.DataKeyPayload
 export type DataTemplate = CoreTypes.DataTemplate
 export type DataTemplateKey = CoreTypes.DataTemplateKey
@@ -40,6 +88,7 @@ export type NetworkTarget = CoreTypes.NetworkTarget
 export type OnCancel = CoreTypes.OnCancel
 export type PanelConfig = CoreTypes.PanelConfig
 export type PlayerZoneConfig = CoreTypes.PlayerZoneConfig
+export type PoseKind = CoreTypes.PoseKind
 export type Promise<T> = CoreTypes.Promise<T>
 export type PromiseAPI = CoreTypes.PromiseAPI
 export type PromiseLike = CoreTypes.PromiseLike
@@ -67,85 +116,135 @@ export type Tween<T> = CoreTypes.Tween<T>
 export type Type = CoreTypes.Type
 export type Value<T> = CoreTypes.Value<T>
 export type VitalAttributes = CoreTypes.VitalAttributes
-export type WeaponAnimations = CoreTypes.WeaponAnimations
-export type WeaponAnimationSet = CoreTypes.WeaponAnimationSet
-export type EquipmentComponentInstance = InstanceTypes.EquipmentComponentInstance
-export type MovementComponentInstance = InstanceTypes.MovementComponentInstance
-export type Peavolver = InstanceTypes.Peavolver
-export type PeavolverComponentInstance = InstanceTypes.PeavolverComponentInstance
-export type RegionComponentInstance = InstanceTypes.RegionComponentInstance
+export type PlayerGuiMap = InstanceTypes.PlayerGuiMap
 export type ScreenGuiRoot = InstanceTypes.ScreenGuiRoot
-export type SeedComponentInstance = InstanceTypes.SeedComponentInstance
-export type Shotgun = InstanceTypes.Shotgun
-export type ShotgunComponentInstance = InstanceTypes.ShotgunComponentInstance
 export type StarterGuiTypes = InstanceTypes.StarterGuiTypes
 export type UIWindowId = InstanceTypes.UIWindowId
-export type VitalComponentInstance = InstanceTypes.VitalComponentInstance
-export type ZoneComponentInstance = InstanceTypes.ZoneComponentInstance
-export type ComponentExtendFn = ComponentTypes.ComponentExtendFn
-export type ComponentFn = ComponentTypes.ComponentFn
-export type ComponentImportFn = ComponentTypes.ComponentImportFn
-export type EquipmentComponent = ComponentTypes.EquipmentComponent
-export type GetAllComponentsFn = ComponentTypes.GetAllComponentsFn
-export type GetComponentFn = ComponentTypes.GetComponentFn
-export type GetRequiredComponentFn = ComponentTypes.GetRequiredComponentFn
-export type GunMixin = ComponentTypes.GunMixin
-export type ImportFn = ComponentTypes.ImportFn
-export type MixinExtendFn = ComponentTypes.MixinExtendFn
-export type MixinFn = ComponentTypes.MixinFn
-export type MovementComponent = ComponentTypes.MovementComponent
-export type PeavolverComponent = ComponentTypes.PeavolverComponent
-export type PlayerZoneComponent = ComponentTypes.PlayerZoneComponent
-export type RegionComponent = ComponentTypes.RegionComponent
-export type SeedComponent = ComponentTypes.SeedComponent
-export type ShotgunComponent = ComponentTypes.ShotgunComponent
-export type VitalComponent = ComponentTypes.VitalComponent
-export type ZoneComponent = ComponentTypes.ZoneComponent
-export type AnimateController = ControllerTypes.AnimateController
-export type ArmsController = ControllerTypes.ArmsController
-export type CameraController = ControllerTypes.CameraController
-export type ColorCorrectionController = ControllerTypes.ColorCorrectionController
-export type ControllerExtendFn = ControllerTypes.ControllerExtendFn
-export type ControllerFn = ControllerTypes.ControllerFn
-export type ControllerImportFn = ControllerTypes.ControllerImportFn
-export type DayCycleController = ControllerTypes.DayCycleController
-export type DeathCameraController = ControllerTypes.DeathCameraController
-export type FOVController = ControllerTypes.FOVController
-export type HitController = ControllerTypes.HitController
-export type InputController = ControllerTypes.InputController
-export type InterfaceController = ControllerTypes.InterfaceController
-export type KillFeedController = ControllerTypes.KillFeedController
-export type MovementController = ControllerTypes.MovementController
-export type MusicController = ControllerTypes.MusicController
-export type NotificationController = ControllerTypes.NotificationController
-export type ProfileController = ControllerTypes.ProfileController
-export type ProjectileController = ControllerTypes.ProjectileController
-export type RoundController = ControllerTypes.RoundController
-export type SeedController = ControllerTypes.SeedController
-export type SnapshotController = ControllerTypes.SnapshotController
-export type SurfaceUIController = ControllerTypes.SurfaceUIController
-export type UIAnimationsController = ControllerTypes.UIAnimationsController
-export type UnlockCameraController = ControllerTypes.UnlockCameraController
-export type VitalController = ControllerTypes.VitalController
-export type WeaponController = ControllerTypes.WeaponController
-export type CharacterService = ServiceTypes.CharacterService
-export type DayNightService = ServiceTypes.DayNightService
-export type GameService = ServiceTypes.GameService
-export type HitService = ServiceTypes.HitService
-export type IDService = ServiceTypes.IDService
-export type LeaderstatsService = ServiceTypes.LeaderstatsService
-export type MovementService = ServiceTypes.MovementService
-export type PlayerBilboardService = ServiceTypes.PlayerBilboardService
-export type PlayerService = ServiceTypes.PlayerService
-export type ProfileService = ServiceTypes.ProfileService
-export type ServiceExtendFn = ServiceTypes.ServiceExtendFn
-export type ServiceFn = ServiceTypes.ServiceFn
-export type ServiceImportFn = ServiceTypes.ServiceImportFn
-export type SnapshotService = ServiceTypes.SnapshotService
-export type SpawnService = ServiceTypes.SpawnService
-export type VitalService = ServiceTypes.VitalService
-export type WeaponService = ServiceTypes.WeaponService
-export type ZoneService = ServiceTypes.ZoneService
+export type EquipmentComponent = EquipmentComponentModule.EquipmentComponent
+export type EquipmentComponentInstance = EquipmentComponentModule.EquipmentComponentInstance
+export type MovementComponent = MovementComponentModule.MovementComponent
+export type MovementComponentInstance = MovementComponentModule.MovementComponentInstance
+export type PeavolverComponent = PeavolverComponentModule.PeavolverComponent
+export type Peavolver = PeavolverComponentModule.Peavolver
+export type PeavolverComponentInstance = PeavolverComponentModule.PeavolverComponentInstance
+export type SeedComponent = SeedComponentModule.SeedComponent
+export type SeedComponentInstance = SeedComponentModule.SeedComponentInstance
+export type ShotgunComponent = ShotgunComponentModule.ShotgunComponent
+export type Shotgun = ShotgunComponentModule.Shotgun
+export type ShotgunComponentInstance = ShotgunComponentModule.ShotgunComponentInstance
+export type VitalComponent = VitalComponentModule.VitalComponent
+export type VitalComponentInstance = VitalComponentModule.VitalComponentInstance
+export type ZoneComponent = ZoneComponentModule.ZoneComponent
+export type ZoneComponentInstance = ZoneComponentModule.ZoneComponentInstance
+export type RegionComponent = RegionComponentModule.RegionComponent
+export type RegionComponentInstance = RegionComponentModule.RegionComponentInstance
+export type AnimateController = AnimateControllerModule.AnimateController
+export type ArmsController = ArmsControllerModule.ArmsController
+export type CameraController = CameraControllerModule.CameraController
+export type ColorCorrectionController = ColorCorrectionControllerModule.ColorCorrectionController
+export type DayCycleController = DayCycleControllerModule.DayCycleController
+export type DeathCameraController = DeathCameraControllerModule.DeathCameraController
+export type FOVController = FOVControllerModule.FOVController
+export type HitController = HitControllerModule.HitController
+export type InputController = InputControllerModule.InputController
+export type InterfaceController = InterfaceControllerModule.InterfaceController
+export type KillFeedController = KillFeedControllerModule.KillFeedController
+export type MovementController = MovementControllerModule.MovementController
+export type MusicController = MusicControllerModule.MusicController
+export type NotificationController = NotificationControllerModule.NotificationController
+export type ProfileController = ProfileControllerModule.ProfileController
+export type ProjectileController = ProjectileControllerModule.ProjectileController
+export type RoundController = RoundControllerModule.RoundController
+export type SeedController = SeedControllerModule.SeedController
+export type SnapshotController = SnapshotControllerModule.SnapshotController
+export type SurfaceUIController = SurfaceUIControllerModule.SurfaceUIController
+export type UIAnimationsController = UIAnimationsControllerModule.UIAnimationsController
+export type UnlockCameraController = UnlockCameraControllerModule.UnlockCameraController
+export type VitalController = VitalControllerModule.VitalController
+export type WeaponController = WeaponControllerModule.WeaponController
+export type GunMixin = GunMixinModule.GunMixin
+export type PlayerZoneComponent = PlayerZoneComponentModule.PlayerZoneComponent
+export type CharacterService = CharacterServiceModule.CharacterService
+export type DayNightService = DayNightServiceModule.DayNightService
+export type GameService = GameServiceModule.GameService
+export type HitService = HitServiceModule.HitService
+export type IDService = IDServiceModule.IDService
+export type LeaderstatsService = LeaderstatsServiceModule.LeaderstatsService
+export type MovementService = MovementServiceModule.MovementService
+export type PlayerBilboardService = PlayerBilboardServiceModule.PlayerBilboardService
+export type PlayerService = PlayerServiceModule.PlayerService
+export type ProfileService = ProfileServiceModule.ProfileService
+export type SnapshotService = SnapshotServiceModule.SnapshotService
+export type SpawnService = SpawnServiceModule.SpawnService
+export type VitalService = VitalServiceModule.VitalService
+export type WeaponService = WeaponServiceModule.WeaponService
+export type ZoneService = ZoneServiceModule.ZoneService
+--> MODUX OVERLOADS
+
+export type ComponentFnMap = {
+	EquipmentComponent: EquipmentComponent,
+	MovementComponent: MovementComponent,
+	PeavolverComponent: PeavolverComponent,
+	SeedComponent: SeedComponent,
+	ShotgunComponent: ShotgunComponent,
+	VitalComponent: VitalComponent,
+	ZoneComponent: ZoneComponent,
+	RegionComponent: RegionComponent,
+}
+export type ComponentFn = <K>(id: K & keyof<ComponentFnMap>, mode: Mode?) -> index<ComponentFnMap, K>
+
+export type MixinFnMap = {
+	GunMixin: GunMixin,
+	PlayerZoneComponent: PlayerZoneComponent,
+}
+export type MixinFn = <K>(id: K & keyof<MixinFnMap>, mode: Mode?) -> index<MixinFnMap, K>
+
+export type ServiceFnMap = {
+	CharacterService: CharacterService,
+	DayNightService: DayNightService,
+	GameService: GameService,
+	HitService: HitService,
+	IDService: IDService,
+	LeaderstatsService: LeaderstatsService,
+	MovementService: MovementService,
+	PlayerBilboardService: PlayerBilboardService,
+	PlayerService: PlayerService,
+	ProfileService: ProfileService,
+	SnapshotService: SnapshotService,
+	SpawnService: SpawnService,
+	VitalService: VitalService,
+	WeaponService: WeaponService,
+	ZoneService: ZoneService,
+}
+export type ServiceFn = <K>(id: K & keyof<ServiceFnMap>, mode: Mode?) -> index<ServiceFnMap, K>
+
+export type ControllerFnMap = {
+	AnimateController: AnimateController,
+	ArmsController: ArmsController,
+	CameraController: CameraController,
+	ColorCorrectionController: ColorCorrectionController,
+	DayCycleController: DayCycleController,
+	DeathCameraController: DeathCameraController,
+	FOVController: FOVController,
+	HitController: HitController,
+	InputController: InputController,
+	InterfaceController: InterfaceController,
+	KillFeedController: KillFeedController,
+	MovementController: MovementController,
+	MusicController: MusicController,
+	NotificationController: NotificationController,
+	ProfileController: ProfileController,
+	ProjectileController: ProjectileController,
+	RoundController: RoundController,
+	SeedController: SeedController,
+	SnapshotController: SnapshotController,
+	SurfaceUIController: SurfaceUIController,
+	UIAnimationsController: UIAnimationsController,
+	UnlockCameraController: UnlockCameraController,
+	VitalController: VitalController,
+	WeaponController: WeaponController,
+}
+export type ControllerFn = <K>(id: K & keyof<ControllerFnMap>, mode: Mode?) -> index<ControllerFnMap, K>
 
 -- END AUTO-GENERATED
 

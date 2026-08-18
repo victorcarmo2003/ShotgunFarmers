@@ -21,7 +21,7 @@ return function(scope: Fusion.Scope, props: progressionBarProps, values: Progres
 		Size = UDim2.fromScale(1, 0.5),
 		Visible = true,
 		[Children] = {
-			-- Track: fundo estático, corta o Fill que ultrapassar o tamanho
+
 			Component.Frame(scope, {
 				Name = "Track",
 				Size = UDim2.fromScale(1, 1),
@@ -30,7 +30,7 @@ return function(scope: Fusion.Scope, props: progressionBarProps, values: Progres
 				ClipsDescendants = true,
 
 				[Children] = {
-					-- Fill: encolhe/cresce de acordo com Percent (0 a 1)
+
 					Fill = Component.Frame(scope, {
 						Name = "Fill",
 						AnchorPoint = Vector2.new(0, 0.5),
@@ -60,7 +60,6 @@ return function(scope: Fusion.Scope, props: progressionBarProps, values: Progres
 						Visible = true,
 					}),
 
-					-- Content: ícone + texto sobrepostos ao Fill, não afetados pelo Percent
 					Content = Component.Frame(scope, {
 						Name = "Content",
 						Size = UDim2.fromScale(1, 1),

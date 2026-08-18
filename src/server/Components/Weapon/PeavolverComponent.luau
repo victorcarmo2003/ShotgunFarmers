@@ -3,9 +3,10 @@ local Modux = require(game.ReplicatedStorage.Shared.Modux)
 local GetGun = require(ReplicatedStorage.Shared.Utils.GetGun)
 
 local PeavolverComponent =	Modux.Component("PeavolverComponent"):Tag("Peavolver"):ClassName("Instance"):Extend("GunMixin"):Import("HitService")
+type Self = typeof(PeavolverComponent)
 
 PeavolverComponent.Shoot = function(
-	self,
+	self: Self,
 	Shooter: Player,
 	Equipment: any,
 	origin: Vector3,
@@ -45,6 +46,7 @@ PeavolverComponent:OnStart(function(self)
 	self.Knockback = gunData.Knockback :: number
 	self.ShootSoundName = gunData.ShootSound :: string
 	self.GunName = "Peavolver" :: string
+	self.DrawTime = gunData.DrawTime :: number?
 end)
 
 PeavolverComponent:OnDestroy(function(self) end)

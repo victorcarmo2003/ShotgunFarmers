@@ -6,6 +6,7 @@ local GetGun = require(ReplicatedStorage.Shared.Utils.GetGun)
 local SeedSettings = require(ReplicatedStorage.Shared.Settings.SeedSettings)
 
 local SeedController = Modux.Controller("SeedController")
+type Self = typeof(SeedController)
 
 local TAG = "SeedComponent"
 
@@ -19,7 +20,7 @@ export type SeedState = {
 	EndCFrame: CFrame,
 }
 
-SeedController.RenderSeed = function(self, dirt: BasePart)
+SeedController.RenderSeed = function(self: Self, dirt: BasePart)
 	if self._activeSeeds[dirt] or self._finishedSeeds[dirt] then
 		return
 	end
@@ -27,12 +28,6 @@ SeedController.RenderSeed = function(self, dirt: BasePart)
 	local gunName = dirt:GetAttribute("GunName") :: string?
 	local plantedAt = dirt:GetAttribute("PlantedAt") :: number?
 	local gunData = gunName and GetGun:GetByName(gunName :: any)
-
-	print(
-		`[SeedController] Detectada semente em {dirt:GetFullName()} -- GunName={tostring(gunName)} PlantedAt={tostring(
-			plantedAt
-		)}`
-	)
 
 	if not gunData or not plantedAt then
 		warn(
@@ -54,8 +49,6 @@ SeedController.RenderSeed = function(self, dirt: BasePart)
 	dirt.Size = startDirtSize
 
 	local seedInstance = seedTemplate:Clone() :: Model
-	-- Só a POSIÇÃO do dirt, não a rotação dele -- o dirt fica deitado (rotação própria
-	-- pra virar mound), mas a semente não deve herdar esse giro, só nascer no mesmo lugar.
 	local startCFrame = CFrame.new(dirt.Position)
 	local endCFrame = CFrame.new(dirt.Position + Vector3.new(0, SeedSettings.SEED_RISE_HEIGHT, 0))
 	seedInstance:PivotTo(startCFrame)
@@ -76,11 +69,9 @@ SeedController.RenderSeed = function(self, dirt: BasePart)
 		self._activeSeeds[dirt] = nil
 		self._finishedSeeds[dirt] = nil
 	end))
-
-	print(`[SeedController] Renderizando crescimento de "{gunData.DisplayName}" em {dirt:GetFullName()}`)
 end
 
-SeedController.StepSeeds = function(self)
+SeedController.StepSeeds = function(self: Self)
 	local now = workspace:GetServerTimeNow()
 	for dirt, state in self._activeSeeds do
 		local elapsed = now - state.PlantedAt

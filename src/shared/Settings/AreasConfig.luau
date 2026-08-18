@@ -47,7 +47,7 @@ return {
 			Intermediate = 70,
 			Runner = 30,
 			Rage = 20,
-			Screamer = 10
+			Screamer = 10,
 		},
 	},
 } :: SpawnAreaType

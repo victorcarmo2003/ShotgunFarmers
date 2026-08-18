@@ -6,6 +6,7 @@ local Modux = require(Shared.Modux)
 export type DayCycle = "Day" | "Night" | "Idle" | "Transition"
 
 local DayNightService = Modux.Service("DayNightService")
+type Self = typeof(DayNightService)
 
 DayNightService.CurrentClock = 0 :: number
 DayNightService.CurrentDay = 0 :: number
@@ -26,7 +27,7 @@ local function getNightClockTarget(currentClock: number): number
 	return Settings.NightClock
 end
 
-DayNightService.StartTransition = function(self, DayTime: "Night" | "Day")
+DayNightService.StartTransition = function(self: Self, DayTime: "Night" | "Day")
 	local lightning = game.Lighting
 	local Spring = self.Tools.Spring
 
@@ -67,11 +68,11 @@ DayNightService.StartTransition = function(self, DayTime: "Night" | "Day")
 	self:ReplicateClock()
 end
 
-DayNightService.ReplicateClock = function(self)
+DayNightService.ReplicateClock = function(self: Self)
 	self.Network.Packages.SecondsCycle:send({ Seconds = self.CurrentClock }, self.Network.all)
 end
 
-DayNightService.ObserverCycle = function(self, callback: (currentState: DayCycle) -> ())
+DayNightService.ObserverCycle = function(self: Self, callback: (currentState: DayCycle) -> ())
 	callback(self.CurrentCycle)
 
 	return self.OnCycleChanged:Connect(function(_, currentCycle)
@@ -79,20 +80,20 @@ DayNightService.ObserverCycle = function(self, callback: (currentState: DayCycle
 	end)
 end
 
-DayNightService.IncreaseDay = function(self)
+DayNightService.IncreaseDay = function(self: Self)
 	self.CurrentDay += 1
 	self.Network.Packages.DayCycle:send({ CurrentDay = self.CurrentDay }, self.Network.all)
 end
 
-DayNightService.GetDay = function(self)
+DayNightService.GetDay = function(self: Self)
 	return self.CurrentDay
 end
 
-DayNightService.GetCycle = function(self)
+DayNightService.GetCycle = function(self: Self)
 	return self.CurrentCycle
 end
 
-DayNightService.SetCycle = function(self, cycle: DayCycle)
+DayNightService.SetCycle = function(self: Self, cycle: DayCycle)
 	local previousCycle = self.CurrentCycle
 
 	self.CurrentCycle = cycle
@@ -105,7 +106,7 @@ DayNightService.SetCycle = function(self, cycle: DayCycle)
 	end
 end
 
-DayNightService.ToggleCycle = function(self)
+DayNightService.ToggleCycle = function(self: Self)
 	if self.CurrentCycle == "Day" then
 		self.Network.Packages.TransitionCycle:send({ DayTime = "Night" }, self.Network.all)
 		self:StartTransition("Night")
@@ -115,7 +116,7 @@ DayNightService.ToggleCycle = function(self)
 	end
 end
 
-DayNightService.StartCycle = function(self)
+DayNightService.StartCycle = function(self: Self)
 	self.CurrentClock = Settings.DayDuration
 	self:SetCycle("Day")
 	self:ReplicateClock()
@@ -124,18 +125,5 @@ end
 DayNightService:OnStart(function(self)
 	self:SetCycle("Idle")
 end)
-
--- DayNightService:OnTick(function(self)
--- 	if self.CurrentCycle == "Idle" or self.CurrentCycle == "Transition" then
--- 		return
--- 	end
--- 	if self.CurrentClock <= 0 then
--- 		self:ToggleCycle()
--- 		return
--- 	end
-
--- 	self.CurrentClock -= 1
--- 	self:ReplicateClock()
--- end, Modux.TickRate.Hz1)
 
 return DayNightService

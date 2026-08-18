@@ -1,72 +1,7 @@
 --!strict
 --!native
 
---[[
-MAD STUDIO
-
--[Sera]---------------------------------------
-
-	Low-level schematized serialization library
-
-	Members:
-
-		Sera.Boolean
-
-		Sera.Uint8
-		Sera.Uint16
-		Sera.Uint32
-		Sera.Int8
-		Sera.Int16
-		Sera.Int32
-		Sera.Float32
-		Sera.Float64
-
-		Sera.CFrame -- 48 bytes; Full precision
-		Sera.LossyCFrame -- 28 bytes; Less than 0.0005 degree precision error for rotation
-		Sera.Vector3
-		Sera.Color3
-		Sera.ColorV3 -- Input and output are Vector3's with [0, 1] color values
-
-		Sera.String8  -- Max 255 size
-		Sera.String16 -- Max 65,535 size
-		Sera.String32 -- Max 4,294,967,295 size
-
-		Sera.Buffer8  -- Max 255 size
-		Sera.Buffer16 -- Max 65,535 size
-		Sera.Buffer32 -- Max 4,294,967,295 size
-		
-		Sera.Angle8 -- (Unsigned) Radian representation in one byte while preserving cardinal direction accuracy (Every 45 degrees)
-
-	Functions:
-
-		Sera.Schema(params): Schema -- Maximum 255 fields
-			params:
-				{
-					["FieldName"]: SeraType,
-					...
-				}
-
-		-- "Serialize", "Push", "DeltaSerialize" and "DeltaPush" will return first argument if succeeded,
-		-- Or return an error message as the second argument if failed.
-
-		-- When all fields are present (Non-schema fields are ignored; Missing fields will throw an error):
-
-		Sera.Deserialize(schema: Schema, b: buffer, offset: number?): ({[string]: any}, offset: number)
-		Sera.Serialize(schema: Schema, t: {[string]: any}): (buffer?, err: string?)
-		Sera.Push(schema: Schema, t: {[string]: any}, b: buffer, offset: number?): (offset: number?, err: string?)
-
-		-- When only some fields are present (Non-schema fields will throw an error):
-
-		Sera.DeltaDeserialize(schema: Schema, b: buffer, offset: number?): ({[string]: any}, offset: number)
-		Sera.DeltaSerialize(schema: Schema, t: {[string]: any}): (buffer?, err: string?)
-		Sera.DeltaPush(schema: Schema, t: {[string]: any}, b: buffer, offset: number?): (offset: number?, err: string?)
-
-		-- Delta serialization has an additional size cost of (n + 1) bytes where "n" is the number of fields present
-		-- in a table that's being serialized (1 byte for present field count, 1 enumerating byte for each field)
-
---]]
-
-local BIG_BUFFER_SIZE = 1000000 -- "Serialize" and "DeltaSerialize" will fail if resulting buffer size is larger than this value
+local BIG_BUFFER_SIZE = 1000000
 
 local SIZE_8 = 2 ^ 8 - 1
 local SIZE_16 = 2 ^ 16 - 1
@@ -74,11 +9,9 @@ local SIZE_32 = 2 ^ 32 - 1
 
 local MAX_FIELDS = 2 ^ 8 - 1
 
-local BB = buffer.create(BIG_BUFFER_SIZE) -- Big reusable buffer
+local BB = buffer.create(BIG_BUFFER_SIZE)
 
------ Public -----
-
-export type Ser = (b: buffer, offset: number, value: any) -> (number)
+export type Ser = (b: buffer, offset: number, value: any) -> number
 export type Des = (b: buffer, offset: number) -> (any, number)
 
 export type SeraType = {
@@ -87,11 +20,11 @@ export type SeraType = {
 	Des: Des,
 }
 
-type Field = {Key: string, Name: string, Ser: Ser, Des: Des, Index: number}
+type Field = { Key: string, Name: string, Ser: Ser, Des: Des, Index: number }
 
 export type Schema = {
-	Numeric: {Field},
-	String: {[string]: Field},
+	Numeric: { Field },
+	String: { [string]: Field },
 }
 
 local Sera = {
@@ -235,7 +168,8 @@ Sera.CFrame = table.freeze({
 			buffer.readf32(b, offset + 36),
 			buffer.readf32(b, offset + 40),
 			buffer.readf32(b, offset + 44)
-		), offset + 48
+		),
+			offset + 48
 	end,
 })
 
@@ -254,18 +188,10 @@ Sera.LossyCFrame = table.freeze({
 	end,
 	Des = function(b: buffer, offset: number): (CFrame, number)
 		return CFrame.fromAxisAngle(
-			Vector3.new(
-				buffer.readf32(b, offset + 12),
-				buffer.readf32(b, offset + 16),
-				buffer.readf32(b, offset + 20)
-			),
+			Vector3.new(buffer.readf32(b, offset + 12), buffer.readf32(b, offset + 16), buffer.readf32(b, offset + 20)),
 			buffer.readf32(b, offset :: number + 24)
-			)
-			+ Vector3.new(
-				buffer.readf32(b, offset),
-				buffer.readf32(b, offset + 4),
-				buffer.readf32(b, offset + 8)
-			), offset + 28
+		) + Vector3.new(buffer.readf32(b, offset), buffer.readf32(b, offset + 4), buffer.readf32(b, offset + 8)),
+			offset + 28
 	end,
 })
 
@@ -278,11 +204,8 @@ Sera.Vector3 = table.freeze({
 		return offset + 12
 	end,
 	Des = function(b: buffer, offset: number): (Vector3, number)
-		return Vector3.new(
-			buffer.readf32(b, offset),
-			buffer.readf32(b, offset + 4),
-			buffer.readf32(b, offset + 8)
-		), offset + 12
+		return Vector3.new(buffer.readf32(b, offset), buffer.readf32(b, offset + 4), buffer.readf32(b, offset + 8)),
+			offset + 12
 	end,
 })
 
@@ -295,11 +218,8 @@ Sera.Color3 = table.freeze({
 		return offset + 3
 	end,
 	Des = function(b: buffer, offset: number): (Color3, number)
-		return Color3.fromRGB(
-			buffer.readu8(b, offset),
-			buffer.readu8(b, offset + 1),
-			buffer.readu8(b, offset + 2)
-		), offset + 3
+		return Color3.fromRGB(buffer.readu8(b, offset), buffer.readu8(b, offset + 1), buffer.readu8(b, offset + 2)),
+			offset + 3
 	end,
 })
 
@@ -316,7 +236,8 @@ Sera.ColorV3 = table.freeze({
 			buffer.readu8(b, offset) / 255,
 			buffer.readu8(b, offset + 1) / 255,
 			buffer.readu8(b, offset + 2) / 255
-		), offset + 3
+		),
+			offset + 3
 	end,
 })
 
@@ -429,7 +350,6 @@ Sera.Buffer32 = table.freeze({
 })
 
 do
-	
 	local rad2 = math.pi * 2
 	local angle8range = math.rad(359)
 
@@ -437,7 +357,7 @@ do
 		return math.round((deg % rad2) * 255 / angle8range)
 	end
 
-	local DegDecodeLookup: {number} = {}
+	local DegDecodeLookup: { number } = {}
 
 	for i = 0, 255 do
 		DegDecodeLookup[i] = i * angle8range / 255
@@ -448,7 +368,7 @@ do
 		local index = DegEncode(r)
 		DegDecodeLookup[index] = r
 	end
-	
+
 	Sera.Angle8 = table.freeze({
 		Name = "Angle8",
 		Ser = function(b: buffer, offset: number, value: number): number
@@ -459,14 +379,9 @@ do
 			return DegDecodeLookup[buffer.readu8(b, offset)], offset + 1
 		end,
 	})
-	
 end
 
-----
-
--- Returns dictionary of deserialized schema.
-function Sera.Deserialize(schema: Schema, b: buffer, offset: number?): ({[string]: any}, number)
-
+function Sera.Deserialize(schema: Schema, b: buffer, offset: number?): ({ [string]: any }, number)
 	offset = offset or 0
 	local result = {}
 
@@ -475,11 +390,9 @@ function Sera.Deserialize(schema: Schema, b: buffer, offset: number?): ({[string
 	end
 
 	return result, offset :: number
-
 end
 
-local function SerializeUnsafe(schema: Schema, t: {[string]: any}): number
-
+local function SerializeUnsafe(schema: Schema, t: { [string]: any }): number
 	local offset = 0
 
 	for _, field in schema.Numeric do
@@ -487,94 +400,77 @@ local function SerializeUnsafe(schema: Schema, t: {[string]: any}): number
 	end
 
 	return offset
-
 end
 
--- Returns new buffer of serialized schema or error message if fail.
 function Sera.Serialize(schema: Schema, t: any): (buffer?, string?)
-
 	local success, offset = pcall(SerializeUnsafe, schema, t)
 
 	if not success then
-
 		local ser_success
 		offset = 0
 
 		for _, field in schema.Numeric do
-
 			local value = t[field.Key]
 
 			if value ~= nil then
 				ser_success, offset = pcall(field.Ser, BB, offset, value)
 				if not ser_success then
-					return nil, `Couldn't serialize field "{field.Key}" (Expected: {field.Name};Received: "{typeof(value)}"); Message: {offset}`
+					return nil,
+						`Couldn't serialize field "{field.Key}" (Expected: {field.Name};Received: "{typeof(value)}"); Message: {offset}`
 				end
 			else
 				return nil, `Missing field "{field.Key}"`
 			end
-
 		end
 
 		return nil, `Unknown error`
-
 	end
 
 	local b = buffer.create(offset)
 	buffer.copy(b, 0, BB, 0, offset)
 
 	return b
-
 end
 
-local function PushUnsafe(schema: Schema, t: {[string]: any}, b: buffer, offset: number): number
-
+local function PushUnsafe(schema: Schema, t: { [string]: any }, b: buffer, offset: number): number
 	for _, field in schema.Numeric do
 		offset = field.Ser(b, offset, t[field.Key])
 	end
 
 	return offset
-
 end
 
--- Pushes serialized schema to an existing buffer; Returns new buffer offset or error message if fail.
 function Sera.Push(schema: Schema, t: any, b: buffer, offset: number?): (number?, string?)
-
 	offset = offset or 0
 	local original_offset = offset :: number
 	local success
 	success, offset = pcall(PushUnsafe, schema, t, b, offset :: number)
 
 	if not success then
-
 		local ser_success
 		offset = original_offset
 
 		for _, field in schema.Numeric do
-
 			local value = t[field.Key]
 
 			if value ~= nil then
 				ser_success, offset = pcall(field.Ser, b, offset :: number, value)
 				if not ser_success then
-					return nil, `Couldn't serialize field "{field.Key}" (Expected: {field.Name};Received: "{typeof(value)}"); Message: {offset}`
+					return nil,
+						`Couldn't serialize field "{field.Key}" (Expected: {field.Name};Received: "{typeof(value)}"); Message: {offset}`
 				end
 			else
 				return nil, `Missing field "{field.Key}"`
 			end
-
 		end
 
 		return nil, `Unknown error`
-
 	end
 
 	return offset
-
 end
 
--- Returns dictionary of deserialized deltas.
-function Sera.DeltaDeserialize(schema: Schema, b: buffer, offset: number?): ({[string]: any}, number)
-
+function Sera.DeltaDeserialize(schema: Schema, b: buffer, offset: number?): ({ [string]: any }, number)
 	offset = (offset or 0) + 1
 	local field_count = buffer.readu8(b, offset :: number - 1)
 	local result = {}
@@ -587,11 +483,9 @@ function Sera.DeltaDeserialize(schema: Schema, b: buffer, offset: number?): ({[s
 	end
 
 	return result, offset :: number
-
 end
 
-local function DeltaSerializeUnsafe(schema: Schema, t: {[string]: any}): number
-
+local function DeltaSerializeUnsafe(schema: Schema, t: { [string]: any }): number
 	local field_count = 0
 	local offset = 1
 
@@ -607,23 +501,18 @@ local function DeltaSerializeUnsafe(schema: Schema, t: {[string]: any}): number
 	buffer.writeu8(BB, 0, field_count)
 
 	return offset
-
 end
 
--- Returns new buffer of serialized deltas or error message if fail.
 function Sera.DeltaSerialize(schema: Schema, t: any): (buffer?, string?)
-
 	local success, offset = pcall(DeltaSerializeUnsafe, schema, t)
 
 	if not success then
-
 		local ser_success
 		offset = 1
 
 		local lookup = schema.String
 
 		for key, value in t do
-
 			local field = lookup[key]
 
 			if field == nil then
@@ -633,24 +522,21 @@ function Sera.DeltaSerialize(schema: Schema, t: any): (buffer?, string?)
 			buffer.writeu8(BB, offset, field.Index)
 			ser_success, offset = pcall(field.Ser, BB, offset + 1, value)
 			if not ser_success then
-				return nil, `Couldn't serialize field "{field.Key}" (Expected: {field.Name};Received: "{typeof(value)}"); Message: {offset}`
+				return nil,
+					`Couldn't serialize field "{field.Key}" (Expected: {field.Name};Received: "{typeof(value)}"); Message: {offset}`
 			end
-
 		end
 
 		return nil, `Unknown error`
-
 	end
 
 	local b = buffer.create(offset)
 	buffer.copy(b, 0, BB, 0, offset)
 
 	return b
-
 end
 
-local function DeltaPushUnsafe(schema: Schema, t: {[string]: any}, b: buffer, offset: number): number
-
+local function DeltaPushUnsafe(schema: Schema, t: { [string]: any }, b: buffer, offset: number): number
 	local field_count = 0
 	local start_offset = offset
 	offset += 1
@@ -667,25 +553,20 @@ local function DeltaPushUnsafe(schema: Schema, t: {[string]: any}, b: buffer, of
 	buffer.writeu8(b, start_offset, field_count)
 
 	return offset
-
 end
 
--- Pushes serialized deltas to an existing buffer; Returns new buffer offset or error message if fail.
 function Sera.DeltaPush(schema: Schema, t: any, b: buffer, offset: number?): (number?, string?)
-
 	offset = offset or 0
 	local success
 	success, offset = pcall(DeltaPushUnsafe, schema, t, b, offset :: number)
 
 	if not success then
-
 		local ser_success
 		offset = 1
 
 		local lookup = schema.String
 
 		for key, value in t do
-
 			local field = lookup[key]
 
 			if field == nil then
@@ -695,32 +576,33 @@ function Sera.DeltaPush(schema: Schema, t: any, b: buffer, offset: number?): (nu
 			buffer.writeu8(b, offset :: number, field.Index)
 			ser_success, offset = pcall(field.Ser, b, offset :: number + 1, value)
 			if not ser_success then
-				return nil, `Couldn't serialize field "{field.Key}" (Expected: {field.Name};Received: "{typeof(value)}"); Message: {offset}`
+				return nil,
+					`Couldn't serialize field "{field.Key}" (Expected: {field.Name};Received: "{typeof(value)}"); Message: {offset}`
 			end
-
 		end
 
 		return nil, `Unknown error`
-
 	end
 
 	return offset
-
 end
 
-function Sera.Schema(params: {[string]: SeraType}): Schema
-
-	local fields: {Field} = {}
+function Sera.Schema(params: { [string]: SeraType }): Schema
+	local fields: { Field } = {}
 
 	for key, sera_type: SeraType in params do
 		if typeof(key) ~= "string" then
 			error(`[{script.Name}]: Expected string for field name; Received "{typeof(key)}"`)
 		end
-		if typeof(sera_type) ~= "table" or typeof(sera_type.Ser) ~= "function"
-			or typeof(sera_type.Des) ~= "function" or typeof(sera_type.Name) ~= "string" then
+		if
+			typeof(sera_type) ~= "table"
+			or typeof(sera_type.Ser) ~= "function"
+			or typeof(sera_type.Des) ~= "function"
+			or typeof(sera_type.Name) ~= "string"
+		then
 			error(`[{script.Name}]: Expected SeraType for field "{key}"`)
 		end
-		table.insert(fields, {Key = key, Name = sera_type.Name, Ser = sera_type.Ser, Des = sera_type.Des, Index = 0})
+		table.insert(fields, { Key = key, Name = sera_type.Name, Ser = sera_type.Ser, Des = sera_type.Des, Index = 0 })
 	end
 
 	if #fields == 0 then
@@ -735,7 +617,7 @@ function Sera.Schema(params: {[string]: SeraType}): Schema
 		return a.Key < b.Key
 	end)
 
-	local string_fields: {[string]: Field} = {}
+	local string_fields: { [string]: Field } = {}
 
 	for index, field in fields do
 		field.Index = index
@@ -746,7 +628,6 @@ function Sera.Schema(params: {[string]: SeraType}): Schema
 		Numeric = fields,
 		String = string_fields,
 	})
-
 end
 
 return Sera

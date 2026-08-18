@@ -4,8 +4,9 @@ local GetGun = require(ReplicatedStorage.Shared.Utils.GetGun)
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 
 local SeedComponent = Modux.Component("SeedComponent"):Tag("SeedComponent"):ClassName("Part")
+type Self = typeof(SeedComponent)
 
-SeedComponent.Setup = function(self)
+SeedComponent.Setup = function(self: Self)
 	local ProximityPrompt = Instance.new("ProximityPrompt")
 	ProximityPrompt.RequiresLineOfSight = false
 	ProximityPrompt.Parent = self.Instance
@@ -16,7 +17,7 @@ SeedComponent.Setup = function(self)
 	self.Proximity = ProximityPrompt
 end
 
-SeedComponent.Harvest = function(self)
+SeedComponent.Harvest = function(self: Self)
 	self._harvested = false :: boolean
 	self:Cleanup(self.Proximity.Triggered:Connect(function(Player: Player)
 		if self._harvested then
@@ -42,15 +43,15 @@ end
 SeedComponent:OnStart(function(self)
 	local gunName = self.Instance:GetAttribute("GunName") :: string?
 	local gunData = gunName and GetGun:GetByName(gunName :: any)
-	
+
 	if not gunData then
+		warn(`[SeedComponent] GunName inválido/ausente ("{tostring(gunName)}") -- plantado sem GunMixin.PlantAt?`)
 		self.Instance:Destroy()
 		return
 	end
 
 	self.GunName = gunName :: string
 	self.GunData = gunData :: GetGun.GunData
-
 	self.PlantedAt = (self.Instance:GetAttribute("PlantedAt") :: number?) or workspace:GetServerTimeNow()
 
 	self:Setup()

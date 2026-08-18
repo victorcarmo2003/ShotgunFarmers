@@ -11,6 +11,7 @@ export type HandlerType = {
 }
 
 local InputController = Modux.Controller("InputController")
+type Self = typeof(InputController)
 InputController.allHandlers = {} :: { [string]: HandlerType }
 
 local function processInput(ActionName: string, InputState: Enum.UserInputState, inputObject: InputObject)
@@ -38,12 +39,12 @@ local function processInput(ActionName: string, InputState: Enum.UserInputState,
 	return Enum.ContextActionResult.Pass
 end
 
-InputController.UnbindAction = function(self, ActionName: string)
+InputController.UnbindAction = function(self: Self, ActionName: string)
 	ContextActionService:UnbindAction(ActionName)
 end
 
 InputController.BindAction = function(
-	self,
+	self: Self,
 	ActionName: string,
 	ActionKey: Enum.KeyCode | Enum.UserInputType,
 	TouchButton: boolean?,
@@ -76,7 +77,7 @@ InputController.BindAction = function(
 	return handler :: HandlerType
 end
 
-InputController.ChangeContext = function(self, newContext: Context)
+InputController.ChangeContext = function(self: Self, newContext: Context)
 	self.Context = newContext
 end
 

@@ -1,10 +1,5 @@
 --!strict
 
---[[
-	Given a `tweenInfo` and `currentTime`, returns a ratio which can be used to
-	tween between two values over time.
-]]
-
 local TweenService = game:GetService("TweenService")
 
 local function getTweenRatio(tweenInfo: TweenInfo, currentTime: number): number

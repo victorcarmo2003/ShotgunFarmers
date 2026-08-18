@@ -12,6 +12,7 @@ export type PlayerZoneConfig = {
 export type callbackZone = (Player: Player, Zone: PlayerZoneConfig) -> ()
 
 local PlayerZoneComponent = Modux.Mixin("PlayerZoneComponent")
+type Self = typeof(PlayerZoneComponent)
 
 PlayerZoneComponent:OnInit(function(self)
 	self._onEnter = {}
@@ -20,21 +21,21 @@ end)
 
 local PlayerGroup = Groups.players()
 
-PlayerZoneComponent.OnEnter = function(self, callback: callbackZone)
+PlayerZoneComponent.OnEnter = function(self: Self, callback: callbackZone)
 	if not self._onEnter then
 		self._onEnter = {}
 	end
 	table.insert(self._onEnter, callback)
 end
 
-PlayerZoneComponent.OnExit = function(self, callback: callbackZone)
+PlayerZoneComponent.OnExit = function(self: Self, callback: callbackZone)
 	if not self._onExit then
 		self._onExit = {}
 	end
 	table.insert(self._onExit, callback)
 end
 
-PlayerZoneComponent.ObserverPlayersInPart = function(self, config: PlayerZoneConfig)
+PlayerZoneComponent.ObserverPlayersInPart = function(self: Self, config: PlayerZoneConfig)
 	local part = self.Instance
 
 	local minHeight = config.MinHeight or part.Size.Y

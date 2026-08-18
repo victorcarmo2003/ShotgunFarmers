@@ -1,11 +1,7 @@
 --!strict
 --!nolint LocalUnused
 --!nolint LocalShadow
-local task = nil -- Disable usage of Roblox's task scheduler
-
---[[
-	Formats a Fusion-specific error message.
-]]
+local task = nil
 
 local Package = script.Parent.Parent
 local Types = require(Package.Types)

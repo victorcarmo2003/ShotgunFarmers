@@ -1,12 +1,13 @@
 --modux ignore file
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 local ZoneService = Modux.Service("ZoneService")
+type Self = typeof(ZoneService)
 ZoneService:Import("ProfileService")
 
 ZoneService.zonePlayers = {} :: { [Player]: string }
 ZoneService.safezonePlayers = {} :: { [Player]: string }
 
-ZoneService.ChangePlayerZone = function(self, Player: Player, Zone)
+ZoneService.ChangePlayerZone = function(self: Self, Player: Player, Zone)
 	local playerZone = self.zonePlayers[Player]
 
 	if not playerZone or playerZone ~= Zone then
@@ -15,7 +16,7 @@ ZoneService.ChangePlayerZone = function(self, Player: Player, Zone)
 	end
 end
 
-ZoneService.ChangePlayerSafeZone = function(self, Player: Player, Zone)
+ZoneService.ChangePlayerSafeZone = function(self: Self, Player: Player, Zone)
 	local playerSafezone = self.safezonePlayers[Player]
 
 	if not playerSafezone or playerSafezone ~= Zone then

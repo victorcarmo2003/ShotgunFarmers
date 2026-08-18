@@ -1,9 +1,5 @@
 --!strict
 
---[[
-	Utility function to log a Fusion-specific warning.
-]]
-
 local Package = script.Parent.Parent
 local messages = require(Package.Logging.messages)
 

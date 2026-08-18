@@ -4,9 +4,8 @@ local TweenService = game:GetService("TweenService")
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 
 local MusicController = Modux.Controller("MusicController")
+type Self = typeof(MusicController)
 
--- Crossfade entre uma faixa e a próxima -- evita tanto o silêncio quanto o corte seco
--- que um Ended cru (sem fade) daria.
 local FADE_TIME = 2
 local CROSSFADE_TWEEN = TweenInfo.new(FADE_TIME, Enum.EasingStyle.Linear)
 
@@ -20,8 +19,6 @@ local function getMusicFolder(): Folder
 	return holder :: Folder
 end
 
--- Fisher-Yates -- reembaralhada a cada volta completa da playlist, pra sessões longas
--- não caírem sempre na mesma ordem.
 local function shuffle(list: { Sound })
 	for i = #list, 2, -1 do
 		local j = math.random(i)
@@ -29,11 +26,7 @@ local function shuffle(list: { Sound })
 	end
 end
 
--- Toca a próxima faixa da playlist com fade-in, enquanto apaga (fade-out + Destroy) a
--- que estava tocando -- nunca há silêncio nem sobreposição abrupta entre as duas.
--- O volume-alvo de cada faixa é o Volume já configurado no Sound original (em
--- ReplicatedStorage.Assets.Musics), então o balanceamento feito no Studio é respeitado.
-MusicController.PlayNext = function(self)
+MusicController.PlayNext = function(self: Self)
 	if #self.Playlist == 0 then
 		return
 	end
@@ -49,7 +42,7 @@ MusicController.PlayNext = function(self)
 
 	local sound = template:Clone()
 	sound.Volume = 0
-	-- O loop/avanço é gerenciado por nós via Ended -- looped cru nunca dispararia esse evento.
+
 	sound.Looped = false
 	sound.Parent = self.MusicFolder
 	sound:Play()

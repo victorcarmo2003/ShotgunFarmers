@@ -1,6 +1,5 @@
 return {
-	dependencies = {
-	},
+	dependencies = {},
 	package = {
 		description = "Fusion version 0.2.0 fork",
 		name = "mattschrubb/fusion",

@@ -1,13 +1,7 @@
-
-
 --!strict
 --!nolint LocalUnused
 --!nolint LocalShadow
-local task = nil -- Disable usage of Roblox's task scheduler
-
---[[
-	Procedures for checking lifetimes and printing helpful warnings about them.
-]]
+local task = nil
 
 local Package = script.Parent.Parent
 local Types = require(Package.Types)
@@ -19,20 +13,13 @@ local checkLifetime = {}
 
 checkLifetime.formatters = {}
 
-function checkLifetime.formatters.useFunction(
-	self: unknown,
-	used: unknown
-): (string, string)
+function checkLifetime.formatters.useFunction(self: unknown, used: unknown): (string, string)
 	local selfName = nameOf(self, "object")
 	local usedName = nameOf(used, "object")
 	return `The use()-d {usedName}`, `the {selfName}`
 end
-	
-function checkLifetime.formatters.boundProperty(
-	instance: Instance,
-	bound: unknown,
-	property: string
-): (string, string)
+
+function checkLifetime.formatters.boundProperty(instance: Instance, bound: unknown, property: string): (string, string)
 	local selfName = instance.Name
 	local boundName = nameOf(bound, "value")
 	return `The {boundName} (bound to the {property} property)`, `the {selfName} instance`
@@ -68,19 +55,13 @@ function checkLifetime.formatters.attributeOutputsTo(
 	return `The {boundName} (which the {attribute} attribute outputs to)`, `the {selfName} instance`
 end
 
-function checkLifetime.formatters.refOutputsTo(
-	instance: Instance,
-	bound: unknown
-): (string, string)
+function checkLifetime.formatters.refOutputsTo(instance: Instance, bound: unknown): (string, string)
 	local selfName = instance.Name
 	local boundName = nameOf(bound, "object")
 	return `The {boundName} (which the Ref key outputs to)`, `the {selfName} instance`
 end
 
-function checkLifetime.formatters.animationGoal(
-	self: unknown,
-	goal: unknown
-): (string, string)
+function checkLifetime.formatters.animationGoal(self: unknown, goal: unknown): (string, string)
 	local selfName = nameOf(self, "object")
 	local goalName = nameOf(goal, "object")
 	return `The goal {goalName}`, `the {selfName} that is following it`
@@ -100,10 +81,7 @@ function checkLifetime.formatters.parameter(
 	end
 end
 
-function checkLifetime.formatters.observer(
-	self: unknown,
-	watched: unknown
-): (string, string)
+function checkLifetime.formatters.observer(self: unknown, watched: unknown): (string, string)
 	local selfName = nameOf(self, "object")
 	local watchedName = nameOf(watched, "object")
 	return `The watched {watchedName}`, `the {selfName} that's observing it for changes`
@@ -123,11 +101,11 @@ function checkLifetime.bOutlivesA<A, B, Args...>(
 		local aName, bName = formatter(a, b, ...)
 		External.logWarn(
 			"possiblyOutlives",
-			aName, bName, 
-			if scopeA == scopeB then
-				"they're in the same scope, but the latter is destroyed too quickly"
-			else
-				"the latter is in a different scope that gets destroyed too quickly"
+			aName,
+			bName,
+			if scopeA == scopeB
+				then "they're in the same scope, but the latter is destroyed too quickly"
+				else "the latter is in a different scope that gets destroyed too quickly"
 		)
 	end
 end

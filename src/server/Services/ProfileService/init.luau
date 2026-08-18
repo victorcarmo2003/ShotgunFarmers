@@ -10,6 +10,7 @@ export type DataTemplate = typeof(ProfileTemplate.Template)
 type DataTemplateKey = Types.DataTemplateKey
 
 local ProfileService = Modux.Service("ProfileService")
+type Self = typeof(ProfileService)
 ProfileService:Import("PlayerService")
 
 ProfileService.PrintData = true
@@ -22,7 +23,7 @@ ProfileService._replicatePending = {}
 ProfileService._replicateKeyCooldown = {} :: { [Player]: { [string]: boolean } }
 ProfileService._replicateKeyPending = {} :: { [Player]: { [string]: boolean } }
 
-ProfileService._setupProfile = function(self, Player)
+ProfileService._setupProfile = function(self: Self, Player)
 	local Players = game:GetService("Players")
 	local profile = PlayerStore:StartSessionAsync(`{Player.UserId}`, {
 		Cancel = function()
@@ -30,7 +31,6 @@ ProfileService._setupProfile = function(self, Player)
 		end,
 	})
 
-	-- Handling new profile session or failure to start it:
 	if profile ~= nil then
 		profile:AddUserId(Player.UserId)
 		profile:Reconcile() --modux ignore line
@@ -47,22 +47,20 @@ ProfileService._setupProfile = function(self, Player)
 			Player:SetAttribute("Loaded", true)
 			ProfileService._profileLoadedSignal:Fire(Player, profile.Data)
 			if self.PrintData then
-				print(`{Player.Name} has joined:`, profile.Data)
+				-- print(`{Player.Name} has joined:`, profile.Data)
 			end
 			return profile
 		else
-			-- The Player has left before the profile session started
 			profile:EndSession()
 			return profile
 		end
 	else
-		-- This condition should only happen when the Roblox server is shutting down
 		Player:Kick(`Profile load fail - Please rejoin`)
 		return nil
 	end
 end
 
-ProfileService.Set = function(self, Player: Player, Key: DataTemplateKey, value: any)
+ProfileService.Set = function(self: Self, Player: Player, Key: DataTemplateKey, value: any)
 	local profile = self:GetData(Player)
 	if profile[Key] == nil then
 		return warn(`[ProfileService] Key not founded:`, Key)
@@ -72,8 +70,7 @@ ProfileService.Set = function(self, Player: Player, Key: DataTemplateKey, value:
 	return
 end
 
--- Replica apenas uma key específica do perfil para o player.
-ProfileService.ReplicateKey = function(self, Player: Player, Key: DataTemplateKey)
+ProfileService.ReplicateKey = function(self: Self, Player: Player, Key: DataTemplateKey)
 	assert(Player, "[ProfileService] Player ausente no ReplicateKey")
 
 	if not ProfileService._replicateKeyCooldown[Player] then
@@ -86,7 +83,6 @@ ProfileService.ReplicateKey = function(self, Player: Player, Key: DataTemplateKe
 	local keyCooldown = ProfileService._replicateKeyCooldown[Player]
 	local keyPending = ProfileService._replicateKeyPending[Player]
 
-	-- Se ainda está em cooldown para esta key, agenda uma única tentativa pendente
 	if keyCooldown[Key] then
 		if not keyPending[Key] then
 			keyPending[Key] = true
@@ -100,11 +96,10 @@ ProfileService.ReplicateKey = function(self, Player: Player, Key: DataTemplateKe
 		return
 	end
 
-	-- Aplica cooldown somente para esta key
 	keyCooldown[Key] = true
 	task.delay(0.5, function()
 		keyCooldown[Key] = nil
-		-- Limpa a tabela do player se ficou vazia
+
 		if next(keyCooldown) == nil then
 			ProfileService._replicateKeyCooldown[Player] = nil
 			ProfileService._replicateKeyPending[Player] = nil
@@ -124,7 +119,7 @@ ProfileService.ReplicateKey = function(self, Player: Player, Key: DataTemplateKe
 	self.Network.Packages.DataKey:sendKey(Key, value, Player)
 end
 
-ProfileService.Replicate = function(self, Player: Player)
+ProfileService.Replicate = function(self: Self, Player: Player)
 	assert(Player, "[ProfileWrapper] Player ausente no Replicate")
 
 	if ProfileService._replicateCooldown[Player] then
@@ -149,7 +144,6 @@ ProfileService.Replicate = function(self, Player: Player)
 		return
 	end
 
-	-- Sincroniza atributos numéricos e string no Player
 	for name, value in profile do
 		if type(value) == "number" or type(value) == "string" then
 			Player:SetAttribute(name, value)
@@ -157,15 +151,13 @@ ProfileService.Replicate = function(self, Player: Player)
 	end
 	self.Network.Packages.Data:send(profile, Player)
 end
--- Retorna uma Promise que resolve com os dados do player.
--- Se o dado já existir, resolve instantaneamente.
-ProfileService.GetData = function(self, Player: Player): DataTemplate?
+
+ProfileService.GetData = function(self: Self, Player: Player): DataTemplate?
 	local profile = ProfileService.Profiles[Player]
 	if profile then
 		return profile.Data
 	end
 
-	-- Se não existe, cria Promise e faz await internamente
 	local promise = self.Promise.new(function(resolve, reject)
 		local connection
 		connection = ProfileService._profileLoadedSignal:Connect(function(loadedPlayer, data)
@@ -205,7 +197,6 @@ ProfileService:OnInit(function(self)
 			profile:EndSession()
 		end
 
-		-- AutoClean: Evita Memory Leak
 		ProfileService.Profiles[Player] = nil
 		ProfileService._replicateCooldown[Player] = nil
 		ProfileService._replicatePending[Player] = nil

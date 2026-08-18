@@ -87,19 +87,9 @@ export type DataKeyPayload =
 	| { key: "SoundVolume", value: number }
 	| { key: "MusicEnabled", value: boolean }
 	| { key: "SoundEnabled", value: boolean }
+export type CoreAnimState = "Idle" | "Walk" | "Run" | "CrouchIdle" | "CrouchWalk" | "Jump" | "Fall" | "Land"
 export type AmmoType = "Single" | "Multi" | "Area"
-export type WeaponAnimationSet = {
-	Idle: string,
-	Aim: string,
-	Shoot: string,
-}
-export type WeaponAnimations = {
-	-- Toca no rig do viewmodel (braços esticados por RigBuilder.ARM_SIZE, só o dono vê).
-	Viewmodel: WeaponAnimationSet,
-	-- Toca no Animator do Humanoid REAL (proporção normal) -- replica pra 3ª pessoa
-	-- automaticamente, ver ArmsController.EquipCharacterPose.
-	Character: WeaponAnimationSet,
-}
+export type PoseKind = "Firearm" | "Melee" | "Throwable"
 export type AimType = "Spread" | "Default"
 export type GunData = {
 	ID: number,
@@ -112,16 +102,15 @@ export type GunData = {
 	FireRate: number,
 	ImageID: string,
 	Knockback: number,
-	Animations: WeaponAnimations,
-	-- Name do Sound dentro de ReplicatedStorage.Assets.Sounds tocado a cada tiro (ver
-	-- GunMixin.PlayShootSound) -- "" quando a arma ainda não tem som gravado.
+	-- Chave em PlayerAnimations.Viewmodels (POV1, ver GetAnimations.luau) -- a pose de
+	-- 3ª pessoa não vem daqui, vem de PlayerAnimations.PoseCategoryByGun[GunName].
+	AnimationSet: string,
+	PoseKind: PoseKind,
+	-- Override opcional do GameSettings.WeaponDrawLock (segundos de lock ao trocar
+	-- pra essa arma). nil = usa o padrão.
+	DrawTime: number?,
 	ShootSound: string,
-	-- Name do Model dentro de ReplicatedStorage.Assets.Seeds clonado por SeedComponent
-	-- ao germinar (ver GunMixin.PlantAt).
 	SeedModel: string,
-	-- Estilo de crosshair (Interface/GameComponents/Crosshair.luau) -- "Spread" mostra
-	-- as 4 marcas que se afastam com o spread efetivo, "Default" é o "+" estático.
-	-- Opcional: arma sem AimType (as 7 ainda sem componente) cai pro "Default".
 	AimType: AimType?,
 }
 export type EffectState = { Trauma: number, Seed: number }
@@ -144,6 +133,7 @@ export type KillFeedEntryData = {
 	GunImage: string,
 	IsHeadshot: boolean,
 }
+export type MovementStates = "Walking" | "Running" | "Crouch" | "Sliding" | "Jumping" | "Dead"
 export type ShootRequest = {
 	startPos: Vector3,
 	endPos: Vector3,
@@ -200,6 +190,7 @@ type SequenceAnimationHandle = {
 	GetCurrentPos: (self: SequenceAnimationHandle) -> any,
 	Destroy: (self: SequenceAnimationHandle) -> SequenceAnimationHandle,
 }
+export type Computed<T> = Computed<T>
 export type SlotIndex = number
 export type GunNames = "Shotgun"
 	| "Sniperagus"
@@ -210,6 +201,8 @@ export type GunNames = "Shotgun"
 	| "M6Bean"
 	| "WatermeLMG"
 	| "Double Cob"
+	| "Hoe"
+	| "Grenade"
 export type State<T> = PubTypes.Value<T> & {
 	_value: T
 }
@@ -236,7 +229,6 @@ export type FSM<State> = {
 	_transitionListeners: { TransitionCallback<State> },
 	_destroyed: boolean,
 }
-export type MovementStates = "Walking" | "Running" | "Crouch" | "Sliding" | "Jumping" | "Dead"
 export type VitalAttributes = "Armor" | "Health"
 export type DayCycle = "Day" | "Night" | "Idle" | "Transition"
 export type RoundState = "Starting" | "Match" | "Intermission" | "Vote"

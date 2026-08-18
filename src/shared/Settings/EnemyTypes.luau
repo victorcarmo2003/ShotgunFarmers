@@ -18,7 +18,7 @@ return {
 		SpawnCost = 10,
 		MinDifficulty = 1,
 	},
-	
+
 	Intermediate = {
 		ModelName = "Intermediate",
 		ComponentTag = "IntermediateAlien",
@@ -28,7 +28,7 @@ return {
 		SpawnCost = 20,
 		MinDifficulty = 2,
 	},
-	
+
 	Runner = {
 		ModelName = "Runner",
 		ComponentTag = "RunnerAlien",
@@ -38,7 +38,7 @@ return {
 		SpawnCost = 15,
 		MinDifficulty = 3,
 	},
-	
+
 	Rage = {
 		ModelName = "Rage",
 		ComponentTag = "Aliens",
@@ -48,7 +48,7 @@ return {
 		SpawnCost = 30,
 		MinDifficulty = 4,
 	},
-	
+
 	Telekinesis = {
 		ModelName = "Telekinesis",
 		ComponentTag = "Aliens",
@@ -58,7 +58,7 @@ return {
 		SpawnCost = 40,
 		MinDifficulty = 5,
 	},
-	
+
 	Screamer = {
 		ModelName = "Screamer",
 		ComponentTag = "Aliens",
@@ -68,7 +68,7 @@ return {
 		SpawnCost = 50,
 		MinDifficulty = 6,
 	},
-	
+
 	Shooter = {
 		ModelName = "Shooter",
 		ComponentTag = "Aliens",
@@ -78,7 +78,7 @@ return {
 		SpawnCost = 50,
 		MinDifficulty = 6,
 	},
-	
+
 	Knifer = {
 		ModelName = "Knifer",
 		ComponentTag = "Aliens",
@@ -88,7 +88,7 @@ return {
 		SpawnCost = 50,
 		MinDifficulty = 6,
 	},
-	
+
 	Sniper = {
 		ModelName = "Sniper",
 		ComponentTag = "Aliens",
@@ -98,7 +98,7 @@ return {
 		SpawnCost = 50,
 		MinDifficulty = 6,
 	},
-	
+
 	Tanker = {
 		ModelName = "Tanker",
 		ComponentTag = "Aliens",
@@ -108,7 +108,7 @@ return {
 		SpawnCost = 50,
 		MinDifficulty = 6,
 	},
-	
+
 	Brutus = {
 		ModelName = "Brutus",
 		ComponentTag = "Aliens",
@@ -118,7 +118,7 @@ return {
 		SpawnCost = 50,
 		MinDifficulty = 6,
 	},
-	
+
 	AlienAnimal = {
 		ModelName = "AlienAnimal",
 		ComponentTag = "Aliens",

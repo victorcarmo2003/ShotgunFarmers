@@ -3,10 +3,6 @@ local Fusion = require(StarterPlayer.StarterPlayerScripts.Client.Interface.Fusio
 
 export type TextAspectRatioProps = { [any]: any }
 
--- Diferente dos outros Elements, este não cria uma instância separada:
--- ele decora as props de um TextLabel/TextButton para que o próprio Size
--- vire um quadrado (Ratio:1 por padrão) acompanhando o TextSize em tempo
--- real, via Fusion.Out. Uso: Components.TextButton(scope, Components.TextAspectRatio(scope, { TextSize = 32, ... }))
 return function(scope: Fusion.Scope, props: TextAspectRatioProps, ratio: number?): TextAspectRatioProps
 	local Ratio = ratio or 1
 	local initialTextSize = (props.TextSize :: number?) or 14

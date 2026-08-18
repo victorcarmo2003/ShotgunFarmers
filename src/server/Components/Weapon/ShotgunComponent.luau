@@ -4,9 +4,10 @@ local GetGun = require(ReplicatedStorage.Shared.Utils.GetGun)
 
 local ShotgunComponent =
 	Modux.Component("ShotgunComponent"):Tag("Shotgun"):ClassName("Instance"):Extend("GunMixin"):Import("HitService")
+type Self = typeof(ShotgunComponent)
 
 ShotgunComponent.Shoot = function(
-	self,
+	self: Self,
 	Shooter: Player,
 	Equipment: any,
 	origin: Vector3,
@@ -18,6 +19,7 @@ ShotgunComponent.Shoot = function(
 	local confirmedHits: { { Player: Player, HitPart: number } } = {}
 
 	local spread = self:GetEffectiveSpread(Shooter, isAiming)
+
 	local pelletsToCheck = math.min(#claimedPellets, self.ShootAmount)
 	for i = 1, self.ShootAmount do
 		local pelletDirection = self:RandomSpread(direction, spread)
@@ -58,6 +60,7 @@ ShotgunComponent:OnStart(function(self)
 	self.Knockback = gunData.Knockback :: number
 	self.ShootSoundName = gunData.ShootSound :: string
 	self.GunName = "Shotgun" :: string
+	self.DrawTime = gunData.DrawTime :: number?
 end)
 
 ShotgunComponent:OnDestroy(function(self) end)

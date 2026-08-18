@@ -1,23 +1,13 @@
 --!strict
 --!nolint LocalUnused
 --!nolint LocalShadow
-local task = nil -- Disable usage of Roblox's task scheduler
-
---[[
-	Evaluates the graph object if necessary, so that it is up to date.
-	Returns true if it meaningfully changed.
-
-	https://fluff.blog/2024/04/16/monotonic-painting.html
-]]
+local task = nil
 
 local Package = script.Parent.Parent
 local Types = require(Package.Types)
 local External = require(Package.External)
 
-local function evaluate(
-	target: Types.GraphObject,
-	forceComputation: boolean
-): boolean
+local function evaluate(target: Types.GraphObject, forceComputation: boolean): boolean
 	if target.validity == "busy" then
 		return External.logError("infiniteLoop")
 	end

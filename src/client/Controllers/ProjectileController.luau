@@ -15,15 +15,12 @@ export type BulletData = ShootRequest & {
 	arrivedAt: number?,
 }
 
--- Velocidade puramente visual da trilha (studs/s) -- não afeta a validação de hit,
--- que já aconteceu no momento do clique; isso só desenha o traço até o alvo/ponto atingido.
 local BULLET_SPEED = 1200
--- Quanto tempo (segundos) a trilha continua parada no ponto de impacto/fim do trajeto
--- antes de sumir -- sem isso, ela era destruída no instante exato que terminava de
--- percorrer o trajeto (praticamente instantâneo em distâncias curtas).
+
 local BULLET_LINGER_TIME = 3
 
 local ProjectileController = Modux.Controller("ProjectileController")
+type Self = typeof(ProjectileController)
 ProjectileController.AllBullets = {} :: { [number]: BulletData }
 
 local function getBulletFolder(): Folder
@@ -36,7 +33,7 @@ local function getBulletFolder(): Folder
 	return folder :: Folder
 end
 
-ProjectileController.Shoot = function(self, request: ShootRequest)
+ProjectileController.Shoot = function(self: Self, request: ShootRequest)
 	local bulletTrail = ReplicatedStorage.Assets.bullet_trail
 	local clonedBullet = bulletTrail:Clone() :: BasePart
 	clonedBullet.CFrame = CFrame.lookAt(request.startPos, request.endPos)
@@ -53,8 +50,6 @@ ProjectileController.Shoot = function(self, request: ShootRequest)
 	table.insert(self.AllBullets, data)
 end
 
--- Heartbeat (não OnSimulation): Instance:Destroy() não é permitido dentro de callbacks de
--- simulação de física, e essa trilha é puramente visual, sem necessidade de rodar nessa fase.
 ProjectileController:OnInit(function(self)
 	self:Cleanup(RunService.Heartbeat:Connect(function()
 		local now = os.clock()

@@ -1,10 +1,5 @@
 --!strict
 
---[[
-	Constructs special keys for property tables which connect event listeners to
-	an instance.
-]]
-
 local Package = script.Parent.Parent
 local PubTypes = require(Package.PubTypes)
 local logError = require(Package.Logging.logError)
@@ -19,7 +14,7 @@ local function OnEvent(eventName: string): PubTypes.SpecialKey
 	eventKey.kind = "OnEvent"
 	eventKey.stage = "observer"
 
-	function eventKey:apply(callback: any, applyTo: Instance, cleanupTasks: {PubTypes.Task})
+	function eventKey:apply(callback: any, applyTo: Instance, cleanupTasks: { PubTypes.Task })
 		local ok, event = pcall(getProperty_unsafe, applyTo, eventName)
 		if not ok or typeof(event) ~= "RBXScriptSignal" then
 			logError("cannotConnectEvent", nil, applyTo.ClassName, eventName)

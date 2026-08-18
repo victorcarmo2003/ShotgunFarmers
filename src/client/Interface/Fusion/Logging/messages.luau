@@ -1,11 +1,7 @@
 --!strict
 --!nolint LocalUnused
 --!nolint LocalShadow
-local task = nil -- Disable usage of Roblox's task scheduler
-
---[[
-	Stores templates for different kinds of logging messages.
-]]
+local task = nil
 
 return {
 	callbackError = "Error in callback:\nERROR_MESSAGE",
@@ -48,5 +44,5 @@ return {
 	unrecognisedChildType = "'%s' type children aren't accepted by `[Children]`.",
 	unrecognisedPropertyKey = "'%s' keys aren't accepted in property tables.",
 	unrecognisedPropertyStage = "'%s' isn't a valid stage for a special key to be applied at.",
-	useAfterDestroy = "%s is no longer valid - it was destroyed before %s. See discussion #292 on GitHub for advice."
+	useAfterDestroy = "%s is no longer valid - it was destroyed before %s. See discussion #292 on GitHub for advice.",
 }

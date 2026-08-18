@@ -11,22 +11,12 @@ export type GunNames =
 	| "M6Bean"
 	| "WatermeLMG"
 	| "Double Cob"
+	| "Hoe"
+	| "Grenade"
 
 export type AmmoType = "Single" | "Multi" | "Area"
 
-export type WeaponAnimationSet = {
-	Idle: string,
-	Aim: string,
-	Shoot: string,
-}
-
-export type WeaponAnimations = {
-	-- Toca no rig do viewmodel (braços esticados por RigBuilder.ARM_SIZE, só o dono vê).
-	Viewmodel: WeaponAnimationSet,
-	-- Toca no Animator do Humanoid REAL (proporção normal) -- replica pra 3ª pessoa
-	-- automaticamente, ver ArmsController.EquipCharacterPose.
-	Character: WeaponAnimationSet,
-}
+export type PoseKind = "Firearm" | "Melee" | "Throwable"
 
 export type AimType = "Spread" | "Default"
 
@@ -41,16 +31,13 @@ export type GunData = {
 	FireRate: number,
 	ImageID: string,
 	Knockback: number,
-	Animations: WeaponAnimations,
-	-- Name do Sound dentro de ReplicatedStorage.Assets.Sounds tocado a cada tiro (ver
-	-- GunMixin.PlayShootSound) -- "" quando a arma ainda não tem som gravado.
+
+	AnimationSet: string,
+	PoseKind: PoseKind,
+
+	DrawTime: number?,
 	ShootSound: string,
-	-- Name do Model dentro de ReplicatedStorage.Assets.Seeds clonado por SeedComponent
-	-- ao germinar (ver GunMixin.PlantAt).
 	SeedModel: string,
-	-- Estilo de crosshair (Interface/GameComponents/Crosshair.luau) -- "Spread" mostra
-	-- as 4 marcas que se afastam com o spread efetivo, "Default" é o "+" estático.
-	-- Opcional: arma sem AimType (as 7 ainda sem componente) cai pro "Default".
 	AimType: AimType?,
 }
 

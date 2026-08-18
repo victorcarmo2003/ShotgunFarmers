@@ -3,6 +3,7 @@ local Fusion = require(StarterPlayer.StarterPlayerScripts.Client.Interface.Fusio
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 
 local RoundController = Modux.Controller("RoundController"):Import("InterfaceController")
+type Self = typeof(RoundController)
 
 local _STATE_LABELS = {
 	Starting = "Preparando",
@@ -16,12 +17,12 @@ local function formatSeconds(seconds: number): string
 	return string.format("%02d:%02d", seconds // 60, seconds % 60)
 end
 
-RoundController.SetupLabel = function(self)
+RoundController.SetupLabel = function(self: Self)
 	self.Label = self.InterfaceController.MainGui.TimerLabel
 end
 
-RoundController.UpdateLabel = function(self)
-	local stateName = self.CurrentState --STATE_LABELS[self.CurrentState] or self.CurrentState
+RoundController.UpdateLabel = function(self: Self)
+	local stateName = self.CurrentState
 	local text = `{stateName}  {formatSeconds(self.Scope.peek(self.CurrentTimer))}`
 	self.Text:set(text)
 

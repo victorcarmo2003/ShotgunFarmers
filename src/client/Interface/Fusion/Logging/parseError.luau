@@ -1,24 +1,17 @@
 --!strict
 --!nolint LocalUnused
 --!nolint LocalShadow
-local task = nil -- Disable usage of Roblox's task scheduler
-
---[[
-	An xpcall() error handler to collect and parse useful information about
-	errors, such as clean messages and stack traces.
-]]
+local task = nil
 
 local Package = script.Parent.Parent
 local Types = require(Package.Types)
 
-local function parseError(
-	err: string
-): Types.Error
+local function parseError(err: string): Types.Error
 	return {
 		type = "Error",
 		raw = err,
 		message = err:gsub("^.+:%d+:%s*", ""),
-		trace = debug.traceback(nil, 2)
+		trace = debug.traceback(nil, 2),
 	}
 end
 

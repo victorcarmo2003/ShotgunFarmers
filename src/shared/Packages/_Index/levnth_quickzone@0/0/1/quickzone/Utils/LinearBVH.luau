@@ -70,7 +70,7 @@ local function buildFlatTree(
 		tree.nodes[currentIndex] = node
 	end
 
-	if beginIndex == endIndex then -- Leaf node
+	if beginIndex == endIndex then
 		local id = list[beginIndex].id
 		local min, max = boundsMin[id], boundsMax[id]
 
@@ -80,7 +80,7 @@ local function buildFlatTree(
 		node.skipIndex = currentIndex + 1
 
 		return currentIndex + 1, min, max
-	else -- Branch node
+	else
 		local mid = getSplitPos(list, beginIndex, endIndex)
 		node.id = -1
 
@@ -91,7 +91,7 @@ local function buildFlatTree(
 		local min, max = unionBounds(lMin, lMax, rMin, rMax)
 		node.min = min
 		node.max = max
-		node.skipIndex = nextIndex -- If the point is not in this branch, we skip both subtrees
+		node.skipIndex = nextIndex
 
 		return nextIndex, min, max
 	end
@@ -105,7 +105,6 @@ function LinearBVH.build(tree: Types.Tree, cframes: { [number]: CFrame }, halfSi
 	local max = NEGATIVE_HUGE_VECTOR
 	local count = 0
 
-	-- Calculate bounds and update listCache
 	for id, cframe in cframes do
 		local halfSize = halfSizes[id]
 
@@ -139,7 +138,6 @@ function LinearBVH.build(tree: Types.Tree, cframes: { [number]: CFrame }, halfSi
 		return
 	end
 
-	-- Push unused entries from the tail into the pool
 	local cacheSize = #listCache
 	if cacheSize > count then
 		local poolSize = #entryPool
@@ -150,14 +148,13 @@ function LinearBVH.build(tree: Types.Tree, cframes: { [number]: CFrame }, halfSi
 		end
 	end
 
-	-- Add padding to avoid edge cases with flat scenes
 	local padding = vector.max(vector.one, (max - min) * 0.01)
 	local sceneMin, sceneMax = min - padding, max + padding
 	local scaleX, scaleY, scaleZ = getMortonScale(sceneMin, sceneMax)
 
 	for i = 1, count do
 		local entry = listCache[i]
-		local pos = cframes[entry.id].Position -- Fast property access
+		local pos = cframes[entry.id].Position
 		entry.mortonCode = positionToMortonCode(pos, sceneMin, scaleX, scaleY, scaleZ)
 	end
 
@@ -186,7 +183,7 @@ function LinearBVH.queryPoint(tree: Types.Tree, point: Vector3, callback: (id: n
 				callback(nodeId)
 			end
 		else
-			index = node.skipIndex -- Skip branch
+			index = node.skipIndex
 		end
 	end
 end

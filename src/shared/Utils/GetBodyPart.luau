@@ -13,12 +13,12 @@ export type BodyPart =
 
 local GetBodyPart = {}
 
-GetBodyPart.Get = function(name: BodyPart):number
-    local targetBody = Body[name]
-    if not targetBody then
-        return Body["Other"]
-    end
-    return targetBody
+GetBodyPart.Get = function(name: BodyPart): number
+	local targetBody = Body[name]
+	if not targetBody then
+		return Body["Other"]
+	end
+	return targetBody
 end
 
 return GetBodyPart

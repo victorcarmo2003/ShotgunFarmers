@@ -69,12 +69,12 @@ type SequenceAnimationHandle = {
 }
 
 local UIAnimationsController = Modux.Controller("UIAnimationsController")
+type Self = typeof(UIAnimationsController)
 
 UIAnimationsController.ActiveConnections = {} :: { [GuiObject]: RBXScriptConnection }
 UIAnimationsController.ActiveAnimations = {} :: { [Instance]: { [any]: boolean } }
 UIAnimationsController.TaggedTasks = {} :: { [Instance]: { [string]: { any } } }
 
--- Retorna uma velocidade inicial compativel com o tipo animado.
 local function zeroVelocity(value: any): any
 	if typeof(value) == "Vector3" then
 		return Vector3.zero
@@ -83,7 +83,6 @@ local function zeroVelocity(value: any): any
 	return 0
 end
 
--- Converte valores animados em uma magnitude numerica para medir convergencia.
 local function magnitude(value: any): number
 	if typeof(value) == "number" then
 		return math.abs(value)
@@ -96,7 +95,6 @@ local function magnitude(value: any): number
 	return 0
 end
 
--- Calcula o progresso normalizado da animacao entre o valor inicial e final.
 local function alphaFrom(fromValue: any, toValue: any, value: any, epsilon: number): number
 	if typeof(fromValue) ~= "number" or typeof(toValue) ~= "number" or typeof(value) ~= "number" then
 		return 1
@@ -110,14 +108,12 @@ local function alphaFrom(fromValue: any, toValue: any, value: any, epsilon: numb
 	return math.clamp((value - fromValue) / span, 0, 1)
 end
 
--- Desconecta uma conexao do Roblox quando ela existe.
 local function disconnect(connection: RBXScriptConnection?)
 	if connection then
 		connection:Disconnect()
 	end
 end
 
--- Executa a limpeza de tarefas guardadas por tags, aceitando conexoes, funcoes e handles.
 local function cleanupTask(task: any)
 	if typeof(task) == "RBXScriptConnection" then
 		task:Disconnect()
@@ -132,7 +128,6 @@ local function cleanupTask(task: any)
 	end
 end
 
--- Le um atributo numerico da instancia ou usa o valor padrao.
 local function getNumberAttribute(instance: Instance, attributeName: string, fallback: number): number
 	local value = instance:GetAttribute(attributeName)
 	if typeof(value) == "number" then
@@ -142,7 +137,6 @@ local function getNumberAttribute(instance: Instance, attributeName: string, fal
 	return fallback
 end
 
--- Le qual clock de atualizacao a animacao marcada deve usar.
 local function getClockAttribute(instance: Instance): "RenderStepped" | "Heartbeat" | nil
 	local value = instance:GetAttribute("Clock")
 	if value == "RenderStepped" or value == "Heartbeat" then
@@ -152,7 +146,6 @@ local function getClockAttribute(instance: Instance): "RenderStepped" | "Heartbe
 	return nil
 end
 
--- Monta as opcoes de spring a partir dos atributos configurados na UI.
 local function getTaggedSpringOptions(instance: Instance): SpringOptions
 	return {
 		Damping = getNumberAttribute(instance, "Damping", DEFAULT_DAMPING),
@@ -162,7 +155,6 @@ local function getTaggedSpringOptions(instance: Instance): SpringOptions
 	}
 end
 
--- Valida se a instancia marcada por tag pode receber animacoes de UI.
 local function getTaggedGuiObject(instance: Instance, tag: string): GuiObject?
 	if not instance:IsA("GuiObject") then
 		warn(`[UIAnimationsController] "{instance:GetFullName()}" usa {tag}, mas nao e GuiObject.`)
@@ -172,7 +164,6 @@ local function getTaggedGuiObject(instance: Instance, tag: string): GuiObject?
 	return instance :: GuiObject
 end
 
--- Aplica transparencia no tipo de GuiObject correto, incluindo CanvasGroup.
 local function setTransparency(target: GuiObject, value: number)
 	if target:IsA("CanvasGroup") then
 		(target :: CanvasGroup).GroupTransparency = value
@@ -190,7 +181,6 @@ local function setTransparency(target: GuiObject, value: number)
 	target.BackgroundTransparency = value
 end
 
--- Busca a transparencia atual usando a propriedade visual mais adequada ao alvo.
 local function getTransparency(target: GuiObject): number
 	if target:IsA("CanvasGroup") then
 		return (target :: CanvasGroup).GroupTransparency
@@ -207,8 +197,7 @@ local function getTransparency(target: GuiObject): number
 	return target.BackgroundTransparency
 end
 
--- Garante que o GuiObject tenha um UIScale para animacoes de escala.
-UIAnimationsController.EnsureScale = function(self, window: GuiObject): UIScale
+UIAnimationsController.EnsureScale = function(self: Self, window: GuiObject): UIScale
 	local scale = window:FindFirstChildOfClass("UIScale")
 	if not scale then
 		scale = Instance.new("UIScale")
@@ -219,8 +208,7 @@ UIAnimationsController.EnsureScale = function(self, window: GuiObject): UIScale
 	return scale :: UIScale
 end
 
--- Procura um CanvasGroup para animar transparencia em grupo quando disponivel.
-UIAnimationsController.FindCanvas = function(self, window: GuiObject): CanvasGroup?
+UIAnimationsController.FindCanvas = function(self: Self, window: GuiObject): CanvasGroup?
 	if window:IsA("CanvasGroup") then
 		return window :: CanvasGroup
 	end
@@ -228,8 +216,7 @@ UIAnimationsController.FindCanvas = function(self, window: GuiObject): CanvasGro
 	return window:FindFirstChildOfClass("CanvasGroup")
 end
 
--- Registra uma animacao ativa para permitir parada ou limpeza por instancia.
-UIAnimationsController.RegisterAnimation = function(self, target: Instance?, animation)
+UIAnimationsController.RegisterAnimation = function(self: Self, target: Instance?, animation)
 	if not target then
 		return
 	end
@@ -241,8 +228,7 @@ UIAnimationsController.RegisterAnimation = function(self, target: Instance?, ani
 	self.ActiveAnimations[target][animation] = true
 end
 
--- Remove uma animacao do registro de animacoes ativas.
-UIAnimationsController.UnregisterAnimation = function(self, target: Instance?, animation)
+UIAnimationsController.UnregisterAnimation = function(self: Self, target: Instance?, animation)
 	if not target then
 		return
 	end
@@ -258,8 +244,7 @@ UIAnimationsController.UnregisterAnimation = function(self, target: Instance?, a
 	end
 end
 
--- Para todas as animacoes ligadas a uma instancia.
-UIAnimationsController.Stop = function(self, target: Instance)
+UIAnimationsController.Stop = function(self: Self, target: Instance)
 	local animations = self.ActiveAnimations[target]
 	if animations then
 		local list = {}
@@ -279,14 +264,12 @@ UIAnimationsController.Stop = function(self, target: Instance)
 	end
 end
 
--- Verifica se uma tag ja teve seus eventos e animacoes vinculados.
-UIAnimationsController.IsTaggedBound = function(self, instance: Instance, tag: string): boolean
+UIAnimationsController.IsTaggedBound = function(self: Self, instance: Instance, tag: string): boolean
 	local tagTasks = self.TaggedTasks[instance]
 	return tagTasks ~= nil and tagTasks[tag] ~= nil
 end
 
--- Guarda as tarefas criadas por uma tag para limpar depois.
-UIAnimationsController.TrackTaggedTasks = function(self, instance: Instance, tag: string, tasks: { any })
+UIAnimationsController.TrackTaggedTasks = function(self: Self, instance: Instance, tag: string, tasks: { any })
 	if not self.TaggedTasks[instance] then
 		self.TaggedTasks[instance] = {}
 	end
@@ -294,8 +277,7 @@ UIAnimationsController.TrackTaggedTasks = function(self, instance: Instance, tag
 	self.TaggedTasks[instance][tag] = tasks
 end
 
--- Remove eventos, animacoes e callbacks associados a uma tag especifica.
-UIAnimationsController.UnbindTag = function(self, instance: Instance, tag: string)
+UIAnimationsController.UnbindTag = function(self: Self, instance: Instance, tag: string)
 	local tagTasks = self.TaggedTasks[instance]
 	if not tagTasks then
 		return
@@ -316,8 +298,7 @@ UIAnimationsController.UnbindTag = function(self, instance: Instance, tag: strin
 	end
 end
 
--- Remove todos os vinculos de tags de uma instancia.
-UIAnimationsController.UnbindAllTags = function(self, instance: Instance)
+UIAnimationsController.UnbindAllTags = function(self: Self, instance: Instance)
 	local tagTasks = self.TaggedTasks[instance]
 	if not tagTasks then
 		return
@@ -333,8 +314,11 @@ UIAnimationsController.UnbindAllTags = function(self, instance: Instance)
 	end
 end
 
--- Vincula um comportamento de animacao a todas as instancias com uma tag.
-UIAnimationsController.BindTaggedPreset = function(self, tag: string, binder: (self: any, instance: Instance) -> ())
+UIAnimationsController.BindTaggedPreset = function(
+	self: Self,
+	tag: string,
+	binder: (self: any, instance: Instance) -> ()
+)
 	for _, instance in CollectionService:GetTagged(tag) do
 		binder(self, instance)
 	end
@@ -350,8 +334,7 @@ UIAnimationsController.BindTaggedPreset = function(self, tag: string, binder: (s
 	self:Cleanup(removedConnection)
 end
 
--- Cria o handle base de animacao usando spring, com Play, Stop, Completed e Destroy.
-UIAnimationsController.CreateSpring = function(self, options: SpringOptions): AnimationHandle<any>
+UIAnimationsController.CreateSpring = function(self: Self, options: SpringOptions): AnimationHandle<any>
 	local controller = self
 	local targetInstance = options.TargetInstance
 	local fromValue = if options.From ~= nil then options.From else 0
@@ -377,14 +360,12 @@ UIAnimationsController.CreateSpring = function(self, options: SpringOptions): An
 	local playing = false
 	local destroyed = false
 
-	-- Executa o callback visual da animacao para o valor atual.
 	local function apply(value: any, alpha: number)
 		if step then
 			step(value, alpha, handle)
 		end
 	end
 
-	-- Interrompe o loop de atualizacao e desregistra a animacao.
 	local function stopConnection()
 		disconnect(connection)
 		connection = nil
@@ -392,22 +373,18 @@ UIAnimationsController.CreateSpring = function(self, options: SpringOptions): An
 		controller:UnregisterAnimation(targetInstance, handle)
 	end
 
-	-- Informa se a animacao esta rodando no momento.
 	function handle:IsPlaying(): boolean
 		return playing
 	end
 
-	-- Retorna a posicao e velocidade atuais do spring.
 	function handle:Get(): (any, any)
 		return spring.Position, spring.Velocity
 	end
 
-	-- Retorna somente a posicao atual, parecido com ler o valor atual de um tween.
 	function handle:GetCurrentPos(): any
 		return spring.Position
 	end
 
-	-- Define imediatamente o valor atual da animacao.
 	function handle:Set(value: any)
 		fromValue = value
 		spring.Position = value
@@ -416,14 +393,12 @@ UIAnimationsController.CreateSpring = function(self, options: SpringOptions): An
 		return self
 	end
 
-	-- Atualiza o alvo para onde o spring deve convergir.
 	function handle:SetTarget(nextTarget: any)
 		toValue = nextTarget
 		spring:SetTarget(nextTarget)
 		return self
 	end
 
-	-- Altera amortecimento e frequencia do spring.
 	function handle:SetConfig(nextDamping: number?, nextFrequency: number?)
 		if nextDamping then
 			damping = nextDamping
@@ -438,7 +413,6 @@ UIAnimationsController.CreateSpring = function(self, options: SpringOptions): An
 		return self
 	end
 
-	-- Inicia ou reinicia a animacao ate o alvo definido.
 	function handle:Play(nextTarget: any?, nextFrom: any?)
 		if destroyed then
 			return self
@@ -493,7 +467,6 @@ UIAnimationsController.CreateSpring = function(self, options: SpringOptions): An
 		return self
 	end
 
-	-- Para a animacao, podendo finalizar direto no valor alvo.
 	function handle:Stop(finish: boolean?)
 		local wasPlaying = playing
 		stopConnection()
@@ -510,7 +483,6 @@ UIAnimationsController.CreateSpring = function(self, options: SpringOptions): An
 		return self
 	end
 
-	-- Volta a animacao para o valor inicial e chama o reset customizado.
 	function handle:Reset()
 		stopConnection()
 		spring.Position = fromValue
@@ -525,7 +497,6 @@ UIAnimationsController.CreateSpring = function(self, options: SpringOptions): An
 		return self
 	end
 
-	-- Encerra o handle e impede novos Plays.
 	function handle:Destroy()
 		destroyed = true
 		stopConnection()
@@ -536,8 +507,7 @@ UIAnimationsController.CreateSpring = function(self, options: SpringOptions): An
 	return handle
 end
 
--- Agrupa animacoes para controlar todas ao mesmo tempo.
-UIAnimationsController.Group = function(self, animations: { any }): GroupAnimationHandle
+UIAnimationsController.Group = function(self: Self, animations: { any }): GroupAnimationHandle
 	local completedEvent = Instance.new("BindableEvent")
 	local completedConnections = {}
 	local handle = {
@@ -552,7 +522,6 @@ UIAnimationsController.Group = function(self, animations: { any }): GroupAnimati
 		table.clear(completedConnections)
 	end
 
-	-- Inicia todas as animacoes do grupo.
 	function handle:Play()
 		disconnectCompleted()
 		local completedCount = 0
@@ -576,7 +545,6 @@ UIAnimationsController.Group = function(self, animations: { any }): GroupAnimati
 		return self
 	end
 
-	-- Para todas as animacoes do grupo.
 	function handle:Stop(finish: boolean?)
 		disconnectCompleted()
 		for _, animation in animations do
@@ -587,7 +555,6 @@ UIAnimationsController.Group = function(self, animations: { any }): GroupAnimati
 		return self
 	end
 
-	-- Reseta todas as animacoes do grupo.
 	function handle:Reset()
 		for _, animation in animations do
 			animation:Reset()
@@ -595,7 +562,6 @@ UIAnimationsController.Group = function(self, animations: { any }): GroupAnimati
 		return self
 	end
 
-	-- Retorna as posicoes atuais de todas as animacoes do grupo.
 	function handle:GetCurrentPos(): { any }
 		local positions = {}
 		for _, animation in animations do
@@ -605,7 +571,6 @@ UIAnimationsController.Group = function(self, animations: { any }): GroupAnimati
 		return positions
 	end
 
-	-- Destroi ou para todas as animacoes do grupo.
 	function handle:Destroy()
 		disconnectCompleted()
 		for _, animation in animations do
@@ -622,8 +587,7 @@ UIAnimationsController.Group = function(self, animations: { any }): GroupAnimati
 	return handle
 end
 
--- Controla animacoes em sequencia, avancando uma de cada vez.
-UIAnimationsController.Sequence = function(self, animations: { any }): SequenceAnimationHandle
+UIAnimationsController.Sequence = function(self: Self, animations: { any }): SequenceAnimationHandle
 	local completedEvent = Instance.new("BindableEvent")
 	local handle = {
 		Completed = completedEvent.Event,
@@ -631,7 +595,6 @@ UIAnimationsController.Sequence = function(self, animations: { any }): SequenceA
 	local currentIndex = 1
 	local playing = false
 
-	-- Inicia a sequencia pela primeira animacao.
 	function handle:Play()
 		currentIndex = 1
 		playing = true
@@ -646,7 +609,6 @@ UIAnimationsController.Sequence = function(self, animations: { any }): SequenceA
 		return self
 	end
 
-	-- Avanca para a proxima animacao da sequencia.
 	function handle:Next()
 		currentIndex += 1
 		local animation = animations[currentIndex]
@@ -660,7 +622,6 @@ UIAnimationsController.Sequence = function(self, animations: { any }): SequenceA
 		return self
 	end
 
-	-- Para todas as animacoes da sequencia.
 	function handle:Stop(finish: boolean?)
 		local wasPlaying = playing
 		playing = false
@@ -675,7 +636,6 @@ UIAnimationsController.Sequence = function(self, animations: { any }): SequenceA
 		return self
 	end
 
-	-- Reinicia a sequencia e reseta todas as animacoes.
 	function handle:Reset()
 		currentIndex = 1
 		playing = false
@@ -686,7 +646,6 @@ UIAnimationsController.Sequence = function(self, animations: { any }): SequenceA
 		return self
 	end
 
-	-- Retorna a posicao atual da animacao ativa na sequencia.
 	function handle:GetCurrentPos(): any
 		local animation = animations[currentIndex]
 		if not animation then
@@ -696,7 +655,6 @@ UIAnimationsController.Sequence = function(self, animations: { any }): SequenceA
 		return if animation.GetCurrentPos then animation:GetCurrentPos() else animation:Get()
 	end
 
-	-- Destroi ou para todas as animacoes da sequencia.
 	function handle:Destroy()
 		playing = false
 		for _, animation in animations do
@@ -714,10 +672,8 @@ UIAnimationsController.Sequence = function(self, animations: { any }): SequenceA
 	return handle
 end
 
--- ======================= BUILT-IN ANIMATIONS ===========================
--- Anima o UIScale de uma janela ate a escala desejada.
 UIAnimationsController.Scale = function(
-	self,
+	self: Self,
 	window: GuiObject,
 	toScale: number,
 	options: SpringOptions?
@@ -749,9 +705,8 @@ UIAnimationsController.Scale = function(
 	})
 end
 
--- Anima transparencia de um GuiObject ou CanvasGroup.
 UIAnimationsController.Fade = function(
-	self,
+	self: Self,
 	target: GuiObject,
 	toTransparency: number,
 	options: SpringOptions?
@@ -783,9 +738,8 @@ UIAnimationsController.Fade = function(
 	})
 end
 
--- Interpola a posicao de uma janela ate o destino informado.
 UIAnimationsController.Slide = function(
-	self,
+	self: Self,
 	window: GuiObject,
 	toPosition: UDim2,
 	options: SpringOptions?
@@ -821,9 +775,8 @@ UIAnimationsController.Slide = function(
 	})
 end
 
--- Anima o preenchimento horizontal de uma barra usando um ratio de 0 a 1.
 UIAnimationsController.Bar = function(
-	self,
+	self: Self,
 	fill: GuiObject,
 	ratio: number,
 	options: SpringOptions?
@@ -857,8 +810,7 @@ UIAnimationsController.Bar = function(
 	})
 end
 
--- Mostra uma janela com escala de entrada e fade opcional de CanvasGroup.
-UIAnimationsController.Pop = function(self, window: GuiObject, options: SpringOptions?): AnimationHandle<number>
+UIAnimationsController.Pop = function(self: Self, window: GuiObject, options: SpringOptions?): AnimationHandle<number>
 	options = options or {}
 	if not options then
 		return {} :: AnimationHandle<number>
@@ -889,8 +841,11 @@ UIAnimationsController.Pop = function(self, window: GuiObject, options: SpringOp
 	})
 end
 
--- Esconde uma janela reduzindo escala e restaurando o estado visual ao terminar.
-UIAnimationsController.Collapse = function(self, window: GuiObject, options: SpringOptions?): AnimationHandle<number>
+UIAnimationsController.Collapse = function(
+	self: Self,
+	window: GuiObject,
+	options: SpringOptions?
+): AnimationHandle<number>
 	options = options or {}
 	if not options then
 		return {} :: AnimationHandle<number>
@@ -928,8 +883,7 @@ UIAnimationsController.Collapse = function(self, window: GuiObject, options: Spr
 	})
 end
 
--- Executa o efeito de apertar e voltar para a escala base.
-UIAnimationsController.Press = function(self, window: GuiObject, options: SpringOptions?): SequenceAnimationHandle
+UIAnimationsController.Press = function(self: Self, window: GuiObject, options: SpringOptions?): SequenceAnimationHandle
 	options = options or {}
 	if not options then
 		return {} :: SequenceAnimationHandle
@@ -970,8 +924,7 @@ UIAnimationsController.Press = function(self, window: GuiObject, options: Spring
 	return sequence
 end
 
--- Executa um pulso de escala e retorna para a escala base.
-UIAnimationsController.Pulse = function(self, window: GuiObject, options: SpringOptions?): SequenceAnimationHandle
+UIAnimationsController.Pulse = function(self: Self, window: GuiObject, options: SpringOptions?): SequenceAnimationHandle
 	options = options or {}
 	if not options then
 		return {} :: SequenceAnimationHandle
@@ -1012,9 +965,8 @@ UIAnimationsController.Pulse = function(self, window: GuiObject, options: Spring
 	return sequence
 end
 
--- Atalho legado para tocar uma animacao de escala com callbacks simples.
 UIAnimationsController.PlayScale = function(
-	self,
+	self: Self,
 	window: GuiObject,
 	fromScale: number,
 	toScale: number,
@@ -1036,16 +988,14 @@ UIAnimationsController.PlayScale = function(
 	return animation
 end
 
--- Abre uma janela usando a animacao padrao de Pop.
-UIAnimationsController.Open = function(self, window: GuiObject): AnimationHandle<number>
+UIAnimationsController.Open = function(self: Self, window: GuiObject): AnimationHandle<number>
 	self:Stop(window)
 	local animation = self:Pop(window)
 	animation:Play()
 	return animation
 end
 
--- Fecha uma janela usando a animacao padrao de Collapse.
-UIAnimationsController.Close = function(self, window: GuiObject, onDone: (() -> ())?): AnimationHandle<number>
+UIAnimationsController.Close = function(self: Self, window: GuiObject, onDone: (() -> ())?): AnimationHandle<number>
 	self:Stop(window)
 	local animation = self:Collapse(window, {
 		Done = onDone,
@@ -1054,8 +1004,7 @@ UIAnimationsController.Close = function(self, window: GuiObject, onDone: (() -> 
 	return animation
 end
 
--- Vincula escala de hover a uma instancia marcada com UI.HoverScale.
-UIAnimationsController.BindHoverScale = function(self, instance: Instance)
+UIAnimationsController.BindHoverScale = function(self: Self, instance: Instance)
 	if self:IsTaggedBound(instance, HOVER_SCALE_TAG) then
 		return
 	end
@@ -1092,8 +1041,7 @@ UIAnimationsController.BindHoverScale = function(self, instance: Instance)
 	})
 end
 
--- Vincula fade de hover a uma instancia marcada com UI.HoverFade.
-UIAnimationsController.BindHoverFade = function(self, instance: Instance)
+UIAnimationsController.BindHoverFade = function(self: Self, instance: Instance)
 	if self:IsTaggedBound(instance, HOVER_FADE_TAG) then
 		return
 	end
@@ -1130,8 +1078,7 @@ UIAnimationsController.BindHoverFade = function(self, instance: Instance)
 	})
 end
 
--- Vincula estados de hover e press a um GuiButton marcado com UI.Press.
-UIAnimationsController.BindPress = function(self, instance: Instance)
+UIAnimationsController.BindPress = function(self: Self, instance: Instance)
 	if self:IsTaggedBound(instance, PRESS_TAG) then
 		return
 	end
@@ -1150,7 +1097,6 @@ UIAnimationsController.BindPress = function(self, instance: Instance)
 	local isHovering = false
 	local isPressed = false
 
-	-- Escolhe a escala atual com base no estado de hover/pressionado.
 	local function playCurrentTarget()
 		if isPressed then
 			animation:Play(pressScale)
@@ -1198,8 +1144,7 @@ UIAnimationsController.BindPress = function(self, instance: Instance)
 	})
 end
 
--- Toca Pop automaticamente para instancias marcadas com UI.Pop.
-UIAnimationsController.PlayTaggedPop = function(self, instance: Instance)
+UIAnimationsController.PlayTaggedPop = function(self: Self, instance: Instance)
 	if self:IsTaggedBound(instance, POP_TAG) then
 		return
 	end
@@ -1229,8 +1174,7 @@ UIAnimationsController.PlayTaggedPop = function(self, instance: Instance)
 	})
 end
 
--- Toca Collapse automaticamente para instancias marcadas com UI.Collapse.
-UIAnimationsController.PlayTaggedCollapse = function(self, instance: Instance)
+UIAnimationsController.PlayTaggedCollapse = function(self: Self, instance: Instance)
 	if self:IsTaggedBound(instance, COLLAPSE_TAG) then
 		return
 	end
@@ -1260,8 +1204,7 @@ UIAnimationsController.PlayTaggedCollapse = function(self, instance: Instance)
 	})
 end
 
--- Toca Pulse automaticamente para instancias marcadas com UI.Pulse.
-UIAnimationsController.PlayTaggedPulse = function(self, instance: Instance)
+UIAnimationsController.PlayTaggedPulse = function(self: Self, instance: Instance)
 	if self:IsTaggedBound(instance, PULSE_TAG) then
 		return
 	end
@@ -1292,7 +1235,6 @@ UIAnimationsController.PlayTaggedPulse = function(self, instance: Instance)
 	})
 end
 
--- Registra todos os presets de animacao baseados em tags.
 UIAnimationsController:OnInit(function(self)
 	local tags = {
 		[HOVER_SCALE_TAG] = self.BindHoverScale,
@@ -1308,7 +1250,6 @@ UIAnimationsController:OnInit(function(self)
 	end
 end)
 
--- Limpa tags, animacoes ativas e conexoes quando o controller e destruido.
 UIAnimationsController:OnDestroy(function(self)
 	local taggedInstances = {}
 	for instance in self.TaggedTasks do

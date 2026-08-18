@@ -3,25 +3,18 @@ local FSM = require(ReplicatedStorage.Shared.Utils.FSM)
 
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 local MovementComponent = Modux.Component("MovementComponent"):Tag("MovementComponent"):ClassName("Instance")
+type Self = typeof(MovementComponent)
 
 export type MovementStates = "Walking" | "Running" | "Crouch" | "Sliding" | "Jumping" | "Dead"
 local transitions: FSM.Transitions<MovementStates> = {
-	Walking = { "Running", "Crouch", "Sliding", "Jumping", "Dead" }, -- can do everything
-	Running = { "Walking", "Crouch", "Sliding", "Jumping", "Dead" }, -- can do everything
-	Crouch = { "Walking", "Running", "Jumping", "Dead" }, -- can do everything
-	Sliding = { "Walking", "Running", "Jumping", "Dead" }, -- can do everything (reservado, sem tecla vinculada por enquanto)
+	Walking = { "Running", "Crouch", "Sliding", "Jumping", "Dead" },
+	Running = { "Walking", "Crouch", "Sliding", "Jumping", "Dead" },
+	Crouch = { "Walking", "Running", "Jumping", "Dead" },
+	Sliding = { "Walking", "Running", "Jumping", "Dead" },
 	Jumping = { "Walking", "Running", "Dead" },
 }
 
-MovementComponent.StartWalk = function(self, player)
-	local result = self.State:Transition("Running")
-	if result then
-		self.Network.Packages.ChangeWalkSpeed:send({ WalkSpeed = 28 }, self.Instance)
-	end
-	return result
-end
-
-MovementComponent.StartRun = function(self, player)
+MovementComponent.StartWalk = function(self: Self, player)
 	local result = self.State:Transition("Walking")
 	if result then
 		self.Network.Packages.ChangeWalkSpeed:send({ WalkSpeed = 28 }, self.Instance)
@@ -29,7 +22,15 @@ MovementComponent.StartRun = function(self, player)
 	return result
 end
 
-MovementComponent.StartCrouch = function(self, player)
+MovementComponent.StartRun = function(self: Self, player)
+	local result = self.State:Transition("Running")
+	if result then
+		self.Network.Packages.ChangeWalkSpeed:send({ WalkSpeed = 28 }, self.Instance)
+	end
+	return result
+end
+
+MovementComponent.StartCrouch = function(self: Self, player)
 	if self.State:Is("Crouch") then
 		if self.State:Transition("Walking") then
 			self.Network.Packages.ChangeWalkSpeed:send({ WalkSpeed = 28 }, self.Instance)
@@ -45,7 +46,7 @@ MovementComponent.StartCrouch = function(self, player)
 	return result
 end
 
-MovementComponent.StartSlide = function(self, player)
+MovementComponent.StartSlide = function(self: Self, player)
 	if self.State:Is("Sliding") then
 		if self.State:Transition("Walking") then
 			self.Network.Packages.ChangeWalkSpeed:send({ WalkSpeed = 28 }, self.Instance)
@@ -56,26 +57,18 @@ MovementComponent.StartSlide = function(self, player)
 
 	local result = self.State:Transition("Sliding")
 	if result then
-		-- WalkSpeed = 0 durante o slide: a velocidade horizontal é controlada
-		-- diretamente pelo client (MovementController), não pelo Humanoid
 		self.Network.Packages.ChangeWalkSpeed:send({ WalkSpeed = 0 }, self.Instance)
 	end
 	return result
 end
 
 MovementComponent:OnInit(function(self)
-	-- Por instância (não mais na tabela do componente) -- antes era compartilhado por
-	-- TODOS os jogadores, já que o Modux clona instâncias "Transient" com table.clone
-	-- raso e só clona campos SEM metatable; o FSM tem metatable, então o campo antigo
-	-- vazava o mesmo objeto de estado entre jogadores diferentes.
 	self.State = FSM.new<<MovementStates>>("Walking", transitions)
 
-	-- MovementComponent é tageado no Player (não no Character, ver MovementService),
-	-- então OnInit só roda uma vez por sessão -- sem isso, o estado (Crouch/Sliding)
-	-- de antes de morrer sobrevive ao respawn. Se você morresse deslizando (WalkSpeed
-	-- enviado = 0), o único caminho de volta (tecla Crouch) falhava silenciosamente
-	-- porque Sliding não pode transicionar direto pra Crouch -- ficava travado pra
-	-- sempre. ForceState ignora a tabela de transições pra sempre conseguir resetar.
+	self:Cleanup(self.State:OnTransition(function(_previousState, nextState)
+		self.Network.Packages.MovementState:send({ State = nextState }, self.Instance)
+	end))
+
 	self:Cleanup((self.Instance :: Player).CharacterAdded:Connect(function()
 		self.State:ForceState("Walking")
 		self.Network.Packages.ChangeWalkSpeed:send({ WalkSpeed = 28 }, self.Instance)

@@ -2,6 +2,7 @@ local TweenService = game:GetService("TweenService")
 local Modux = require(game.ReplicatedStorage.Shared.Modux)
 
 local FOVController = Modux.Controller("FOVController"):Import("ArmsController")
+type Self = typeof(FOVController)
 
 export type FOVState = "Run" | "Idle"
 local TInfo = TweenInfo.new(1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
@@ -10,8 +11,7 @@ const FOVList = {
 	Run = 73,
 	Idle = 70,
 }
--- Quanto o FOV diminui enquanto o jogador está mirando (ADS), por cima do FOVList
--- normal de Run/Idle -- efeito clássico de "zoom" leve ao mirar.
+
 const AIM_FOV_DELTA = 1
 
 local function compareVector3(v0: Vector3, v1: Vector3)
@@ -23,7 +23,7 @@ local function compareVector3(v0: Vector3, v1: Vector3)
 	return false
 end
 
-FOVController.ApplyFov = function(self, Style: FOVState)
+FOVController.ApplyFov = function(self: Self, Style: FOVState)
 	local camera = workspace.CurrentCamera
 	if self.TweenCamera then
 		self.TweenCamera:Pause()
