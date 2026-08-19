@@ -36,11 +36,11 @@ return {
 			Reload = "",
 		},
 		Peavolver = {
-			Hold = "rbxassetid://108857261470275",
-			Aim = "rbxassetid://72216005547900",
-			ShootHip = "rbxassetid://120751857377218",
-			ShootAim = "rbxassetid://120751857377218",
-			Draw = "",
+			Hold = "rbxassetid://121851912604690",
+			Aim = "rbxassetid://88035214133851",
+			ShootHip = "rbxassetid://133451482866192",
+			ShootAim = "rbxassetid://107372883206163",
+			Draw = "rbxassetid://70911916863445",
 			Reload = "",
 		},
 		Sniperagus = { Hold = "", Aim = "", ShootHip = "", ShootAim = "", Draw = "", Reload = "" },
@@ -51,6 +51,16 @@ return {
 		WatermeLMG = { Hold = "", Aim = "", ShootHip = "", ShootAim = "", Draw = "", Reload = "" },
 		["Double Cob"] = { Hold = "", Aim = "", ShootHip = "", ShootAim = "", Draw = "", Reload = "" },
 		Hoe = { Hold = "", Attack = "", Draw = "" },
+		Shovel = {
+			Hold = "rbxassetid://70371101268764",
+			Attack = "rbxassetid://126666172691673",
+			Draw = "rbxassetid://125219819781775",
+		},
+		Axe = {
+			Hold = "rbxassetid://117412012778905",
+			Attack = "rbxassetid://136814289042395",
+			Draw = "rbxassetid://108515700028458",
+		},
 		Grenade = { Hold = "", Unpin = "", Aim = "", Throw = "", Draw = "" },
 	},
 

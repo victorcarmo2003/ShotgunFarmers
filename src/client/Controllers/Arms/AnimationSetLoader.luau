@@ -36,6 +36,7 @@ local function loadTrack(animator: Animator, role: string, animationId: string?)
 
 	local animation = Instance.new("Animation")
 	animation.AnimationId = animationId
+	warn(animation, animation.AnimationId)
 	local track = animator:LoadAnimation(animation)
 	animation:Destroy()
 
