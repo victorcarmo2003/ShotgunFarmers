@@ -1,23 +1,17 @@
 [package]
-name = "hakor/shotgunfarmers"
+name = "hakor/rojo-src"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
-Lync = "axp3cter/lync@4.0.2"
-Charm = "littensy/charm@0.11.0"
-Vide = "centau/vide@0.4.1"
-
-# Vindas do ShotgunFarmers. O conch-ui depende de Vide ^0.4.0, entao o painel
-# de admin nao reintroduz Fusion.
-QuickZone = "levnth/quickzone@0.0.1"
-Spring = "nyxariko/spring@0.1.1"
-Conch = "alicesaidhi/conch@0.4.0"
-ConchUI = "alicesaidhi/conch-ui@0.4.0"
+promise = "evaera/promise@4.0.0"
+spring = "nyxariko/spring@0.1.1"
+sera = "enzzyfrenzzy/sera@0.0.2"
+quickzone = "levnth/quickzone@0.0.1"
+lync = "axp3cter/lync@2.3.3"
+fusion = "mattschrubb/fusion@1.2.5"
+jecs = "ukendio/jecs@0.11.0"
 
 [server-dependencies]
-ProfileStore = "ddashdev/profilestore@1.1.0"
-
-[dev-dependencies]
-UILabs = "pepeeltoro41/ui-labs@2.4.2"
+profilestore = "ddashdev/profilestore@1.0.4"
