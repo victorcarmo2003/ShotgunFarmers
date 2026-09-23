@@ -1,31 +1,55 @@
---!strict
 local Players = game:GetService("Players")
-
 local GetThumbnail = {}
 
-local function fetch(player: Player, kind: Enum.ThumbnailType, size: Enum.ThumbnailSize): (string?, boolean)
-	const ok, content, isReady = pcall(function()
-		return Players:GetUserThumbnailAsync(player.UserId, kind, size)
+function GetThumbnail.AvatarBurst(Player: Player)
+	local userId = Player.UserId
+	local thumbnailType = Enum.ThumbnailType.AvatarBust
+	local thumbnailSize = Enum.ThumbnailSize.Size420x420
+
+	local success, content, isReady = pcall(function()
+		return Players:GetUserThumbnailAsync(userId, thumbnailType, thumbnailSize)
 	end)
 
-	if not ok then
-		warn(`[GetThumbnail] falhou para {player.Name}: {content}`)
+	if success then
+		return content, isReady
+	else
+		warn("Failed to get AvatarBurst for", Player.Name, ":", content)
 		return nil, false
 	end
-
-	return content, isReady == true
 end
 
-function GetThumbnail.AvatarBust(player: Player, size: Enum.ThumbnailSize?): (string?, boolean)
-	return fetch(player, Enum.ThumbnailType.AvatarBust, size or Enum.ThumbnailSize.Size420x420)
+function GetThumbnail.AvatarThumbnail(Player: Player, size: Enum.ThumbnailSize?)
+	local userId = Player.UserId
+	local thumbnailType = Enum.ThumbnailType.AvatarThumbnail
+	local thumbnailSize = size or Enum.ThumbnailSize.Size150x150
+
+	local success, content, isReady = pcall(function()
+		return Players:GetUserThumbnailAsync(userId, thumbnailType, thumbnailSize)
+	end)
+
+	if success then
+		return content, isReady
+	else
+		warn("Failed to get AvatarThumbnail for", Player.Name, ":", content)
+		return nil, false
+	end
 end
 
-function GetThumbnail.AvatarThumbnail(player: Player, size: Enum.ThumbnailSize?): (string?, boolean)
-	return fetch(player, Enum.ThumbnailType.AvatarThumbnail, size or Enum.ThumbnailSize.Size150x150)
-end
+function GetThumbnail.HeadShot(Player: Player, size: Enum.ThumbnailSize?)
+	local userId = Player.UserId
+	local thumbnailType = Enum.ThumbnailType.HeadShot
+	local thumbnailSize = size or Enum.ThumbnailSize.Size150x150
 
-function GetThumbnail.HeadShot(player: Player, size: Enum.ThumbnailSize?): (string?, boolean)
-	return fetch(player, Enum.ThumbnailType.HeadShot, size or Enum.ThumbnailSize.Size150x150)
+	local success, content, isReady = pcall(function()
+		return Players:GetUserThumbnailAsync(userId, thumbnailType, thumbnailSize)
+	end)
+
+	if success then
+		return content, isReady
+	else
+		warn("Failed to get HeadShot for", Player.Name, ":", content)
+		return nil, false
+	end
 end
 
 return GetThumbnail

@@ -1,5 +1,5 @@
---!strict
 return {
+
 	SnapshotHistorySeconds = 0.5,
 
 	MaxRewindSeconds = 0.3,
