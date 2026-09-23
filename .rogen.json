@@ -1,0 +1,46 @@
+{
+	"source": [
+		"src"
+	],
+	"luau": {
+		"output": "default.project.json",
+		"build": "src"
+	},
+	"project": {
+		"name": "SHOTGUN FARMERS",
+		"tree": {
+			"$className": "DataModel",
+			"ReplicatedStorage": {
+				"Packages": {
+					"$path": "Packages"
+				},
+				"DevPackages": {
+					"$path": "DevPackages"
+				},
+				"Assets": {
+					"$className": "Folder",
+					"Weapons": {
+						"$className": "Folder"
+					},
+					"Seeds": {
+						"$className": "Folder"
+					},
+					"Sounds": {
+						"$className": "Folder"
+					},
+					"Musics": {
+						"$className": "Folder"
+					}
+				}
+			},
+			"ServerScriptService": {
+				"ServerPackages": {
+					"$path": "ServerPackages"
+				}
+			}
+		}
+	},
+	"globIgnorePaths": [
+		"**/*.md"
+	]
+}

@@ -1,0 +1,10 @@
+{
+	"layout": {
+		"root": "src",
+		"sides": {
+			"client": "StarterPlayer/StarterPlayerScripts/client",
+			"server": "ServerScriptService/server",
+			"shared": "ReplicatedStorage/shared"
+		}
+	}
+}

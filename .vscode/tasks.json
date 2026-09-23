@@ -1,0 +1,152 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "packages",
+			"type": "shell",
+			"command": "./tools/packages.ps1",
+			"problemMatcher": []
+		},
+
+		// --- fluxo Rojo: o disco manda, o rogen escreve o project file --------
+
+		{
+			"label": "rogen watch",
+			"type": "shell",
+			"command": "rogen watch",
+			"isBackground": true,
+			"presentation": {
+				"panel": "dedicated",
+				"group": "rojo"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "modux watch",
+			"type": "shell",
+			"command": "modux watch --fix --nudge --interval 100",
+			"isBackground": true,
+			"presentation": {
+				"panel": "dedicated",
+				"group": "rojo"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "rojo serve",
+			"type": "shell",
+			"command": "rojo serve",
+			"isBackground": true,
+			"presentation": {
+				"panel": "dedicated",
+				"group": "rojo"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "rojo",
+			"detail": "rogen + modux + rojo serve. O disco e a fonte da verdade.",
+			"dependsOn": [
+				"rogen watch",
+				"modux watch",
+				"rojo serve"
+			],
+			"dependsOrder": "parallel",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		},
+
+		// --- fluxo Azul: o Studio manda, o azul emite o proprio sourcemap -----
+		//
+		// Nao ha rogen nem rojo serve aqui. O azul e o transporte, e o
+		// sourcemap e dele: por isso o modux entra com --sourcemap, que faz o
+		// gerador ler o mapa em vez do project file e parar de reconstrui-lo.
+		// Sem a flag ele sobrescreveria o mapa do azul.
+
+		{
+			"label": "azul sync",
+			"type": "shell",
+			"command": "azul",
+			"isBackground": true,
+			"presentation": {
+				"panel": "dedicated",
+				"group": "azul"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "modux watch (sourcemap)",
+			"type": "shell",
+			"command": "modux watch --sourcemap sourcemap.json --fix --nudge --interval 100",
+			"isBackground": true,
+			"presentation": {
+				"panel": "dedicated",
+				"group": "azul"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "azul",
+			"detail": "azul + modux lendo o sourcemap. O Studio e a fonte da verdade.",
+			"dependsOn": [
+				"azul sync",
+				"modux watch (sourcemap)"
+			],
+			"dependsOrder": "parallel",
+			"group": "build",
+			"problemMatcher": []
+		},
+
+		// --- fluxo SyncTeam: os dois sentidos, sobre o MESMO project file ----
+		//
+		// Reaproveita `rogen watch` e `modux watch` do fluxo Rojo de proposito:
+		// os comandos sao identicos, porque o SyncTeam fala a convencao do Rojo
+		// (default.project.json, init.luau) em vez de uma propria. So o
+		// transporte muda — sai `rojo serve`, entra o daemon.
+		//
+		// O `group` do painel tambem e "rojo": e so a chave de agrupamento de
+		// terminal do VS Code, e mante-la igual faz os tres paineis deste fluxo
+		// abrirem lado a lado com os watchers que ele reusa.
+		//
+		// O sourcemap continua sendo do luau-lsp: o SyncTeam nao gera nenhum, e
+		// ignora o sourcemap.json da raiz na hora de sincronizar.
+
+		{
+			"label": "syncteam daemon",
+			"type": "shell",
+			"command": "syncteam start --dir .",
+			"isBackground": true,
+			"presentation": {
+				"panel": "dedicated",
+				"group": "rojo"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "syncteam",
+			"detail": "rogen + modux + syncteam. Os dois sentidos, com lease por arquivo.",
+			"dependsOn": [
+				"rogen watch",
+				"modux watch",
+				"syncteam daemon"
+			],
+			"dependsOrder": "parallel",
+			"group": "build",
+			"problemMatcher": []
+		},
+
+		// A tarefa antiga continua existindo e aponta para o fluxo Rojo, para
+		// nao quebrar quem ja tem o habito do CTRL+SHIFT+B ou um atalho seu.
+		{
+			"label": "dev",
+			"detail": "apelido de `rojo`",
+			"dependsOn": [
+				"rojo"
+			],
+			"problemMatcher": []
+		}
+	]
+}
