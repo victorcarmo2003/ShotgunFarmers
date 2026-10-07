@@ -1,0 +1,7 @@
+--!strict
+return {
+	KILL_SCORE = 1,
+	HEADSHOT_KILL_SCORE = 1.5,
+	ASSIST_SCORE = 0.5,
+	PING_INTERVAL = 1,
+}

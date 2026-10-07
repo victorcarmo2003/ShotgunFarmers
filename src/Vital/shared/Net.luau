@@ -8,4 +8,6 @@ return Lync.define("Vital", {
 		Armor = Lync.int(0, 100),
 		Stamina = Lync.int(0, 100),
 	})),
+
+	RequestReset = Lync.packet(Lync.empty()),
 })

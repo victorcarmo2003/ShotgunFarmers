@@ -7,20 +7,27 @@ local Crosshair = require(script.Parent.Crosshair)
 return UILabs.CreateVideStory({
 	vide = Vide,
 	controls = {
-		AimType = UILabs.Choose({ "Spread", "Default" }),
-		SpreadRatio = UILabs.Slider(0.3, 0, 1, 0.01),
-		IsAiming = false,
+		Movement = UILabs.Slider(0, 0, 1, 0.01),
+		Firing = UILabs.Slider(0.3, 0, 1, 0.01),
+		Dot = true,
+		Outer = true,
 	},
 }, function(props: UILabs.VideProps)
-	return Crosshair({
-		AimType = function()
-			return props.controls.AimType()
+	const base = Crosshair.Defaults()
+
+	return Crosshair.new({
+		Config = function()
+			const config = table.clone(base)
+			config.Dot = props.controls.Dot()
+			config.Outer = table.clone(base.Outer)
+			config.Outer.Show = props.controls.Outer()
+			return config
 		end,
-		SpreadRatio = function()
-			return props.controls.SpreadRatio()
+		Movement = function()
+			return props.controls.Movement()
 		end,
-		IsAiming = function()
-			return props.controls.IsAiming()
+		Firing = function()
+			return props.controls.Firing()
 		end,
 	})
 end)

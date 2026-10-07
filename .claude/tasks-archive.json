@@ -1,0 +1,279 @@
+{
+  "tasks": [
+    {
+      "id": "task-tower-001",
+      "title": "[FORA DE ESCOPO] Criar TowerConfig.luau (dados de combate)",
+      "description": "OBSOLETO: contaminação de uma sessão antiga que entendeu o projeto como tower defense. ShotgunFarmers é um FPS de arena (shotgun-jump), não tower defense -- confirmado em revisão de 2026-07-12: não existe TowerConfig.luau, AnimalDatabase nem qualquer arquivo relacionado a torres no repo real. Mantido (não deletado, só sinalizado) por regra do Revisor -- não iniciar trabalho nisto.\n\nDescrição original: Criar src/shared/Datas/TowerConfig.luau com types TowerLevelStats e TowerConfig. Implementar Get(animalId), GetLevelStats(animalId, level), GetUpgradeCost(animalId, currentLevel), GetSellValue(animalId, level), IsValid(animalId). REFUND_RATIO = 0.6. Definir stats iniciais pra pelo menos 2 animals do AnimalDatabase.",
+      "column": "done",
+      "tags": [
+        "tower-system",
+        "shared",
+        "out-of-scope"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-enemy-001",
+      "title": "[FORA DE ESCOPO] Adicionar Reward no Enemy.luau",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. src/shared/Datas/Enemy.luau não existe no jogo real (FPS de arena). Não iniciar.\n\nDescrição original: Adicionar campo Reward: number no src/shared/Datas/Enemy.luau. Common: 10, Fast: 8, Boss: 100. depends: nenhum",
+      "column": "todo",
+      "tags": [
+        "enemy-system",
+        "shared",
+        "out-of-scope"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-economy-001",
+      "title": "[FORA DE ESCOPO] Criar MatchEconomyService",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Economia in-match (cash por wave) não se aplica ao FPS de arena atual. Não iniciar.\n\nDescrição original: Criar src/server/Services/MatchEconomyService.luau. API: GetCash(player), AddCash(player, amount), TrySpend(player, amount): boolean, ResetForMatch(player?). Sinal: CashChanged(Player, number). Pacote: MatchCash server→client { Cash: number }. Import: PlayerService. Moeda in-match NÃO persiste entre matches. depends: task-enemy-001",
+      "column": "todo",
+      "tags": [
+        "economy",
+        "server",
+        "out-of-scope"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-enemy-002",
+      "title": "[FORA DE ESCOPO] Criar EnemyDeathService",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não existe EnemyService neste jogo (é PvP entre jogadores, não onda de inimigos). Não iniciar.\n\nDescrição original: Criar src/server/Services/EnemyDeathService.luau. API: DealDamage(enemyGUID, rawDamage, attacker?), KillEnemy(enemyGUID, killer?), EnemyReachedBase(enemyGUID). Fórmula: effective = max(1, raw - Defense). Sinais: EnemyDamaged, EnemyKilled, EnemyReachedEnd. Pacotes: EnemyHealth e EnemyDied server→client. Conectar no path-end do EnemyService. depends: task-economy-001, task-enemy-001",
+      "column": "todo",
+      "tags": [
+        "enemy-system",
+        "server",
+        "out-of-scope"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-tower-002",
+      "title": "[FORA DE ESCOPO] Criar PlacedTower type (shared)",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: Criar src/shared/Datas/PlacedTower.luau com type PlacedTowerData: GUID, Owner, AnimalId, Level, Position, Rotation, Targeting, LastAttack, CurrentTargetGUID?. depends: task-tower-001",
+      "column": "todo",
+      "tags": [
+        "tower-system",
+        "shared",
+        "out-of-scope"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-tower-003",
+      "title": "[FORA DE ESCOPO] Criar TowerService (placement/upgrade/sell)",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: Criar src/server/Services/TowerService.luau. API: ValidatePlacement, PlaceTower, UpgradeTower, SellTower, SetTargeting, ClearPlayerTowers. Pacotes: RequestPlaceTower/UpgradeTower/SellTower/SetTargeting (client→server), ReplicateTower/RemoveTower/PlacementResult (server→client). Imports: MatchEconomyService, PlayerService, WaypointsService. depends: task-tower-001, task-tower-002, task-economy-001",
+      "column": "in-progress",
+      "tags": [
+        "tower-system",
+        "server",
+        "out-of-scope"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-tower-004",
+      "title": "[FORA DE ESCOPO] Criar TowerCombatService (targeting/attack loop)",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: Criar src/server/Services/TowerCombatService.luau. Loop 60Hz com OnSimulation. API: AcquireTarget(tower), GetEnemyServerPosition(enemyData), Attack(tower, enemyGUID). Targeting modes: First, Last, Closest, Strongest, Weakest. Pacote: TowerAttack server→client { TowerGUID, EnemyGUID, AttackType }. Imports: TowerService, EnemyService, EnemyDeathService, WaypointsService. depends: task-tower-003, task-enemy-002",
+      "column": "in-progress",
+      "tags": [
+        "tower-system",
+        "server",
+        "out-of-scope"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-preview-001",
+      "title": "[FORA DE ESCOPO] Fix bugs do TowerPreviewController",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. TowerPreviewController não existe no jogo real. Não iniciar.\n\nDescrição original: 1) ValidatePosition sempre retorna true — falta return após setar false. 2) VisualWorldPosition calculado mas não usado no PivotTo. 3) Adicionar highlight vermelho/verde conforme posição válida. Arquivo: src/client/Controllers/TowerPreviewController.luau",
+      "column": "todo",
+      "tags": [
+        "tower-system",
+        "client",
+        "code-issue",
+        "out-of-scope"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-preview-002",
+      "title": "[FORA DE ESCOPO] Adicionar GetPlacement e rotação no Preview",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: No TowerPreviewController: adicionar GetPlacement(): (Vector3?, boolean) pra não acessar campos internos. Adicionar suporte a rotação (R/Q ou scroll). depends: task-preview-001",
+      "column": "todo",
+      "tags": [
+        "tower-system",
+        "client",
+        "out-of-scope"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-tower-005",
+      "title": "[FORA DE ESCOPO] Redesign TowerController (client)",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: Refazer src/client/Controllers/TowerController. Flow: UI/hotbar → BeginPlacement(animalId) → preview → confirmar → envia RequestPlaceTower → recebe PlacementResult → sucesso: StopPreview / falha: NotificationController. Recebe ReplicateTower → clona modelo permanente. Recebe RemoveTower → remove modelo. Remover código demo (zenitsu hardcoded, HumanoidRootPart.Touched). depends: task-tower-003, task-preview-002",
+      "column": "todo",
+      "tags": [
+        "tower-system",
+        "client",
+        "out-of-scope"
+      ],
+      "priority": "high",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-wave-001",
+      "title": "[FORA DE ESCOPO] Implementar WaveService",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. O jogo real usa GameService (FSM Starting/Match/Intermission/Vote, ver task-game-001), não waves de inimigos. Não iniciar.\n\nDescrição original: Implementar src/server/Services/WaveService.luau (já existe como shell vazio). Usar WaveSettings pra wave progression, enemy spawn scheduling, difficulty scaling, boss waves a cada 5. Detectar wave completion (todos inimigos mortos). depends: task-enemy-002",
+      "column": "todo",
+      "tags": [
+        "wave-system",
+        "server",
+        "out-of-scope"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-issue-001",
+      "title": "[OBSOLETO] Fix Resources.luau nomes vazios",
+      "description": "OBSOLETO confirmado em 2026-07-12: src/shared/Datas/Resources.luau foi DELETADO do repo entre o commit inicial e o commit atual (86 linhas removidas, 0 substituto criado). Não há nada pra corrigir -- se o conceito de \"resources\" for necessário de novo (ex: pra farming/seeds), precisa ser desenhado do zero, não é um fix do arquivo antigo.\n\nDescrição original: 13 de 14 resources em src/shared/Datas/Resources.luau têm Name = ''. Preencher os nomes corretamente.",
+      "column": "todo",
+      "tags": [
+        "data",
+        "shared",
+        "code-issue",
+        "out-of-scope"
+      ],
+      "priority": "low",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-issue-002",
+      "title": "[FORA DE ESCOPO] Renomear Tower.luau → AnimalDatabase.luau",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Confirmado em 2026-07-12: src/shared/Datas/Tower.luau nunca existiu neste repo (nenhum resultado pra Tower.luau ou AnimalDatabase em todo o src/). Não iniciar.\n\nDescrição original: src/shared/Datas/Tower.luau contém AnimalDatabase, não dados de torre. Renomear pra clareza. Atualizar todos os requires.",
+      "column": "todo",
+      "tags": [
+        "data",
+        "shared",
+        "code-issue",
+        "out-of-scope"
+      ],
+      "priority": "low",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-ui-001",
+      "title": "[FORA DE ESCOPO] Tower placement UI (hotbar)",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. A UI real de armas já existe (GunBar/WeaponSlot em src/client/Interface/GameComponents/, wired em InterfaceController) e não usa hotbar de colocação de torre. Não iniciar.\n\nDescrição original: UI de inventário/hotbar mostrando towers disponíveis com custo e ícone. Integrar com TowerController.BeginPlacement. Usar ScreenController pra janela.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "client",
+        "out-of-scope"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-ui-002",
+      "title": "[FORA DE ESCOPO] Tower info/upgrade UI",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: UI que aparece ao clicar numa torre colocada: stats, opções de upgrade, botão de vender, targeting mode. Integrar com TowerController.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "client",
+        "out-of-scope"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-ui-003",
+      "title": "[FORA DE ESCOPO] Wave info + currency display UI",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. O round/timer real já tem UI (TimerLabel via RoundController, ver task-game-001). Não iniciar.\n\nDescrição original: UI mostrando wave atual, inimigos restantes, e cash in-match. Atualizar via pacotes WaveInfo e MatchCash.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "client",
+        "out-of-scope"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    },
+    {
+      "id": "task-ui-004",
+      "title": "[FORA DE ESCOPO] Enemy health bars",
+      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não há inimigos NPC -- é PvP entre jogadores (VitalComponent/VitalController já cobrem vida do próprio jogador e de outros via StatusBar). Não iniciar.\n\nDescrição original: BillboardGui com barra de HP acima dos modelos de inimigo. Atualizar via pacote EnemyHealth. Remover quando inimigo morre.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "client",
+        "out-of-scope"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-06-26",
+      "updatedAt": "2026-07-12",
+      "archivedAt": "2026-10-06",
+      "archivedReason": "tower defense antigo, fora do escopo do FPS atual"
+    }
+  ]
+}

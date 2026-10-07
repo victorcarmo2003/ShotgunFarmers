@@ -12,6 +12,17 @@ return {
 	FirstLogin = true,
 
 	Wins = 0,
+	Xp = 0,
+	Level = 1,
+	Career = {
+		Kills = 0,
+		Deaths = 0,
+		Assists = 0,
+		Headshots = 0,
+		Matches = 0,
+		QuestsDone = 0,
+		Damage = 0,
+	},
 	DayCount = 0,
 	CurrentZone = "",
 	CurrentClass = "Tank",
@@ -26,4 +37,7 @@ return {
 	SoundVolume = 1,
 	MusicEnabled = true,
 	SoundEnabled = true,
+
+	Settings = {} :: { [string]: number },
+	Keybinds = {} :: { [string]: string },
 }

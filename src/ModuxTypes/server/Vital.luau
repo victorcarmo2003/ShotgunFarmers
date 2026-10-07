@@ -10,6 +10,7 @@ export type Public = {
 	Setup: (self: Public) -> (),
 	Publish: (self: Public) -> (),
 	TakeDamage: (self: Public, amount: number) -> boolean,
+	NotifyRestored: (self: Public, before: number) -> (),
 	Heal: (self: Public, amount: number) -> (),
 	SetArmor: (self: Public, amount: number) -> (),
 	SpendStamina: (self: Public, amount: number) -> boolean,

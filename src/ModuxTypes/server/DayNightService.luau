@@ -16,6 +16,7 @@ export type Public = {
 	Transition: (self: Public, target: "Day" | "Night") -> (),
 	Toggle: (self: Public) -> (),
 	StartCycle: (self: Public) -> (),
+	StopCycle: (self: Public) -> (),
 	GetCycle: (self: Public) -> Cycle,
 	GetDay: (self: Public) -> number,
 }

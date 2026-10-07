@@ -10,6 +10,7 @@ type MovementAction = CharacterNet.MovementAction
 type MovementRecord = { State: MovementState, WalkSpeed: number }
 
 export type Public = {
+	CameraTween: Tween?,
 	Character: Model?,
 	FallSpeed: number,
 	Humanoid: Humanoid?,
@@ -24,6 +25,8 @@ export type Public = {
 	SlideSpeed: number,
 	WalkSpeed: number?,
 	Setup: (self: Public) -> (),
+	CancelCameraTween: (self: Public) -> (),
+	ApplyCameraOffset: (self: Public, instant: boolean) -> (),
 	SetHumanoid: (self: Public, humanoid: Humanoid) -> (),
 	BindCharacter: (self: Public, character: Model?) -> (),
 	GetCurrentPosition: (self: Public) -> Vector3?,

@@ -57,13 +57,14 @@ const EFFECT_HANDLERS: { [string]: EffectHandler } = {
 }
 
 const CameraController = Modux.Controller("CameraController", {
-	Require = { "MovementController" },
+	Require = { "GameStateController", "MovementController" },
 	Priority = 430,
 })
 
 function CameraController:Setup()
 	self.Effects = {} :: { [string]: EffectState }
 	self.CurrentTilt = 0 :: number
+	self.FirstPerson = false :: boolean
 end
 
 local function playerFromPart(part: Instance): Player?
@@ -148,6 +149,10 @@ function CameraController:GetTiltOffset(camera: Camera, deltaTime: number): CFra
 end
 
 function CameraController:Step(deltaTime: number)
+	if not self.FirstPerson then
+		return
+	end
+
 	const camera = workspace.CurrentCamera
 	if not camera then
 		return
@@ -163,10 +168,14 @@ end
 
 CameraController:OnInit(function(self)
 	self:Setup()
-	Players.LocalPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
 end)
 
 CameraController:OnStart(function(self)
+	self.Dependencies.GameStateController:Watch("FirstPerson", function(on: boolean)
+		self.FirstPerson = on
+		Players.LocalPlayer.CameraMode = if on then Enum.CameraMode.LockFirstPerson else Enum.CameraMode.Classic
+	end)
+
 	self.Dependencies.MovementController.Landed:Connect(function(intensity: number)
 		self:CreateEffect("Shake", intensity)
 	end)

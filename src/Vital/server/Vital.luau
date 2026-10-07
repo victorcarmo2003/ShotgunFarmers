@@ -52,12 +52,20 @@ function Vital:TakeDamage(amount: number): boolean
 	return false
 end
 
+function Vital:NotifyRestored(before: number)
+	if before < MAX_HEALTH and self.Health >= MAX_HEALTH then
+		self.Dependencies.VitalService.Restored:Fire(self.Owner)
+	end
+end
+
 function Vital:Heal(amount: number)
 	if not self.Alive then
 		return
 	end
+	const before = self.Health
 	self.Health = math.min(self.Health + math.max(amount, 0), MAX_HEALTH)
 	self:Publish()
+	self:NotifyRestored(before)
 end
 
 function Vital:SetArmor(amount: number)
@@ -102,9 +110,11 @@ Vital:OnTick(function(self)
 		return
 	end
 
+	const before = self.Health
 	self.Stamina = stamina
 	self.Health = health
 	self:Publish()
+	self:NotifyRestored(before)
 end, TICK_RATE)
 
 Vital:OnDestroy(function(self)

@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShotgunFarmers Kanban</title>
+<style>
+:root {
+  --bg: #f4f3ef;
+  --surface: #ffffff;
+  --surface-2: #ebe9e3;
+  --text: #1d1c1a;
+  --muted: #6b6860;
+  --border: #dcd9d1;
+  --accent: #b5532a;
+  --high: #c0392b;
+  --medium: #c98a14;
+  --low: #5a7d5a;
+  --col-todo: #8a8780;
+  --col-in-progress: #2f6fb0;
+  --col-awaiting-approval: #b5532a;
+  --col-done: #3d8b5a;
+  --shadow: 0 1px 2px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151513;
+    --surface: #1f1f1c;
+    --surface-2: #2a2a26;
+    --text: #ecebe6;
+    --muted: #9a978e;
+    --border: #34332e;
+    --accent: #e07a4b;
+    --high: #e5675a;
+    --medium: #e0a83a;
+    --low: #86b086;
+    --col-todo: #8f8c84;
+    --col-in-progress: #5b9ad8;
+    --col-awaiting-approval: #e07a4b;
+    --col-done: #62b380;
+    --shadow: 0 1px 2px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151513;
+  --surface: #1f1f1c;
+  --surface-2: #2a2a26;
+  --text: #ecebe6;
+  --muted: #9a978e;
+  --border: #34332e;
+  --accent: #e07a4b;
+  --high: #e5675a;
+  --medium: #e0a83a;
+  --low: #86b086;
+  --col-todo: #8f8c84;
+  --col-in-progress: #5b9ad8;
+  --col-awaiting-approval: #e07a4b;
+  --col-done: #62b380;
+  --shadow: 0 1px 2px rgba(0,0,0,.3);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+header {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+}
+h1 { font-size: 17px; margin: 0; letter-spacing: -.01em; }
+h1 span { color: var(--muted); font-weight: 400; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-left: auto; }
+input[type="search"], select, button {
+  font: inherit; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px;
+}
+button { cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.status { font-size: 12px; color: var(--muted); width: 100%; }
+.status.error { color: var(--high); }
+.summary { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); width: 100%; }
+.summary b { color: var(--text); }
+.progress { height: 4px; background: var(--surface-2); border-radius: 4px; overflow: hidden; width: 100%; display: flex; }
+.progress div { height: 100%; }
+main {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), minmax(260px, 1fr));
+  gap: 14px; padding: 16px 20px 40px;
+  overflow-x: auto;
+}
+.column { background: var(--surface-2); border-radius: 12px; padding: 10px; min-width: 0; display: flex; flex-direction: column; }
+.column h2 {
+  font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+  margin: 2px 4px 10px; display: flex; align-items: center; gap: 8px;
+}
+.column h2 .dot { width: 8px; height: 8px; border-radius: 50%; }
+.column h2 .count { margin-left: auto; color: var(--muted); font-weight: 500; }
+.cards { display: flex; flex-direction: column; gap: 8px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--prio, var(--border));
+  border-radius: 8px; padding: 10px 12px; box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.card:hover { border-color: var(--muted); border-left-color: var(--prio); }
+.card.recent { outline: 2px solid var(--accent); outline-offset: -1px; }
+.card .top { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.card .top .prio { margin-left: auto; font-weight: 600; color: var(--prio); text-transform: uppercase; letter-spacing: .04em; }
+.card .title { font-weight: 600; font-size: 13.5px; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.tag { font-size: 11px; background: var(--surface-2); color: var(--muted); border-radius: 4px; padding: 1px 6px; cursor: pointer; }
+.tag:hover, .tag.active { color: var(--text); background: var(--border); }
+.desc {
+  display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
+  white-space: pre-wrap; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere;
+}
+.card.open .desc { display: block; }
+.dates { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.empty { color: var(--muted); font-size: 12px; text-align: center; padding: 16px 0; }
+.connect {
+  max-width: 520px; margin: 60px auto; padding: 24px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 12px; text-align: center;
+}
+.connect p { color: var(--muted); }
+code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+@media (max-width: 700px) {
+  header { padding: 12px 16px; }
+  .controls { margin-left: 0; width: 100%; }
+  .controls input[type="search"] { flex: 1; min-width: 0; }
+  main { grid-template-columns: 1fr; padding: 12px 16px 32px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>ShotgunFarmers <span>· Kanban</span></h1>
+  <div class="controls">
+    <input type="search" id="search" placeholder="Buscar título, id, descrição…">
+    <select id="priority">
+      <option value="">Prioridade: todas</option>
+      <option value="high">Alta</option>
+      <option value="medium">Média</option>
+      <option value="low">Baixa</option>
+    </select>
+    <select id="tag"><option value="">Tag: todas</option></select>
+    <label style="font-size:12px;color:var(--muted);display:flex;gap:4px;align-items:center">
+      <input type="checkbox" id="hideDone"> esconder done
+    </label>
+    <button id="connectBtn" title="Selecionar o arquivo .claude/tasks.json">Abrir tasks.json</button>
+    <button id="themeBtn" title="Alternar tema">◐</button>
+  </div>
+  <div class="summary" id="summary"></div>
+  <div class="progress" id="progress"></div>
+  <div class="status" id="status">Carregando…</div>
+</header>
+<main id="board"></main>
+
+<script>
+const COLUMN_LABELS = { "todo": "To do", "in-progress": "In progress", "awaiting-approval": "Awaiting approval", "done": "Done" };
+const PRIO_ORDER = { high: 0, medium: 1, low: 2 };
+const PRIO_LABEL = { high: "alta", medium: "média", low: "baixa" };
+const POLL_MS = 3000;
+const state = { data: null, raw: "", source: null, handle: null, open: new Set(), filters: { q: "", priority: "", tag: "", hideDone: false } };
+const $ = (id) => document.getElementById(id);
+
+function safeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+function applyTheme(t) {
+  if (t) document.documentElement.setAttribute("data-theme", t);
+  else document.documentElement.removeAttribute("data-theme");
+}
+applyTheme(safeGet("kanban-theme"));
+$("themeBtn").onclick = () => {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const next = dark ? "light" : "dark";
+  applyTheme(next); safeSet("kanban-theme", next);
+};
+
+function setStatus(msg, err) { const s = $("status"); s.textContent = msg; s.className = "status" + (err ? " error" : ""); }
+
+function ingest(text, source) {
+  if (text === state.raw) return;
+  let parsed;
+  try { parsed = JSON.parse(text); } catch (e) { setStatus("tasks.json inválido: " + e.message, true); return; }
+  state.raw = text; state.data = parsed; state.source = source;
+  populateTags(); render();
+  setStatus(`Fonte: ${source} · atualizado ${new Date().toLocaleTimeString("pt-BR")} · recarrega a cada ${POLL_MS / 1000}s`);
+}
+
+async function tryFetch() {
+  try {
+    const r = await fetch("tasks.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    ingest(await r.text(), "tasks.json (mesma pasta)");
+    return true;
+  } catch { return false; }
+}
+
+async function readHandle() {
+  if (!state.handle) return false;
+  try { const f = await state.handle.getFile(); ingest(await f.text(), f.name + " (arquivo local)"); return true; }
+  catch (e) { setStatus("Perdeu acesso ao arquivo — clique em Abrir tasks.json", true); state.handle = null; return false; }
+}
+
+function idb() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("kanban", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+async function saveHandle(h) { try { const db = await idb(); db.transaction("kv", "readwrite").objectStore("kv").put(h, "handle"); } catch {} }
+async function loadHandle() {
+  try { const db = await idb(); return await new Promise((res) => { const r = db.transaction("kv").objectStore("kv").get("handle"); r.onsuccess = () => res(r.result); r.onerror = () => res(null); }); }
+  catch { return null; }
+}
+
+$("connectBtn").onclick = async () => {
+  if (window.showOpenFilePicker) {
+    try {
+      const [h] = await window.showOpenFilePicker({ types: [{ description: "JSON", accept: { "application/json": [".json"] } }] });
+      state.handle = h; await saveHandle(h); await readHandle();
+    } catch {}
+    return;
+  }
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".json";
+  inp.onchange = async () => { const f = inp.files[0]; if (f) ingest(await f.text(), f.name + " (sem auto-reload neste navegador)"); };
+  inp.click();
+};
+
+async function tick() {
+  if (state.handle) { await readHandle(); return; }
+  if (state.source && state.source.startsWith("tasks.json")) await tryFetch();
+}
+
+async function boot() {
+  if (await tryFetch()) { setInterval(tick, POLL_MS); return; }
+  const h = await loadHandle();
+  if (h && h.queryPermission) {
+    const perm = await h.queryPermission({ mode: "read" });
+    if (perm === "granted") { state.handle = h; await readHandle(); setInterval(tick, POLL_MS); return; }
+    $("connectBtn").textContent = "Reconectar tasks.json";
+    $("connectBtn").onclick = async () => {
+      if ((await h.requestPermission({ mode: "read" })) === "granted") { state.handle = h; await readHandle(); }
+    };
+  }
+  $("connectBtn").classList.add("primary");
+  setStatus("Abriu via file:// — o navegador bloqueia leitura direta. Clique em Abrir tasks.json (Chrome/Edge lembram o arquivo e atualizam sozinhos).");
+  $("board").innerHTML = `<div class="connect" style="grid-column:1/-1"><h2>Conectar ao tasks.json</h2>
+    <p>Clique em <b>Abrir tasks.json</b> e escolha <code>.claude/tasks.json</code>. O quadro relê o arquivo a cada ${POLL_MS / 1000}s.</p>
+    <p>Alternativa: servir a pasta <code>.claude</code> (ex.: VSCode Live Server ou <code>npx serve .claude</code>) e abrir <code>kanban.html</code> por http.</p></div>`;
+  setInterval(tick, POLL_MS);
+}
+
+function populateTags() {
+  const sel = $("tag"); const cur = state.filters.tag;
+  const tags = [...new Set(state.data.tasks.flatMap(t => t.tags || []))].sort();
+  sel.innerHTML = `<option value="">Tag: todas</option>` + tags.map(t => `<option ${t === cur ? "selected" : ""}>${esc(t)}</option>`).join("");
+}
+
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+function matches(t) {
+  const f = state.filters;
+  if (f.priority && t.priority !== f.priority) return false;
+  if (f.tag && !(t.tags || []).includes(f.tag)) return false;
+  if (f.q) {
+    const hay = (t.id + " " + t.title + " " + t.description + " " + (t.tags || []).join(" ")).toLowerCase();
+    if (!f.q.toLowerCase().split(/\s+/).every(w => hay.includes(w))) return false;
+  }
+  return true;
+}
+
+function render() {
+  if (!state.data) return;
+  const cols = (state.data.columns || ["todo", "in-progress", "done"]).filter(c => !(state.filters.hideDone && c === "done"));
+  const all = state.data.tasks || [];
+  const visible = all.filter(matches);
+  const newest = all.reduce((m, t) => (t.updatedAt > m ? t.updatedAt : m), "");
+  const board = $("board");
+  board.style.setProperty("--cols", cols.length);
+  board.innerHTML = cols.map(c => {
+    const items = visible.filter(t => t.column === c)
+      .sort((a, b) => (PRIO_ORDER[a.priority] ?? 9) - (PRIO_ORDER[b.priority] ?? 9) || (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+    return `<section class="column">
+      <h2><span class="dot" style="background:var(--col-${c}, var(--muted))"></span>${esc(COLUMN_LABELS[c] || c)}<span class="count">${items.length}</span></h2>
+      <div class="cards">${items.length ? items.map(card).join("") : `<div class="empty">vazio</div>`}</div>
+    </section>`;
+  }).join("");
+  board.querySelectorAll(".card").forEach(el => el.addEventListener("click", (e) => {
+    if (e.target.classList.contains("tag")) return;
+    const id = el.dataset.id;
+    state.open.has(id) ? state.open.delete(id) : state.open.add(id);
+    el.classList.toggle("open");
+  }));
+  board.querySelectorAll(".tag").forEach(el => el.addEventListener("click", () => {
+    state.filters.tag = state.filters.tag === el.dataset.tag ? "" : el.dataset.tag;
+    $("tag").value = state.filters.tag; render();
+  }));
+  function card(t) {
+    const prio = `var(--${t.priority || "low"})`;
+    return `<article class="card ${state.open.has(t.id) ? "open" : ""} ${t.updatedAt === newest && t.column !== "done" ? "recent" : ""}" data-id="${esc(t.id)}" style="--prio:${prio}">
+      <div class="top"><span>${esc(t.id)}</span><span class="prio">${esc(PRIO_LABEL[t.priority] || t.priority || "")}</span></div>
+      <div class="title">${esc(t.title)}</div>
+      <div class="tags">${(t.tags || []).map(g => `<span class="tag ${g === state.filters.tag ? "active" : ""}" data-tag="${esc(g)}">${esc(g)}</span>`).join("")}</div>
+      <div class="desc">${esc(t.description)}</div>
+      <div class="dates">criado ${esc(t.createdAt)} · atualizado ${esc(t.updatedAt)}</div>
+    </article>`;
+  }
+  const counts = Object.fromEntries((state.data.columns || []).map(c => [c, all.filter(t => t.column === c).length]));
+  $("summary").innerHTML = `<span><b>${all.length}</b> tasks</span>` +
+    (state.data.columns || []).map(c => `<span>${esc(COLUMN_LABELS[c] || c)}: <b>${counts[c]}</b></span>`).join("") +
+    (visible.length !== all.length ? `<span>filtradas: <b>${visible.length}</b></span>` : "");
+  $("progress").innerHTML = (state.data.columns || []).map(c => `<div title="${esc(c)}" style="width:${all.length ? counts[c] / all.length * 100 : 0}%;background:var(--col-${c}, var(--muted))"></div>`).join("");
+}
+
+$("search").addEventListener("input", e => { state.filters.q = e.target.value.trim(); render(); });
+$("priority").addEventListener("change", e => { state.filters.priority = e.target.value; render(); });
+$("tag").addEventListener("change", e => { state.filters.tag = e.target.value; render(); });
+$("hideDone").addEventListener("change", e => { state.filters.hideDone = e.target.checked; safeSet("kanban-hide-done", e.target.checked ? "1" : ""); render(); });
+if (safeGet("kanban-hide-done")) { $("hideDone").checked = true; state.filters.hideDone = true; }
+boot();
+</script>
+</body>
+</html>

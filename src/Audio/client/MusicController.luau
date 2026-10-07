@@ -8,7 +8,10 @@ local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 const FADE_TIME = 2
 const CROSSFADE_TWEEN = TweenInfo.new(FADE_TIME, Enum.EasingStyle.Linear)
 
-const MusicController = Modux.Controller("MusicController", { Priority = 300 })
+const MusicController = Modux.Controller("MusicController", {
+	Require = { "OptionsController", "ProfileController" },
+	Priority = 300,
+})
 
 local function musicFolder(): Folder
 	const existing = SoundService:FindFirstChild("Music")
@@ -46,6 +49,37 @@ function MusicController:Setup()
 	self.PlaylistIndex = 0 :: number
 	self.CurrentSound = nil :: Sound?
 	self.EndedConnection = nil :: RBXScriptConnection?
+	self.FadeTween = nil :: Tween?
+	self.BaseVolume = 0 :: number
+	self.Multiplier = 1 :: number
+end
+
+function MusicController:CurrentMultiplier(): number
+	if not self.Dependencies.ProfileController.MusicEnabled() then
+		return 0
+	end
+
+	return math.clamp(self.Dependencies.OptionsController:Get("MusicVolume"), 0, 1)
+end
+
+function MusicController:ApplyVolume()
+	const multiplier = self:CurrentMultiplier()
+	if multiplier == self.Multiplier then
+		return
+	end
+
+	self.Multiplier = multiplier
+	const sound = self.CurrentSound
+	if not sound then
+		return
+	end
+
+	const fade = self.FadeTween
+	if fade then
+		fade:Cancel()
+		self.FadeTween = nil
+	end
+	sound.Volume = self.BaseVolume * multiplier
 end
 
 function MusicController:PlayNext()
@@ -60,14 +94,18 @@ function MusicController:PlayNext()
 	end
 
 	const template = self.Playlist[self.PlaylistIndex]
-	const targetVolume = template.Volume
+	self.Multiplier = self:CurrentMultiplier()
+	self.BaseVolume = template.Volume
+	const targetVolume = template.Volume * self.Multiplier
 
 	const sound = template:Clone()
 	sound.Volume = 0
 	sound.Looped = false
 	sound.Parent = self.MusicFolder
 	sound:Play()
-	TweenService:Create(sound, CROSSFADE_TWEEN, { Volume = targetVolume }):Play()
+	const fadeIn = TweenService:Create(sound, CROSSFADE_TWEEN, { Volume = targetVolume })
+	self.FadeTween = fadeIn
+	fadeIn:Play()
 
 	const previous = self.CurrentSound
 	self.CurrentSound = sound
@@ -88,6 +126,10 @@ function MusicController:PlayNext()
 		self:PlayNext()
 	end)
 end
+
+MusicController:OnTick(function(self)
+	self:ApplyVolume()
+end, 10)
 
 MusicController:OnInit(function(self)
 	self:Setup()

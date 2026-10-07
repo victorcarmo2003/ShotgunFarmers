@@ -21,8 +21,10 @@ const SHAKE_FREQUENCY = 12
 const SHAKE_POSITION_AMPLITUDE = 0.15
 const SHAKE_ROTATION_AMPLITUDE = 4
 
+const TILT_RESPONSE = -2
+
 const SurfaceUIController = Modux.Controller("SurfaceUIController", {
-	Require = { "MovementController" },
+	Require = { "MovementController", "CameraController" },
 	Priority = 820,
 })
 
@@ -155,7 +157,8 @@ SurfaceUIController:OnStart(function(self)
 			end
 		end
 
-		const cameraCFrame = camera:GetRenderCFrame()
+		const tilt = CFrame.Angles(0, 0, math.rad(self.Dependencies.CameraController.CurrentTilt * TILT_RESPONSE))
+		const cameraCFrame = camera:GetRenderCFrame() * tilt
 		for _, panel in self.Panels do
 			local offset = CFrame.identity
 			const effects = self.Effects[panel.Part]

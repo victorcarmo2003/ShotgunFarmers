@@ -2,7 +2,21 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GetAnimations = require(ReplicatedStorage.shared.Character.GetAnimations)
 
-export type Role = "Hold" | "Aim" | "ShootHip" | "ShootAim" | "Draw" | "Reload" | "Unpin" | "Throw" | "Attack"
+export type Role =
+	"Hold"
+	| "Aim"
+	| "ShootHip"
+	| "ShootAim"
+	| "Draw"
+	| "Reload"
+	| "Unpin"
+	| "Throw"
+	| "ThrowShort"
+	| "PinIdle"
+	| "AimIn"
+	| "AimOut"
+	| "Discard"
+	| "Attack"
 
 export type TrackSet = { [Role]: AnimationTrack? }
 
@@ -15,6 +29,11 @@ const PRIORITY_BY_ROLE: { [Role]: Enum.AnimationPriority } = {
 	Reload = Enum.AnimationPriority.Action4,
 	Unpin = Enum.AnimationPriority.Action4,
 	Throw = Enum.AnimationPriority.Action4,
+	ThrowShort = Enum.AnimationPriority.Action4,
+	PinIdle = Enum.AnimationPriority.Action2,
+	AimIn = Enum.AnimationPriority.Action4,
+	AimOut = Enum.AnimationPriority.Action4,
+	Discard = Enum.AnimationPriority.Action4,
 	Attack = Enum.AnimationPriority.Action4,
 }
 
@@ -27,6 +46,11 @@ const LOOPED_BY_ROLE: { [Role]: boolean } = {
 	Reload = false,
 	Unpin = false,
 	Throw = false,
+	ThrowShort = false,
+	PinIdle = true,
+	AimIn = false,
+	AimOut = false,
+	Discard = false,
 	Attack = false,
 }
 
@@ -40,6 +64,11 @@ local function idsOf(set: GetAnimations.AnimationSet): { [Role]: string? }
 		Reload = set.Reload,
 		Unpin = set.Unpin,
 		Throw = set.Throw,
+		ThrowShort = set.ThrowShort,
+		PinIdle = set.PinIdle,
+		AimIn = set.AimIn,
+		AimOut = set.AimOut,
+		Discard = set.Discard,
 		Attack = set.Attack,
 	}
 end

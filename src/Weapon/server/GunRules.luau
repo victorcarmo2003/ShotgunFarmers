@@ -1,13 +1,13 @@
 --!strict
 local CollectionService = game:GetService("CollectionService")
-local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GameSettings = require(ReplicatedStorage.shared.Settings.GameSettings)
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
 
-const SOUND_CLEANUP_FALLBACK = 10
 const PLANTABLE_TAG = "Farmland"
 const PLANT_RAY_RANGE = 150
+
+const FIRE_RATE_TOLERANCE = 0.85
 
 const SEED_TAG = "Seed"
 
@@ -55,13 +55,18 @@ function GunRules.CanShoot(
 	ammo: number,
 	lastShoot: number,
 	drawEndsAt: number,
-	now: number
+	now: number,
+	stamp: number
 ): (boolean, string?)
-	if ammo <= 0 then
+	if gunData.Disabled then
+		return false, "Disabled"
+	end
+
+	if GetGun.UsesAmmo(gunData) and ammo <= 0 then
 		return false, "NoAmmo"
 	end
 
-	if now - lastShoot < gunData.FireRate then
+	if stamp - lastShoot < gunData.FireRate * FIRE_RATE_TOLERANCE then
 		return false, "FireRate"
 	end
 
@@ -95,11 +100,11 @@ local function dirtTemplate(): BasePart?
 	return nil
 end
 
-function GunRules.PlantAt(position: Vector3, gunName: string)
+function GunRules.PlantAt(position: Vector3, gunName: string): BasePart?
 	const template = dirtTemplate()
 	if not template then
 		warn("[GunRules] Assets.Seeds.Dirt nao encontrado; nada plantado")
-		return
+		return nil
 	end
 
 	const dirt = template:Clone() :: BasePart
@@ -108,9 +113,20 @@ function GunRules.PlantAt(position: Vector3, gunName: string)
 	dirt:SetAttribute("PlantedAt", workspace:GetServerTimeNow())
 	dirt.Parent = seedsFolder()
 	CollectionService:AddTag(dirt, SEED_TAG)
+	return dirt
 end
 
-function GunRules.TryPlant(shooter: Player, origin: Vector3, direction: Vector3, gunName: string)
+function GunRules.RollSeed(gunName: string): boolean
+	const gunData = GetGun.ByName(gunName)
+	const chance = if gunData then gunData.SeedChance or 0 else 0
+	return math.random() < chance
+end
+
+function GunRules.IsPlantable(instance: Instance): boolean
+	return CollectionService:HasTag(instance, PLANTABLE_TAG)
+end
+
+function GunRules.TryPlant(shooter: Player, origin: Vector3, direction: Vector3, gunName: string, range: number?)
 	if direction.Magnitude < MIN_DIRECTION then
 		return
 	end
@@ -122,54 +138,15 @@ function GunRules.TryPlant(shooter: Player, origin: Vector3, direction: Vector3,
 	end
 	plantParams.FilterDescendantsInstances = filter
 
-	const result = workspace:Raycast(origin, direction.Unit * PLANT_RAY_RANGE, plantParams)
+	const distance = math.min(range or PLANT_RAY_RANGE, PLANT_RAY_RANGE)
+	const result = workspace:Raycast(origin, direction.Unit * distance, plantParams)
 	if not result then
 		return
 	end
 
-	if CollectionService:HasTag(result.Instance, PLANTABLE_TAG) then
+	if GunRules.IsPlantable(result.Instance) then
 		GunRules.PlantAt(result.Position, gunName)
 	end
-end
-
-local function soundTemplate(name: string): Sound?
-	const assets = ReplicatedStorage:FindFirstChild("Assets")
-	const sounds = assets and assets:FindFirstChild("Sounds")
-	const sound = sounds and sounds:FindFirstChild(name)
-	if sound and sound:IsA("Sound") then
-		return sound
-	end
-
-	return nil
-end
-
-function GunRules.PlayShootSound(shooter: Player, soundName: string, visual: Model?)
-	if soundName == "" then
-		return
-	end
-
-	const template = soundTemplate(soundName)
-	if not template then
-		warn(`[GunRules] som "{soundName}" nao esta em Assets.Sounds`)
-		return
-	end
-
-	local parent: Instance? = visual and visual.PrimaryPart
-	if not parent then
-		const character = shooter.Character
-		parent = character and character:FindFirstChild("HumanoidRootPart")
-	end
-	if not parent then
-		return
-	end
-
-	const sound = template:Clone() :: Sound
-	sound.Parent = parent
-	sound:Play()
-	sound.Ended:Once(function()
-		sound:Destroy()
-	end)
-	Debris:AddItem(sound, SOUND_CLEANUP_FALLBACK)
 end
 
 return GunRules

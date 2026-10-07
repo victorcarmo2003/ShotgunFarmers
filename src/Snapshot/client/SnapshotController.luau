@@ -11,7 +11,7 @@ const LOOK_DISTANCE = 150
 const CROUCH_MAX_SPEED = 15
 
 const SnapshotController = Modux.Controller("SnapshotController", {
-	Require = { "MovementController", "WeaponController" },
+	Require = { "GameStateController", "MovementController", "WeaponController" },
 	Priority = 440,
 })
 
@@ -44,6 +44,10 @@ function SnapshotController:GetCurrentState(): MovementState
 end
 
 function SnapshotController:SendSnapshot()
+	if not self.Dependencies.GameStateController:Can("Combat") then
+		return
+	end
+
 	const movement = self.Dependencies.MovementController
 	const position = movement:GetCurrentPosition()
 	if not position then

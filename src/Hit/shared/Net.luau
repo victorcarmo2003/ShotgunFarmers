@@ -4,6 +4,8 @@ local Lync = require(ReplicatedStorage.Packages.Lync)
 
 export type Pellet = { TargetID: number, HitPart: number }
 
+export type Shot = { ShooterID: number, GunID: number, Origin: Vector3, Direction: Vector3 }
+
 return Lync.define("Hit", {
 	Fire = Lync.query(
 		Lync.struct({
@@ -25,4 +27,11 @@ return Lync.define("Hit", {
 			Hits = Lync.int(0, 12),
 		})
 	),
+
+	Shot = Lync.packet(Lync.struct({
+		ShooterID = Lync.int(0, 255),
+		GunID = Lync.int(0, 255),
+		Origin = Lync.vec3(Lync.quant(-4096, 4096, 0.25)),
+		Direction = Lync.vec3.unit(0.001),
+	})):unreliable() :: any,
 })

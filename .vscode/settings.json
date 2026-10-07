@@ -1,18 +1,24 @@
 {
+    "luau-lsp.sourcemap.includeNonScripts": true,
     "luau-lsp.studioPlugin.enabled": true,
-    "luau-lsp.studioPlugin.port": 4667,
     "luau-lsp.sourcemap.enabled": true,
     "luau-lsp.sourcemap.autogenerate": true,
+    "luau-lsp.studioPlugin.port": 3668,
     "luau-lsp.sourcemap.sourcemapFile": "sourcemap.json",
-    "luau-lsp.sourcemap.includeNonScripts": true,
-    "discord.enabled": false,
-    "editor.formatOnSave": true,
+    "luau-lsp.fflags.enableNewSolver": true,
+    "luau-lsp.fflags.sync": true,
+    "luau-lsp.completion.anonymousAutofilledFunction.enabled": true,
     "[lua]": {
         "editor.defaultFormatter": "JohnnyMorganz.stylua"
     },
     "[luau]": {
         "editor.defaultFormatter": "JohnnyMorganz.stylua"
     },
-    "modux.studioBridge.port": 9000,
-    "syncteam.port": 1450
+    "modux.studioBridge.port": 9001,
+    "editor.formatOnSave": true,
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 300,
+    "syncteam.port": 1550,
+    "discord.enabled": true,
+    "discord.idleTimeout": 0,
 }

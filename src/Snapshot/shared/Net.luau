@@ -10,5 +10,5 @@ return Lync.define("Snapshot", {
 		MoveDir = Lync.vec2(Lync.quant(-1, 1, 0.001)),
 		WeaponID = Lync.int(0, 255),
 		Timestamp = Lync.f64(),
-	})):unreliable():newest(60),
+	})):newest(60),
 })

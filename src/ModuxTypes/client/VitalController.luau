@@ -8,10 +8,12 @@ type Snapshot = { Health: number, Armor: number, Stamina: number }
 export type Public = {
 	Armor: Vide.Source<number>,
 	Health: Vide.Source<number>,
+	ResetEvent: BindableEvent,
 	Stamina: Vide.Source<number>,
 	Setup: (self: Public) -> (),
 	Apply: (self: Public, snapshot: Snapshot) -> (),
 	Of: (self: Public, player: Player) -> Snapshot?,
+	BindReset: (self: Public) -> (),
 }
 
 return {}

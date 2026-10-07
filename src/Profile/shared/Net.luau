@@ -15,7 +15,7 @@ return Lync.define("Profile", {
 
 		FirstLogin = Lync.bool(),
 
-		Wins = Lync.int(0, 65536),
+		Wins = Lync.int(0, 4294967295),
 		DayCount = Lync.int(0, 65536),
 		CurrentZone = Lync.str(0, 15),
 		CurrentClass = Lync.str(0, 32),

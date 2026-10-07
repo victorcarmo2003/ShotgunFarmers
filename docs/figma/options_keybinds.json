@@ -1,0 +1,1251 @@
+{
+  "metadata": {
+    "exportedAt": "2026-10-01T02:58:28.720Z",
+    "componentName": "Frame 3",
+    "totalElements": 90,
+    "nestingDepth": 3,
+    "plugin": "Figma to JSON Exporter"
+  },
+  "designTokens": {
+    "colors": {
+      "color-rgb(0, 0, 0)": "rgb(0, 0, 0)",
+      "color-rgb(255, 255, 255)": "rgb(255, 255, 255)",
+      "color-rgb(31, 159, 104)": "rgb(31, 159, 104)"
+    },
+    "fonts": {
+      "jersey-15": {
+        "family": "Jersey 15",
+        "sizes": {
+          "size-40": "40px",
+          "size-24": "24px",
+          "size-48": "48px"
+        },
+        "weights": {
+          "weight-400": "400"
+        }
+      }
+    },
+    "spacing": {},
+    "effects": {}
+  },
+  "structure": {
+    "name": "frame-3",
+    "type": "FRAME",
+    "size": {
+      "w": 1122,
+      "h": 631
+    },
+    "styles": {
+      "layout": {
+        "direction": "row",
+        "gap": 0,
+        "align": {
+          "main": "start",
+          "cross": "start"
+        }
+      }
+    },
+    "children": [
+      {
+        "name": "image-40",
+        "type": "RECTANGLE",
+        "size": {
+          "w": 1122,
+          "h": 631
+        }
+      },
+      {
+        "name": "rectangle-2403",
+        "type": "RECTANGLE",
+        "size": {
+          "w": 578,
+          "h": 405
+        },
+        "styles": {
+          "bg": "rgb(0, 0, 0)"
+        }
+      },
+      {
+        "name": "rectangle-2404",
+        "type": "RECTANGLE",
+        "size": {
+          "w": 541,
+          "h": 2
+        },
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "radius": 3
+        }
+      },
+      {
+        "name": "rectangle-2405",
+        "type": "RECTANGLE",
+        "size": {
+          "w": 541,
+          "h": 2
+        },
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "radius": 3
+        }
+      },
+      {
+        "name": "rectangle-2406",
+        "type": "RECTANGLE",
+        "size": {
+          "w": 541,
+          "h": 2
+        },
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "radius": 3
+        }
+      },
+      {
+        "name": "rectangle-2407",
+        "type": "RECTANGLE",
+        "size": {
+          "w": 541,
+          "h": 2
+        },
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "radius": 3
+        }
+      },
+      {
+        "name": "rectangle-2408",
+        "type": "RECTANGLE",
+        "size": {
+          "w": 541,
+          "h": 2
+        },
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "radius": 3
+        }
+      },
+      {
+        "name": "rectangle-2409",
+        "type": "RECTANGLE",
+        "size": {
+          "w": 541,
+          "h": 2
+        },
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "radius": 3
+        }
+      },
+      {
+        "name": "rectangle-2410",
+        "type": "RECTANGLE",
+        "size": {
+          "w": 541,
+          "h": 2
+        },
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "radius": 3
+        }
+      },
+      {
+        "name": "rectangle-2411",
+        "type": "RECTANGLE",
+        "size": {
+          "w": 541,
+          "h": 2
+        },
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "radius": 3
+        }
+      },
+      {
+        "name": "group-475",
+        "type": "GROUP",
+        "size": {
+          "w": 162,
+          "h": 45
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 162,
+              "h": 43
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "close",
+            "type": "TEXT",
+            "size": {
+              "w": 93,
+              "h": 45
+            },
+            "content": "CLOSE",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 40,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-481",
+        "type": "GROUP",
+        "size": {
+          "w": 125,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 125,
+              "h": 29
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "w",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "W",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-483",
+        "type": "GROUP",
+        "size": {
+          "w": 125,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 125,
+              "h": 29
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "s",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "S",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-487",
+        "type": "GROUP",
+        "size": {
+          "w": 125,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 125,
+              "h": 29
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "a",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "A",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-489",
+        "type": "GROUP",
+        "size": {
+          "w": 125,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 125,
+              "h": 29
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "d",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "D",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-491",
+        "type": "GROUP",
+        "size": {
+          "w": 125,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 125,
+              "h": 29
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "space",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "SPACE",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-493",
+        "type": "GROUP",
+        "size": {
+          "w": 125,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 125,
+              "h": 29
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "crouch",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "CROUCH",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-495",
+        "type": "GROUP",
+        "size": {
+          "w": 125,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 125,
+              "h": 29
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "shift",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "SHIFT",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-497",
+        "type": "GROUP",
+        "size": {
+          "w": 125,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 125,
+              "h": 29
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "r",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "R",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-499",
+        "type": "GROUP",
+        "size": {
+          "w": 125,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 125,
+              "h": 29
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "m",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "M",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-482",
+        "type": "GROUP",
+        "size": {
+          "w": 79,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 79,
+              "h": 28
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "clear",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "CLEAR",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-484",
+        "type": "GROUP",
+        "size": {
+          "w": 79,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 79,
+              "h": 28
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "clear",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "CLEAR",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-488",
+        "type": "GROUP",
+        "size": {
+          "w": 79,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 79,
+              "h": 28
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "clear",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "CLEAR",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-490",
+        "type": "GROUP",
+        "size": {
+          "w": 79,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 79,
+              "h": 28
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "clear",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "CLEAR",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-492",
+        "type": "GROUP",
+        "size": {
+          "w": 79,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 79,
+              "h": 28
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "clear",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "CLEAR",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-494",
+        "type": "GROUP",
+        "size": {
+          "w": 79,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 79,
+              "h": 28
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "clear",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "CLEAR",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-496",
+        "type": "GROUP",
+        "size": {
+          "w": 79,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 79,
+              "h": 28
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "clear",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "CLEAR",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-498",
+        "type": "GROUP",
+        "size": {
+          "w": 79,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 79,
+              "h": 28
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "clear",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "CLEAR",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-500",
+        "type": "GROUP",
+        "size": {
+          "w": 79,
+          "h": 30
+        },
+        "children": [
+          {
+            "name": "rectangle-2321",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 79,
+              "h": 28
+            },
+            "styles": {
+              "bg": "rgb(31, 159, 104)"
+            }
+          },
+          {
+            "name": "clear",
+            "type": "TEXT",
+            "size": {
+              "w": 72,
+              "h": 30
+            },
+            "content": "CLEAR",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "options",
+        "type": "TEXT",
+        "size": {
+          "w": 229,
+          "h": 47
+        },
+        "content": "OPTIONS",
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "text": {
+            "family": "Jersey 15",
+            "size": 48,
+            "weight": "400",
+            "align": "center"
+          }
+        }
+      },
+      {
+        "name": "group-477",
+        "type": "GROUP",
+        "size": {
+          "w": 109,
+          "h": 45
+        },
+        "children": [
+          {
+            "name": "rectangle-2391",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 109,
+              "h": 45
+            },
+            "styles": {
+              "bg": "rgb(0, 0, 0)"
+            }
+          },
+          {
+            "name": "gameplay",
+            "type": "TEXT",
+            "size": {
+              "w": 109,
+              "h": 33
+            },
+            "content": "GAMEPLAY",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-478",
+        "type": "GROUP",
+        "size": {
+          "w": 109,
+          "h": 45
+        },
+        "children": [
+          {
+            "name": "rectangle-2391",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 109,
+              "h": 45
+            },
+            "styles": {
+              "bg": "rgb(0, 0, 0)"
+            }
+          },
+          {
+            "name": "audio",
+            "type": "TEXT",
+            "size": {
+              "w": 109,
+              "h": 33
+            },
+            "content": "AUDIO",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-479",
+        "type": "GROUP",
+        "size": {
+          "w": 109,
+          "h": 45
+        },
+        "children": [
+          {
+            "name": "rectangle-2391",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 109,
+              "h": 45
+            },
+            "styles": {
+              "bg": "rgb(0, 0, 0)"
+            }
+          },
+          {
+            "name": "video",
+            "type": "TEXT",
+            "size": {
+              "w": 109,
+              "h": 33
+            },
+            "content": "VIDEO",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "group-480",
+        "type": "GROUP",
+        "size": {
+          "w": 116,
+          "h": 48
+        },
+        "children": [
+          {
+            "name": "rectangle-2391",
+            "type": "RECTANGLE",
+            "size": {
+              "w": 116,
+              "h": 48
+            },
+            "styles": {
+              "bg": "rgb(0, 0, 0)"
+            }
+          },
+          {
+            "name": "keybinds",
+            "type": "TEXT",
+            "size": {
+              "w": 116,
+              "h": 35
+            },
+            "content": "KEYBINDS",
+            "styles": {
+              "bg": "rgb(255, 255, 255)",
+              "text": {
+                "family": "Jersey 15",
+                "size": 24,
+                "weight": "400",
+                "align": "center"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "move-forward",
+        "type": "TEXT",
+        "size": {
+          "w": 262,
+          "h": 30
+        },
+        "content": "MOVE FORWARD",
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "text": {
+            "family": "Jersey 15",
+            "size": 24,
+            "weight": "400",
+            "align": "left"
+          }
+        }
+      },
+      {
+        "name": "move-backward",
+        "type": "TEXT",
+        "size": {
+          "w": 262,
+          "h": 30
+        },
+        "content": "MOVE BACKWARD",
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "text": {
+            "family": "Jersey 15",
+            "size": 24,
+            "weight": "400",
+            "align": "left"
+          }
+        }
+      },
+      {
+        "name": "move-left",
+        "type": "TEXT",
+        "size": {
+          "w": 262,
+          "h": 30
+        },
+        "content": "MOVE LEFT",
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "text": {
+            "family": "Jersey 15",
+            "size": 24,
+            "weight": "400",
+            "align": "left"
+          }
+        }
+      },
+      {
+        "name": "move-right",
+        "type": "TEXT",
+        "size": {
+          "w": 262,
+          "h": 30
+        },
+        "content": "MOVE RIGHT",
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "text": {
+            "family": "Jersey 15",
+            "size": 24,
+            "weight": "400",
+            "align": "left"
+          }
+        }
+      },
+      {
+        "name": "jump",
+        "type": "TEXT",
+        "size": {
+          "w": 262,
+          "h": 30
+        },
+        "content": "JUMP",
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "text": {
+            "family": "Jersey 15",
+            "size": 24,
+            "weight": "400",
+            "align": "left"
+          }
+        }
+      },
+      {
+        "name": "crouch",
+        "type": "TEXT",
+        "size": {
+          "w": 262,
+          "h": 30
+        },
+        "content": "CROUCH",
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "text": {
+            "family": "Jersey 15",
+            "size": 24,
+            "weight": "400",
+            "align": "left"
+          }
+        }
+      },
+      {
+        "name": "run",
+        "type": "TEXT",
+        "size": {
+          "w": 262,
+          "h": 30
+        },
+        "content": "RUN",
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "text": {
+            "family": "Jersey 15",
+            "size": 24,
+            "weight": "400",
+            "align": "left"
+          }
+        }
+      },
+      {
+        "name": "reload",
+        "type": "TEXT",
+        "size": {
+          "w": 262,
+          "h": 30
+        },
+        "content": "RELOAD",
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "text": {
+            "family": "Jersey 15",
+            "size": 24,
+            "weight": "400",
+            "align": "left"
+          }
+        }
+      },
+      {
+        "name": "menu",
+        "type": "TEXT",
+        "size": {
+          "w": 262,
+          "h": 30
+        },
+        "content": "MENU",
+        "styles": {
+          "bg": "rgb(255, 255, 255)",
+          "text": {
+            "family": "Jersey 15",
+            "size": 24,
+            "weight": "400",
+            "align": "left"
+          }
+        }
+      }
+    ]
+  },
+  "summary": {
+    "components": 0,
+    "instances": 0,
+    "frames": 1,
+    "texts": 33,
+    "hasAutoLayout": true,
+    "hasEffects": true
+  }
+}

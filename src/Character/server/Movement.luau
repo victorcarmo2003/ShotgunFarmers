@@ -23,7 +23,9 @@ const Movement = Modux.Component("Movement", { Tag = "Movement" })
 
 function Movement:Setup()
 	self.Owner = self.Instance :: Player
+	self.BaseSpeed = WALK_SPEED :: number
 	self.WalkSpeed = WALK_SPEED :: number
+	self.SpeedModifiers = {} :: { [string]: number }
 	self.State = self.Libs.FSM.new("Walking" :: State, TRANSITIONS) :: FSMLib.FSM<State>
 end
 
@@ -34,12 +36,32 @@ function Movement:Publish()
 	})
 end
 
+function Movement:EffectiveSpeed(): number
+	local multiplier = 1
+	for _, modifier in self.SpeedModifiers do
+		multiplier = math.min(multiplier, modifier)
+	end
+
+	return math.floor(self.BaseSpeed * multiplier + 0.5)
+end
+
+function Movement:SetSpeedModifier(key: string, multiplier: number?)
+	if self.SpeedModifiers[key] == multiplier then
+		return
+	end
+
+	self.SpeedModifiers[key] = multiplier
+	self.WalkSpeed = self:EffectiveSpeed()
+	self:Publish()
+end
+
 function Movement:Enter(state: State, walkSpeed: number): boolean
 	if not self.State:Transition(state) then
 		return false
 	end
 
-	self.WalkSpeed = walkSpeed
+	self.BaseSpeed = walkSpeed
+	self.WalkSpeed = self:EffectiveSpeed()
 	self:Publish()
 	return true
 end
@@ -86,6 +108,8 @@ end
 
 function Movement:Reset()
 	self.State:ForceState("Walking")
+	table.clear(self.SpeedModifiers)
+	self.BaseSpeed = WALK_SPEED
 	self.WalkSpeed = WALK_SPEED
 	self:Publish()
 end

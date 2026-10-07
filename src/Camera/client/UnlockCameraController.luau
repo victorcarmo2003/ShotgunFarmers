@@ -6,7 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
 const UnlockCameraController = Modux.Controller("UnlockCameraController", {
-	Require = { "InputController" },
+	Require = { "GameStateController", "InputController" },
 	Priority = 400,
 })
 
@@ -27,11 +27,23 @@ function UnlockCameraController:Setup()
 
 	self.Gui = gui :: ScreenGui
 	self.Button = button :: TextButton
+	self.Forced = false :: boolean
+	self.Manual = false :: boolean
+	self.Menu = false :: boolean
 end
 
 function UnlockCameraController:SetUnlocked(unlocked: boolean)
 	self.Button.Modal = unlocked
 	UserInputService.MouseIconEnabled = unlocked
+end
+
+function UnlockCameraController:Refresh()
+	self:SetUnlocked(self.Forced or self.Manual or self.Menu)
+end
+
+function UnlockCameraController:SetMenu(open: boolean)
+	self.Menu = open
+	self:Refresh()
 end
 
 UnlockCameraController:OnInit(function(self)
@@ -44,11 +56,33 @@ UnlockCameraController:OnInit(function(self)
 end)
 
 UnlockCameraController:OnStart(function(self)
-	self.Dependencies.InputController
-		:Bind({ Name = "UnlockCamera", Key = Enum.KeyCode.Q, Priority = 10 })
-		.OnPress(function()
-			self:SetUnlocked(not self.Button.Modal)
-		end)
+	self.Dependencies.GameStateController:Watch("FirstPerson", function(on: boolean)
+		self.Forced = not on
+		self:Refresh()
+	end)
+
+	const handle = self.Dependencies.InputController:Bind({
+		Name = "UnlockCamera",
+		Key = Enum.KeyCode.LeftAlt,
+		Priority = 10,
+	})
+
+	handle.OnPress(function()
+		self.Manual = true
+		self:Refresh()
+	end)
+
+	handle.OnRelease(function()
+		self.Manual = false
+		self:Refresh()
+	end)
+
+	UserInputService.WindowFocusReleased:Connect(function()
+		if self.Manual then
+			self.Manual = false
+			self:Refresh()
+		end
+	end)
 end)
 
 return UnlockCameraController

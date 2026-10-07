@@ -50,6 +50,7 @@ function RigBuilder.Build(character: Model): (Model?, Animator?)
 	const hasRightArm = character:WaitForChild("Right Arm", RIG_WAIT_TIMEOUT)
 	const hasLeftArm = character:WaitForChild("Left Arm", RIG_WAIT_TIMEOUT)
 	if not hasTorso or not hasRightArm or not hasLeftArm then
+		warn("[RigBuilder] character sem Torso/Right Arm/Left Arm (rig nao e R6?); viewmodel nao sera criado")
 		return nil, nil
 	end
 

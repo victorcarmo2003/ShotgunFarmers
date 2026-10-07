@@ -76,12 +76,19 @@ Seed:OnInit(function(self)
 end)
 
 Seed:OnTick(function(self)
-	const prompt = self.Prompt
-	if not prompt or prompt.Enabled then
+	if self.Harvested then
 		return
 	end
 
-	if workspace:GetServerTimeNow() - self.PlantedAt >= SeedSettings.COLLECT_TIME_THRESHOLD then
+	const age = workspace:GetServerTimeNow() - self.PlantedAt
+	if age >= SeedSettings.SEED_LIFETIME then
+		self.Harvested = true
+		self.Instance:Destroy()
+		return
+	end
+
+	const prompt = self.Prompt
+	if prompt and not prompt.Enabled and age >= SeedSettings.COLLECT_TIME_THRESHOLD then
 		prompt.Enabled = true
 	end
 end, TICK_RATE)

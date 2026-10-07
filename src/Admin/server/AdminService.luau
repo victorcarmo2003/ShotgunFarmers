@@ -1,6 +1,7 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local AdminArguments = require(ReplicatedStorage.shared.Admin.AdminArguments)
 local AdminSettings = require(ReplicatedStorage.shared.Admin.AdminSettings)
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
 local Template = require(ServerScriptService.server.Profile.ProfileService.Template)
@@ -14,15 +15,6 @@ const AdminService = Modux.Service("AdminService", {
 	Require = { "PlayerService", "ProfileService" },
 	Priority = 640,
 })
-
-local function gunNames(): { string }
-	const names = {}
-	for name in GetGun.All do
-		table.insert(names, name)
-	end
-
-	return names
-end
 
 function AdminService:CommandGive(kind: string, target: Player, value: any)
 	const equipment = self.Components.Equipment:Get(target)
@@ -121,7 +113,7 @@ function AdminService:Register()
 				{
 					conch.args.literal("gun"),
 					conch.args.player("player"),
-					conch.args.enum_from_array("gun_name", gunNames())("gun_name"),
+					AdminArguments.GunName("gun_name"),
 				} :: { any },
 				{
 					conch.args.literal("ammo"),

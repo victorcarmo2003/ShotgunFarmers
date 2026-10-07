@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "exportedAt": "2026-10-01T02:58:46.628Z",
+    "componentName": "image 39",
+    "totalElements": 1,
+    "nestingDepth": 1,
+    "plugin": "Figma to JSON Exporter"
+  },
+  "designTokens": {
+    "colors": {},
+    "fonts": {},
+    "spacing": {},
+    "effects": {}
+  },
+  "structure": {
+    "name": "image-39",
+    "type": "RECTANGLE",
+    "size": {
+      "w": 1122,
+      "h": 631
+    }
+  },
+  "summary": {
+    "components": 0,
+    "instances": 0,
+    "frames": 0,
+    "texts": 0,
+    "hasAutoLayout": false,
+    "hasEffects": true
+  }
+}

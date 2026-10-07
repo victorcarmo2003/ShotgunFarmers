@@ -1,0 +1,12 @@
+--!strict
+return {
+	KILL_XP = 10,
+	HEADSHOT_XP = 5,
+	ASSIST_XP = 5,
+	MATCH_XP = 25,
+	WINNERS_IN_FFA = 3,
+	FARM_LIMIT = 3,
+	FARM_WINDOW = 60,
+	DAMAGE_FLUSH_INTERVAL = 1,
+	PRACTICE_MODE = "Practice",
+}

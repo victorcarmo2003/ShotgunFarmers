@@ -21,6 +21,11 @@ export type AnimationSet = {
 	Attack: string?,
 	Unpin: string?,
 	Throw: string?,
+	ThrowShort: string?,
+	PinIdle: string?,
+	AimIn: string?,
+	AimOut: string?,
+	Discard: string?,
 	Reload: string?,
 	Draw: string?,
 }

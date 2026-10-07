@@ -2,164 +2,10 @@
   "columns": [
     "todo",
     "in-progress",
+    "awaiting-approval",
     "done"
   ],
   "tasks": [
-    {
-      "id": "task-tower-001",
-      "title": "[FORA DE ESCOPO] Criar TowerConfig.luau (dados de combate)",
-      "description": "OBSOLETO: contaminação de uma sessão antiga que entendeu o projeto como tower defense. ShotgunFarmers é um FPS de arena (shotgun-jump), não tower defense -- confirmado em revisão de 2026-07-12: não existe TowerConfig.luau, AnimalDatabase nem qualquer arquivo relacionado a torres no repo real. Mantido (não deletado, só sinalizado) por regra do Revisor -- não iniciar trabalho nisto.\n\nDescrição original: Criar src/shared/Datas/TowerConfig.luau com types TowerLevelStats e TowerConfig. Implementar Get(animalId), GetLevelStats(animalId, level), GetUpgradeCost(animalId, currentLevel), GetSellValue(animalId, level), IsValid(animalId). REFUND_RATIO = 0.6. Definir stats iniciais pra pelo menos 2 animals do AnimalDatabase.",
-      "column": "done",
-      "tags": [
-        "tower-system",
-        "shared",
-        "out-of-scope"
-      ],
-      "priority": "high",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-enemy-001",
-      "title": "[FORA DE ESCOPO] Adicionar Reward no Enemy.luau",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. src/shared/Datas/Enemy.luau não existe no jogo real (FPS de arena). Não iniciar.\n\nDescrição original: Adicionar campo Reward: number no src/shared/Datas/Enemy.luau. Common: 10, Fast: 8, Boss: 100. depends: nenhum",
-      "column": "todo",
-      "tags": [
-        "enemy-system",
-        "shared",
-        "out-of-scope"
-      ],
-      "priority": "high",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-economy-001",
-      "title": "[FORA DE ESCOPO] Criar MatchEconomyService",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Economia in-match (cash por wave) não se aplica ao FPS de arena atual. Não iniciar.\n\nDescrição original: Criar src/server/Services/MatchEconomyService.luau. API: GetCash(player), AddCash(player, amount), TrySpend(player, amount): boolean, ResetForMatch(player?). Sinal: CashChanged(Player, number). Pacote: MatchCash server→client { Cash: number }. Import: PlayerService. Moeda in-match NÃO persiste entre matches. depends: task-enemy-001",
-      "column": "todo",
-      "tags": [
-        "economy",
-        "server",
-        "out-of-scope"
-      ],
-      "priority": "high",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-enemy-002",
-      "title": "[FORA DE ESCOPO] Criar EnemyDeathService",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não existe EnemyService neste jogo (é PvP entre jogadores, não onda de inimigos). Não iniciar.\n\nDescrição original: Criar src/server/Services/EnemyDeathService.luau. API: DealDamage(enemyGUID, rawDamage, attacker?), KillEnemy(enemyGUID, killer?), EnemyReachedBase(enemyGUID). Fórmula: effective = max(1, raw - Defense). Sinais: EnemyDamaged, EnemyKilled, EnemyReachedEnd. Pacotes: EnemyHealth e EnemyDied server→client. Conectar no path-end do EnemyService. depends: task-economy-001, task-enemy-001",
-      "column": "todo",
-      "tags": [
-        "enemy-system",
-        "server",
-        "out-of-scope"
-      ],
-      "priority": "high",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-tower-002",
-      "title": "[FORA DE ESCOPO] Criar PlacedTower type (shared)",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: Criar src/shared/Datas/PlacedTower.luau com type PlacedTowerData: GUID, Owner, AnimalId, Level, Position, Rotation, Targeting, LastAttack, CurrentTargetGUID?. depends: task-tower-001",
-      "column": "todo",
-      "tags": [
-        "tower-system",
-        "shared",
-        "out-of-scope"
-      ],
-      "priority": "high",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-tower-003",
-      "title": "[FORA DE ESCOPO] Criar TowerService (placement/upgrade/sell)",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: Criar src/server/Services/TowerService.luau. API: ValidatePlacement, PlaceTower, UpgradeTower, SellTower, SetTargeting, ClearPlayerTowers. Pacotes: RequestPlaceTower/UpgradeTower/SellTower/SetTargeting (client→server), ReplicateTower/RemoveTower/PlacementResult (server→client). Imports: MatchEconomyService, PlayerService, WaypointsService. depends: task-tower-001, task-tower-002, task-economy-001",
-      "column": "in-progress",
-      "tags": [
-        "tower-system",
-        "server",
-        "out-of-scope"
-      ],
-      "priority": "high",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-tower-004",
-      "title": "[FORA DE ESCOPO] Criar TowerCombatService (targeting/attack loop)",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: Criar src/server/Services/TowerCombatService.luau. Loop 60Hz com OnSimulation. API: AcquireTarget(tower), GetEnemyServerPosition(enemyData), Attack(tower, enemyGUID). Targeting modes: First, Last, Closest, Strongest, Weakest. Pacote: TowerAttack server→client { TowerGUID, EnemyGUID, AttackType }. Imports: TowerService, EnemyService, EnemyDeathService, WaypointsService. depends: task-tower-003, task-enemy-002",
-      "column": "in-progress",
-      "tags": [
-        "tower-system",
-        "server",
-        "out-of-scope"
-      ],
-      "priority": "high",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-preview-001",
-      "title": "[FORA DE ESCOPO] Fix bugs do TowerPreviewController",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. TowerPreviewController não existe no jogo real. Não iniciar.\n\nDescrição original: 1) ValidatePosition sempre retorna true — falta return após setar false. 2) VisualWorldPosition calculado mas não usado no PivotTo. 3) Adicionar highlight vermelho/verde conforme posição válida. Arquivo: src/client/Controllers/TowerPreviewController.luau",
-      "column": "todo",
-      "tags": [
-        "tower-system",
-        "client",
-        "code-issue",
-        "out-of-scope"
-      ],
-      "priority": "high",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-preview-002",
-      "title": "[FORA DE ESCOPO] Adicionar GetPlacement e rotação no Preview",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: No TowerPreviewController: adicionar GetPlacement(): (Vector3?, boolean) pra não acessar campos internos. Adicionar suporte a rotação (R/Q ou scroll). depends: task-preview-001",
-      "column": "todo",
-      "tags": [
-        "tower-system",
-        "client",
-        "out-of-scope"
-      ],
-      "priority": "medium",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-tower-005",
-      "title": "[FORA DE ESCOPO] Redesign TowerController (client)",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: Refazer src/client/Controllers/TowerController. Flow: UI/hotbar → BeginPlacement(animalId) → preview → confirmar → envia RequestPlaceTower → recebe PlacementResult → sucesso: StopPreview / falha: NotificationController. Recebe ReplicateTower → clona modelo permanente. Recebe RemoveTower → remove modelo. Remover código demo (zenitsu hardcoded, HumanoidRootPart.Touched). depends: task-tower-003, task-preview-002",
-      "column": "todo",
-      "tags": [
-        "tower-system",
-        "client",
-        "out-of-scope"
-      ],
-      "priority": "high",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-wave-001",
-      "title": "[FORA DE ESCOPO] Implementar WaveService",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. O jogo real usa GameService (FSM Starting/Match/Intermission/Vote, ver task-game-001), não waves de inimigos. Não iniciar.\n\nDescrição original: Implementar src/server/Services/WaveService.luau (já existe como shell vazio). Usar WaveSettings pra wave progression, enemy spawn scheduling, difficulty scaling, boss waves a cada 5. Detectar wave completion (todos inimigos mortos). depends: task-enemy-002",
-      "column": "todo",
-      "tags": [
-        "wave-system",
-        "server",
-        "out-of-scope"
-      ],
-      "priority": "medium",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
     {
       "id": "task-game-001",
       "title": "Fix GameService FSM + integrar WaveService",
@@ -169,92 +15,6 @@
         "game-flow",
         "server",
         "client"
-      ],
-      "priority": "medium",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-issue-001",
-      "title": "[OBSOLETO] Fix Resources.luau nomes vazios",
-      "description": "OBSOLETO confirmado em 2026-07-12: src/shared/Datas/Resources.luau foi DELETADO do repo entre o commit inicial e o commit atual (86 linhas removidas, 0 substituto criado). Não há nada pra corrigir -- se o conceito de \"resources\" for necessário de novo (ex: pra farming/seeds), precisa ser desenhado do zero, não é um fix do arquivo antigo.\n\nDescrição original: 13 de 14 resources em src/shared/Datas/Resources.luau têm Name = ''. Preencher os nomes corretamente.",
-      "column": "todo",
-      "tags": [
-        "data",
-        "shared",
-        "code-issue",
-        "out-of-scope"
-      ],
-      "priority": "low",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-issue-002",
-      "title": "[FORA DE ESCOPO] Renomear Tower.luau → AnimalDatabase.luau",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Confirmado em 2026-07-12: src/shared/Datas/Tower.luau nunca existiu neste repo (nenhum resultado pra Tower.luau ou AnimalDatabase em todo o src/). Não iniciar.\n\nDescrição original: src/shared/Datas/Tower.luau contém AnimalDatabase, não dados de torre. Renomear pra clareza. Atualizar todos os requires.",
-      "column": "todo",
-      "tags": [
-        "data",
-        "shared",
-        "code-issue",
-        "out-of-scope"
-      ],
-      "priority": "low",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-ui-001",
-      "title": "[FORA DE ESCOPO] Tower placement UI (hotbar)",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. A UI real de armas já existe (GunBar/WeaponSlot em src/client/Interface/GameComponents/, wired em InterfaceController) e não usa hotbar de colocação de torre. Não iniciar.\n\nDescrição original: UI de inventário/hotbar mostrando towers disponíveis com custo e ícone. Integrar com TowerController.BeginPlacement. Usar ScreenController pra janela.",
-      "column": "todo",
-      "tags": [
-        "ui",
-        "client",
-        "out-of-scope"
-      ],
-      "priority": "medium",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-ui-002",
-      "title": "[FORA DE ESCOPO] Tower info/upgrade UI",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não iniciar.\n\nDescrição original: UI que aparece ao clicar numa torre colocada: stats, opções de upgrade, botão de vender, targeting mode. Integrar com TowerController.",
-      "column": "todo",
-      "tags": [
-        "ui",
-        "client",
-        "out-of-scope"
-      ],
-      "priority": "medium",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-ui-003",
-      "title": "[FORA DE ESCOPO] Wave info + currency display UI",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. O round/timer real já tem UI (TimerLabel via RoundController, ver task-game-001). Não iniciar.\n\nDescrição original: UI mostrando wave atual, inimigos restantes, e cash in-match. Atualizar via pacotes WaveInfo e MatchCash.",
-      "column": "todo",
-      "tags": [
-        "ui",
-        "client",
-        "out-of-scope"
-      ],
-      "priority": "medium",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-ui-004",
-      "title": "[FORA DE ESCOPO] Enemy health bars",
-      "description": "OBSOLETO: contaminação de tower defense, ver task-tower-001. Não há inimigos NPC -- é PvP entre jogadores (VitalComponent/VitalController já cobrem vida do próprio jogador e de outros via StatusBar). Não iniciar.\n\nDescrição original: BillboardGui com barra de HP acima dos modelos de inimigo. Atualizar via pacote EnemyHealth. Remover quando inimigo morre.",
-      "column": "todo",
-      "tags": [
-        "ui",
-        "client",
-        "out-of-scope"
       ],
       "priority": "medium",
       "createdAt": "2026-06-26",
@@ -556,6 +316,482 @@
       "priority": "low",
       "createdAt": "2026-07-12",
       "updatedAt": "2026-07-12"
+    },
+    {
+      "id": "task-weapon-discard-001",
+      "title": "Descartar arma sem munição (animação de jogar fora)",
+      "description": "Quando a munição acaba, o jogador joga a arma fora. Depende da animação que o usuário vai criar (Throw/Discard no AnimationSet). Integrar: estado no PoseMachine, remoção do slot no Equipment (servidor) e efeito visual da arma caindo.",
+      "column": "todo",
+      "tags": [
+        "weapon",
+        "client",
+        "server"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-01",
+      "updatedAt": "2026-10-01"
+    },
+    {
+      "id": "task-vfx-muzzle-002",
+      "title": "Alinhar VFX ao muzzle durante animações",
+      "description": "Muzzle flash e origem dos tracers devem seguir a ponta do cano frame a frame, inclusive durante Draw/Aim/recuo. Usar attachment Muzzle no modelo da arma (viewmodel e 3ª pessoa) atualizado no RenderStepped após as animações.",
+      "column": "done",
+      "tags": [
+        "vfx",
+        "client"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-01",
+      "updatedAt": "2026-10-01"
+    },
+    {
+      "id": "task-ui-menublur-003",
+      "title": "Blur + FOV maior em Tab, Options e menu Esc do Roblox",
+      "description": "Aplicar BlurEffect e aumentar levemente o FOV quando LeaderstatsUI (Tab), OptionsUI ou GuiService.MenuOpened estiverem ativos; tween de entrada/saída; sem conflitar com FOVController.",
+      "column": "done",
+      "tags": [
+        "ui",
+        "camera",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-01",
+      "updatedAt": "2026-10-01"
+    },
+    {
+      "id": "task-throw-preview-004",
+      "title": "Preview da trajetória da granada com botão direito",
+      "description": "Segurar botão direito com granada/lançador equipado mostra a trajetória prevista (ThrowSim) e o ponto de queda/detonação.",
+      "column": "done",
+      "tags": [
+        "weapon",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-01",
+      "updatedAt": "2026-10-01"
+    },
+    {
+      "id": "task-practice-loadout-005",
+      "title": "Painel de Practice: escolher qualquer arma, munição/granadas ilimitadas",
+      "description": "No modo Practice, interface para escolher qualquer arma, toggles de munição ilimitada e granadas ilimitadas. Prioridade alta: o manager precisa gravar todas as armas individualmente. Autoridade no servidor, só em Practice.",
+      "column": "done",
+      "tags": [
+        "practice",
+        "weapon",
+        "ui",
+        "server",
+        "client"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-01",
+      "updatedAt": "2026-10-01"
+    },
+    {
+      "id": "task-spawn-003",
+      "title": "Spawn quebrado: dentro de prédio, embaixo do mapa, preso voando",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedbacks: \"spawn bugado no freeforall\", \"spawn em geral bugado\", \"nascendo dentro de um hotel\", \"spawnando de baixo do mapa\", \"respawnei voando e nao consigo sair\".\n\nInvestigar SpawnService: origem dos pontos (SpawnArea/AreasConfig), raycast pro chão, checagem de overlap com geometria, modo FFA. Relacionado: task-spawn-001.\n\nCORRIGIDO EM CÓDIGO (2026-10-06), aguardando playtest. Causa: GetTagged(FFASpawn) incluía 29 pontos dos templates em ServerStorage.Maps (WildWest Y=486, Practice Y=50), sem chão. SpawnService agora filtra pontos ao Workspace, faz raycast de chão, checa espaço livre com GetPartsInPart (geometria real; GetPartBoundsInBox dava falso positivo em Unions) + teto, embaralha e tem fallback; zera velocidade; guards contra spawn duplo; pcall no LoadCharacterAsync. Simulação no Studio: 20/21 pontos do HappyFarm válidos.\n\nPENDENTE NO STUDIO: remover tag FFASpawn dos templates em ServerStorage.Maps; ponto Y=6.9 enterrado no MIDFLOOR; 2 pontos dentro do CELEIRO são válidos fisicamente mas spawnam dentro do prédio -- mover se indesejado; marcadores com Transparency=0 visíveis.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: BUG: Character/server/SpawnService.luau:23-28 RandomPointOn sorteia ponto na face da part + SpawnOffset (MatchSettings:7) sem raycast de chão, overlap, teto nem zerar velocidade. GetFFASpawns já varre só o clone do mapa (EnvironmentService:215,248). Também revisar FFASpawns ruins no Studio. IMPLEMENTADO ModuxGames 2026-10-06: validação de spawn (raycast chão, GetPartsInPart com probe, teto), anti spawn-kill (top 3 mais longe de inimigos, evita spawn recente), fallback, zera velocidade. Calibrar SpawnFootOffset conforme rig (R6/R15). Ajustes de mapa no Studio: marcadores FFASpawn visíveis/enterrados/dentro de prédios.\n\nAPROVADO pelo usuário 2026-10-07 (testado no Studio).\n\n2026-10-07: HappyFarm e WildWest não tinham a tag FFASpawn nas 21 parts da pasta FFASpawn (só Practice tinha) — tagueado no place via Studio (salvar).",
+      "column": "done",
+      "tags": [
+        "spawn",
+        "server",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-death-002",
+      "title": "Reset Character não funciona",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nReportado 2x por jogadores diferentes. Provável StarterGui:SetCore(\"ResetButtonCallback\", false) ou fluxo de morte customizado (VitalComponent/DeathCameraController) que não trata o reset. Fix: callback com BindableEvent passando pelo fluxo de morte do VitalService. [Implementado: packet RequestReset (Network), ResetController (ResetButtonCallback), handler em VitalService chamando TakeDamage; aguardando playtest; regenerar tipos Modux (CoreTypes RequestReset)]\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: BUG BLOQUEANTE: sem ResetButtonCallback nem Humanoid.Died. CharacterAutoLoads=false (SpawnService:234); respawn só via VitalService:Kill (:31) chamado por Vital:TakeDamage. Reset/void deixam jogador morto pra sempre. IMPLEMENTADO ModuxGames 2026-10-06: RequestReset (Vital/shared/Net) + ResetButtonCallback no VitalController + VitalService:Reset com rate limit 1s + Humanoid.Died -> TakeDamage como rede de segurança (void). Aguardando playtest: Esc>Reset, cair no void, reset repetido, reset no lobby/practice. Regenerar ModuxTypes.\n\nAPROVADO pelo usuário 2026-10-07 (testado no Studio).",
+      "column": "done",
+      "tags": [
+        "death",
+        "client",
+        "server",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-game-002",
+      "title": "Fim de partida não inicia votação nem reseta o round",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedbacks: \"encerramento de partida nao começa votação para o proximo mapa, ele apenas fecha a ui e continua no mesmo jogo ate com a mesma arma\" + \"hud de votação está quebrado\".\n\nVerificar transição do FSM do GameService pro estado de votação, packets de votação e UI (RoundController/Interface).\n\nIMPLEMENTADO 2026-10-06: MapService (novo) carrega mapa em workspace.CurrentMap a partir de ServerStorage.Maps, votação HappyFarm/WildWest (MapSettings), packets VoteOptions/CastVote/VoteCounts/MapResult. GameService: Vote -> StartVote; Vote->Starting -> FinishVote (vencedor, empate sorteado, sem voto evita repetir) + respawn de todos. Client: VoteMenu (Fusion), RoundController libera mouse no Vote e usa labels PT. Aguardando playtest; regenerar tipos Modux.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE INEXISTENTE: Round/server/RoundService é só timer Starting->Match->Intermission->Vote->Starting; Vote é rótulo. Sem packets/UI de voto, sem troca de mapa, sem respawn. GameModes.ScoreLimit não é lido. Ranked volta ao lobby (MatchmakingService:480-486); casual nada acontece.\n\nIMPLEMENTADO ModuxGames 2026-10-06: Round/server/MapVoteService (novo) abre votacao ao entrar em Vote (RoundService:SetSkip pula Vote em Practice/Ranked/<2 mapas/0 jogadores), Net Round.VoteOptions/CastVote/VoteResult, vencedor (empate sorteado, sem voto evita mapa atual) aplicado ao entrar em Starting via EnvironmentService:SwapMap + ServerRoleService:SetMap, limpa workspace.Seeds e respawna todos (SpawnService:RespawnAll). Client: Round/client/VoteMenu + VoteMenu.story + VoteController (vencedor segurado 2s). Rodar rogen build + modux generate; testar no Studio com ForceRole/ForceMode/ForceMap e RoundSettings reduzidos.",
+      "column": "awaiting-approval",
+      "tags": [
+        "game",
+        "server",
+        "client",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-game-003",
+      "title": "Armas da partida anterior continuam no inventário",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nAo recomeçar partida, EquipmentComponent mantém slots antigos. Limpar inventário no início de cada round. depends:task-game-002.\n\nIMPLEMENTADO 2026-10-06: EquipmentComponent:ResetLoadout() destroi weapon instances, limpa Loadout/SlotAmmo, replica Ammo=0 e concede arma nova; chamado pelo GameService.BeginRound pra cada jogador a cada novo round. Aguardando playtest; regenerar tipos Modux.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: BUG: Weapon/server/Equipment.luau:420-437 só reseta loadout no respawn; round não respawna ninguém. Capability Loadout true em todos estados (GameState:119-122).\n\nIMPLEMENTADO ModuxGames 2026-10-06: a cada Starting o MapVoteService re-sorteia e SpawnService:RespawnAll recarrega todos os personagens; Equipment:Respawn (resetLoadout) apaga slots diferentes de Hoe antes de conceder a arma inicial. Rodar rogen build + modux generate; testar no Studio com ForceRole/ForceMode/ForceMap e RoundSettings reduzidos.",
+      "column": "awaiting-approval",
+      "tags": [
+        "game",
+        "weapon",
+        "server",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-game-004",
+      "title": "Todos os jogadores começam com a Shotgun",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nAo iniciar round/spawn, conceder Shotgun no slot 1 (GrantWeapon). Implementar junto com task-game-003.\n\nIMPLEMENTADO 2026-10-06: em vez de Shotgun fixa, cada jogador recebe arma ALEATORIA de LoadoutSettings.StartingWeaponPool (Shotgun, Peavolver: unicas com componente de tiro server). Vale tambem no OnInit do componente (entrada no meio do jogo). Aguardando playtest; regenerar tipos Modux.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: Equipment.luau:17-20 DEFAULT_LOADOUT = [3]=Hoe; armas vêm de seeds (WeaponSpawnService). Usuário decidiu (repo antigo): arma aleatória por jogador a cada round.\n\nIMPLEMENTADO ModuxGames 2026-10-06: Weapon/shared/LoadoutSettings.StartingWeaponPool validado no servidor (existe, nao Disabled, Firearm); sorteio por jogador a cada round; Equipment:Respawn consulta MapVoteService:TakeStart (late join ganha arma no primeiro spawn; morte respawna so com Hoe; Practice sem arma inicial). Rodar rogen build + modux generate; testar no Studio com ForceRole/ForceMode/ForceMap e RoundSettings reduzidos.\n\nAPROVADO pelo usuário 2026-10-07 (testado no Studio).",
+      "column": "done",
+      "tags": [
+        "game",
+        "weapon",
+        "server",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-weapon-004",
+      "title": "Armas não aparecem na mão / arma invisível",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedbacks: \"armas nao estao aparecendo na mao\" + \"tem alguma arma que ta invisivel, apertei o botao direito pra aparecer a mira e fica essa area grandona\".\n\nChecar ArmsController/rig ArmWeld (Motor6D recriado em runtime) e modelos faltando por arma. Identificar qual arma tem ADS gigante. Relacionado: task-weapon-003.\n\nAUDITORIA ModuxGames 2026-10-06: Provável asset (d): weldWeapon em Weapon/client/ArmsController.luau:70-101 (ArmWeld/BodyWeld R6). Falhas silenciosas sem warn: modelo ausente (:166-168), sem PrimaryPart/Handle (:72-75), RigBuilder.Build nil se não R6 (Character/client/RigBuilder:49-54). Suspeitos sem modelo: Gromato Launcher, Chilli Thrower, Double Cob.\n\n2026-10-06 (ModuxGames): adicionados warn (1x por arma) nos pontos de falha silenciosa: ArmsController weaponAsset (asset ausente), weldWeapon (sem parte de solda, sem PrimaryPart/Handle, ArmWeld ausente criado com C0/C1 identidade), RigBuilder (rig nao R6), Equipment.attachWeaponVisual (asset ausente, BodyWeld ausente, sem PrimaryPart). PROXIMO PASSO: playtest no Studio, coletar os warns do Output e corrigir os assets em ReplicatedStorage.Assets.Weapons (welds C0/C1, PrimaryPart, modelos faltando).\n\nDIAGNÓSTICO NO STUDIO 2026-10-06: rig R6 ok. Assets.Weapons: faltam Chilli Thrower e Gromato Launcher (Double Cob desativada). Shotgun sem ArmWeld/BodyWeld. Todas as outras com ArmWeld e BodyWeld em C0/C1 IDENTIDADE (exceto ArmWeld de Bananarang e Lemonade). Teste visual: com identidade a arma fica dentro do braço/torso, só a ponta aparece = causa do bug. CORREÇÃO: popular C0/C1 corretos (fonte candidata: Assets/Guns.rbxm, All Assets.rbxl, backup/12_07_26.rbxl ou rigs de referência RIGS_ARMAS/BODY_RIGS_ARMAS) e criar os 2 modelos faltantes.\n\n2026-10-06: PAUSADO pelo usuário para revisitar depois. Ancoragem descartada (nenhuma part ancorada nos assets; código desancora). Causa = Motor6D C0/C1 identidade. warns de diagnóstico ficam no código.",
+      "column": "todo",
+      "tags": [
+        "weapon",
+        "client",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-input-001",
+      "title": "TAB: zoom-in de FOV em vez de parecer corrida",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nKeybind de sprint errado. Ajustar InputController/MovementController pra LeftShift; TAB deve ficar livre (placar).\n\n2026-10-06: diagnóstico -- TAB não tinha código; FOV sobe de 70 pra 73 ao ANDAR (FOVController FOVList.Run), Shift não tem sprint (WalkSpeed já é 28 fixo). Pedido do usuário: segurar TAB diminui FOV em 8 (SCOREBOARD_FOV_DELTA, clamp MIN_FOV 40) via UserInputService (não sink, PlayerList do Roblox segue funcionando). Tween só recriado quando o alvo muda. Aguardando playtest.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: BUG/design: TAB ligado em Stats/client/LeaderstatsController:121-141 -> MenuEffectsController:Open -> blur + MENU_FOV_BOOST +6 (Camera/client/FOVController:41,69). FOV +3 ao andar (:11,39). Sem sprint no client. Pedido do usuário: TAB deve DIMINUIR FOV (zoom in).\n\nIMPLEMENTADO ModuxGames 2026-10-06: MenuEffectsController ganhou FOV_DELTAS por source (Leaderstats=-8, demais +6) e FovDelta() (maior delta entre sources abertas); FOVController usa esse delta no lugar de MENU_FOV_BOOST. Blur do placar mantido. Hold/toggle do Tab inalterado.\n\nAPROVADO pelo usuário 2026-10-06 (testado no Studio).",
+      "column": "done",
+      "tags": [
+        "input",
+        "movement",
+        "client",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-input-002",
+      "title": "Apertar Q solta o mouse da tela",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nQ destrava MouseBehavior. Provável UnlockCameraController. Decidir se Q deveria fazer outra coisa e remover/rebindar o unlock.\n\n2026-10-06: Q era toggle intencional do UnlockCameraController (mouse livre pra UI). Trocado por SEGURAR Left Alt. Unlock manual (HeldUnlocked) e externo (ExternalUnlocked, usado pela votação via SetUnlocked) agora são independentes; RoundController chama SetUnlocked sem checar Modal. Q livre. Aguardando playtest.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: Design: Q alterna mouse livre em Camera/client/UnlockCameraController:154-163. Usuário decidiu: segurar Left Alt, independente do unlock automático (votação/menus).\n\nIMPLEMENTADO ModuxGames 2026-10-06: UnlockCamera agora e segurar LeftAlt (OnPress Manual=true, OnRelease Manual=false), independente de Forced (FirstPerson watch, agora via Refresh) e Menu; WindowFocusReleased zera Manual; InputController trata Cancel como release; OptionsCatalog default LeftAlt.\n\nAPROVADO pelo usuário 2026-10-06 (testado no Studio).",
+      "column": "done",
+      "tags": [
+        "input",
+        "camera",
+        "client",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-input-003",
+      "title": "Apertar C deixa o jogador lento",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nC provavelmente é crouch (lentidão esperada). Confirmar se é intencional; se sim, falta feedback visual/animação de agachar (ver task-anim-019). Se não, revisar estado de velocidade preso.\n\n2026-10-06: C é crouch toggle intencional (WalkSpeed 28->10). Sem feedback em 1a pessoa parecia bug. MovementController agora tweena Humanoid.CameraOffset pra (0,-1.5,0) em 0.2s no estado Crouch e volta a zero nos outros estados; tween cancelado no respawn. Aguardando playtest.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: Intencional: C=crouch (Character/server/Movement.luau:11,77-83, 28->10). Sem CameraOffset. Usuário decidiu: câmera desce ~1.5 stud ao agachar.\n\nIMPLEMENTADO ModuxGames 2026-10-06: MovementController tweena Humanoid.CameraOffset para (0,-1.5,0) em 0.2s Quad Out ao entrar em Crouch e volta a zero ao sair (reage a MovementState replicado em Apply); tween cancelado em BindCharacter (respawn) e offset aplicado instantaneo em SetHumanoid. Nenhum outro uso de CameraOffset no projeto.\n\nAPROVADO pelo usuário 2026-10-06 (testado no Studio).\n\nREABERTO 2026-10-07: câmera ao agachar ok, falta animação de crouch.",
+      "column": "in-progress",
+      "tags": [
+        "input",
+        "movement",
+        "client",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-map-001",
+      "title": "Portas e celeiros bloqueando passagem",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedbacks: \"nao consigo passar da porta\", \"porta bugada\", \"nao da pra entrar no celeiro\", \"tambem nao e possivel entrar no celeiro no mapa azul\". Revisar colisão das portas e entradas de celeiro em todos os mapas.\n\n2026-10-06: causa confirmada pelo usuário -- CollisionFidelity dos meshes (celeiros/portas). Usuário vai ajustar no Blender/reimportar.",
+      "column": "todo",
+      "tags": [
+        "map",
+        "studio",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-map-002",
+      "title": "Cerca permite pular e fugir do mapa",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nAumentar altura da cerca ou adicionar parede invisível nos limites + kill zone fora do mapa.",
+      "column": "todo",
+      "tags": [
+        "map",
+        "studio",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-map-003",
+      "title": "Props flutuando e atravessando geometria",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nBarril flutuando, outras caixas flutuando, bloco de palha atravessando a primeira casa do mapa. Ajuste manual no Studio.",
+      "column": "todo",
+      "tags": [
+        "map",
+        "studio",
+        "playtest"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-map-004",
+      "title": "Pontos brancos espalhados pelo mapa",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nOrigem desconhecida. Suspeitas: parts/attachments de spawn visíveis, partículas, decals sem textura. Inspecionar no Studio.",
+      "column": "todo",
+      "tags": [
+        "map",
+        "studio",
+        "playtest"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-map-005",
+      "title": "\"A pá tá bugada\" -- esclarecer",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedback ambíguo junto com \"nao consigo passar da porta\". Perguntar ao Dots o que é a pá e qual o bug.",
+      "column": "todo",
+      "tags": [
+        "map",
+        "weapon",
+        "playtest"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-weapon-005",
+      "title": "Scope da sniper bugado",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nRevisar ADS/scope overlay e FOVController da sniper. Pedir print/vídeo se não reproduzir.\n\nIMPLEMENTADO 2026-10-06: GunData.Scope (Fov/SensitivityMultiplier/HideViewmodel) em Sniperagus (Fov 20) e Snipine (Fov 30, sens 0.35); ScopeController (sensibilidade, esconde viewmodel, reset em morte/troca de arma); FOVController usa ScopeFov com tween 0.2s Quad Out; ScopeOverlay (ScopeUI, DisplayOrder 5) com circulo, anel, reticula e vinheta; ScopeBlur (Glass Parts Transparency>1 + DepthOfField); ArmsController.EquipCurrentGun faz SetAiming(false). PENDENTE: calibrar constantes de blur (DOF/Glass Transparency em Controllers/Scope/ScopeBlur.luau) no Studio com grafico >= 8; regenerar tipos Modux.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: sem scope; ADS -1 FOV. Só sensibilidade especial Sniperagus (Options/client/SensitivityController:8-30). Decisão em aberto: protótipo ViewportFrame (centro câmera com zoom, fora mundo sem zoom) + benchmark, ou máscara PNG.\n\nBENCHMARK STUDIO 2026-10-06 (PC do usuário, mapa Practice 1050 parts, play solo): sem scope cpu 4.4ms gpu ~2ms; 1 ViewportFrame centro com clone do mapa: cpu +0.5ms, +9MB, clone 56ms; 4 ViewportFrames (faixas externas): cpu +0.2ms, +21MB, clone 220ms. LIMITAÇÕES confirmadas: ViewportFrame NÃO é recortado redondo (nem ClipsDescendants+UICorner nem CanvasGroup) — cantos precisam ser cobertos por imagem/anel; ViewportFrame tem iluminação chapada (sem sombra/céu/pós-processo) e não mostra objetos dinâmicos (projéteis, VFX, seeds) sem replicar. Mobile não medido (Studio não emula GPU).\n\nTESTE DE FURO 2026-10-06 (imagem rbxassetid://106744997462557, vermelho com centro alfa 0): (T1) ViewportFrame dentro de ImageLabel com furo + ClipsDescendants -> imagem NAO recorta, geometria do VF passa por cima do furo. (T4) discos dentro do VF na frente da câmera dele: Glass Transparency 1.02 = invisível, sem efeito; Glass 0.5 e ForceField = mostram o próprio VF; Transparency -1 = opaco. Nenhum fura o VF até o mundo real. Achado: VF é transparente onde não há geometria (céu). Conclusão: furo redondo num VF único não é possível; alternativas: 4 faixas + PNG nos cantos, 2 faixas laterais, ou só PNG.\n\nTÉCNICA QUE FUNCIONA (ideia do usuário, testada 2026-10-06, qualidade 10): placa na frente da câmera com SurfaceGui (AlwaysOnTop=false) contendo ViewportFrame com clone do mapa (FOV base) + disco Part Cylinder Material Glass Transparency 0.9-0.995 cor branca entre câmera e placa = furo redondo limpo que mostra o mundo real (câmera real com FOV 20). Glass com Transparency 1.02 NÃO funciona (invisível sem efeito); 0.5 deixa tinta azul. Custo PC: +0.1ms CPU, +6MB, clone 41ms. LIMITAÇÃO: Glass esconde tudo que é transparente atrás dele — dentro da luneta somem partes semitransparentes e ParticleEmitters (tracers/VFX/explosões), e também SurfaceGui/BillboardGui. Partes opacas aparecem normal. Cilindro é facetado (cobrir borda com anel PNG). Falta testar em qualidade gráfica baixa/mobile.\n\nCALIBRAÇÃO DE COR 2026-10-06 (mapa Practice; Lighting Brightness 3.2, Ambient/OutdoorAmbient 70,70,70, Atmosphere haze, 2 ColorCorrection): ViewportFrame cru saía escuro e saturado (chão real 247,208,147 vs VF 229,159,52). Preset calibrado por comparação de pixels: VF.LightColor = Color3.new(1.42,1.43,1.38) (HDR >1 funciona), VF.Ambient = Color3.new(0.5,0.47,0.72), VF.LightDirection = -Lighting:GetSunDirection(), Frame Haze por cima do VF cor (170,200,255) BackgroundTransparency 0.9, céu = Frame com UIGradient atrás do VF. Erro médio final ~11/19/11 por canal (R/G/B), inclinação ~1.0. IMPORTANTE: SurfaceGui.CanvasSize deve igualar camera.ViewportSize e a placa ter exatamente o tamanho do frustum, senão o VF desalinha/estica. Decisões do usuário: preset de iluminação por mapa; NÃO copiar personagens para o VF (só aparecem dentro da luneta); testar blur suave depois da iluminação.\n\nIMPLEMENTADO ModuxGames 2026-10-06: GunData.Scope (Fov/Sensitivity?) em Sniperagus 20 e Snipine 30; ScopeSettings (ResolutionScale 1, CircleFraction 0.8, disco 0.97, anel 126099400506445 inner 0.88) + Maps.ScopeLighting (Practice explicito, default igual); ScopeController (preload do clone de workspace.Map ao carregar/trocar, Plane+SurfaceGui+ViewportFrame+disco Glass so em scope via RenderStep), ScopeView, ScopeCharacters (clones dos outros jogadores no WorldModel, Motor6D.Transform copiado por frame), ScopeOverlay (+story); FOVController usa ScopeController:Fov() com tween 0.2s; SensitivityController usa gunData.Scope; ArmsController:SetViewmodelHidden. HappyFarm/WildWest sem calibração (usam default Practice)\n\nREDESENHO 2026-10-06: HÍBRIDO PiP (sem mira) + Glass (mirando) com transição. ScopeLens.luau: SurfaceGui na lente traseira do viewmodel (Part ScopeLensSurface soldada por Motor6D, face pelo eixo mais longo voltada à câmera, VF com clone do mapa, anel+retícula); ScopeView.luau (Glass) agora recebe alpha/fração/centro; ScopeViewmodel.luau espelha o viewmodel no VF externo (real escondido com alpha>0.9); ScopeController coordena alpha (0.2s smoothstep), lente projetada via WorldToViewportPoint como origem do círculo; lente Sniperagus=BézierCurve.003, Snipine=Cylinder.021 (validar visual no Studio).\n\nZOFFSET DINAMICO 2026-10-07: novo Weapon/client/GlassZOffset.luau (registro de ParticleEmitter/Beam rastreados com expiracao, ZOffset = original + profundidade - DiscDistance - 0.05 quando profundidade > DiscDistance+0.1, so se visivel por raycast (a cada 0.1s, ignora camera/personagem/pastas Bullets,Throwables,ThrowPreview,Seeds, atravessa partes com Transparency>=0.9, max 3), restaura ao expirar/desligar Glass). ScopeController: GlassActive(), DiscDistance(), RenderStep Camera+5 so com Glass ativo. Cobertos: impactos (BurstAt), muzzle/flame de outros jogadores, tracers (Beam/Particle) em ProjectileController, explosoes e zonas de throwables. Limitacao: Trail nao tem ZOffset. Pendente teste em Studio. KICK DA LUNETA 2026-10-07: ScopeController:Kick() (chamado em HitController:FireHitscan se gunData.Scope) aplica spring 2D+roll (ScopeSettings.Kick*) somado ao center do disco Glass e do overlay (anel/reticula, Rotation) e a reticula do PiP via ScopeLens.SetKick; spring parado nao atualiza.\n\nLENTE CALIBRADA 2026-10-07 (Studio): Attachment ScopeLens dentro da malha principal. Sniperagus BézierCurve.002 pos (-0.1426, 0.4712, 0.8800); Snipine Cylinder.010 pos (-0.0901, 0.5319, 0.9680); LensDiameter 0.2851 em ambas; LensOffset default 0.06. Molde circular do PiP = anel de 24 placas Glass (ScopeLens buildMask). BENCHMARK PC: PiP ~+1ms CPU, GPU dentro do ruído; mirando +0.14ms CPU +0.5ms GPU; memória ~+20MB (2 clones do mapa). Mobile não medido.\n\nPENDENTE 2026-10-07: usuário pediu lapidar a transição do scope ao mirar (PiP -> modo mira).\n\n2026-10-07: modo mira com 4 faixas de VF + halo na cor da arma (sem Glass); GlassZOffset removido\n\nAPROVADO pelo usuário 2026-10-07 (modo mira com 4 faixas + halo + PiP).",
+      "column": "done",
+      "tags": [
+        "weapon",
+        "client",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-weapon-006",
+      "title": "Arco bugado",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nDetalhe não informado. Provável arma sem componente de tiro (task-weapon-003) ou projétil errado (task-projectile-*). Reproduzir.\n\nAUDITORIA ModuxGames 2026-10-06: Arco = Strawborry (GunsData:242-261, FireMode Projectile via ThrowableController/Service, ProjectileModel StrawborryArrow). Sem detalhe do bug; reproduzir.",
+      "column": "todo",
+      "tags": [
+        "weapon",
+        "client",
+        "server",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-weapon-007",
+      "title": "Armas com range infinito",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nDefinir range máximo por arma em Guns.luau e aplicar no HitService. A migração balística (task-projectile-*) pode resolver via queda/tempo de vida -- conferir antes de duplicar.\n\nAUDITORIA ModuxGames 2026-10-06: PARECE RESOLVIDO: Range por arma + raycast limitado (HitService:155-185), balística com queda e falloff. Se ainda parece infinito: tracer visual ou HITBOX_RADIUS 4.5 (HitService:33).",
+      "column": "todo",
+      "tags": [
+        "weapon",
+        "server",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-weapon-008",
+      "title": "Granadeira: explodir no ar",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSugestão: projétil da granadeira detonar no ar (por tempo/distância ou proximidade), não só no impacto.\n\nAUDITORIA ModuxGames 2026-10-06: PARCIAL: Gromato Launcher já tem Fuse ~2.7s + Contact (Throwables:205-224). Falta proximidade, se desejado.",
+      "column": "todo",
+      "tags": [
+        "weapon",
+        "server",
+        "client",
+        "playtest"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-ui-002-pt",
+      "title": "Opção de Crosshair não funciona",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSetting de crosshair na UI não aplica. Rastrear onde a opção é lida.\n\nAUDITORIA ModuxGames 2026-10-06: Cadeia completa opção->server->perfil->Crosshair.Resolve->UI (InterfaceController:158-175). Some ao mirar. Sem bug achado; testar in-game.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "client",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-camera-002",
+      "title": "Câmera bugada ao sair da terceira pessoa",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nTransição 3ª->1ª pessoa quebra. Revisar CameraController/UnlockCameraController (CameraMode, MouseBehavior, offset).\n\nAUDITORIA ModuxGames 2026-10-06: Provável: CameraController:170-178 troca Classic/LockFirstPerson sem resetar zoom; DeathCameraController:60-62 corrida com CharacterAdded. Reproduzir.",
+      "column": "todo",
+      "tags": [
+        "camera",
+        "client",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-netcode-002",
+      "title": "Ping muito alto",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nMedir: tamanho/frequência de packets lync (SnapshotController, Fire), loops no server, região do servidor. Usar MicroProfiler + Network stats.\n\nAUDITORIA ModuxGames 2026-10-06: Snapshot 60Hz cliente->server (SnapshotController:60-71), server 10Hz. Pacote leve; provavelmente rede/região. Medir.",
+      "column": "todo",
+      "tags": [
+        "netcode",
+        "server",
+        "client",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-pickup-001",
+      "title": "Spawnar cura e escudo pelo mapa",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nJogadores não acharam cura nem shield. Verificar se o sistema existe; se não, criar pickups com respawn e pontos por mapa.\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: Vital:Heal/SetArmor existem (Vital.luau:61,71) mas ninguém chama. Único pickup é seed de arma.\n\n2026-10-06: ADIADO pelo usuário — precisa modelar os pickups antes.",
+      "column": "todo",
+      "tags": [
+        "pickup",
+        "server",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-farming-004",
+      "title": "Planta some após 30s sem colheita",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSugestão: timeout de 30s pra planta não colhida desaparecer, deixando o jogo mais rápido. Valor em config.\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: sem timeout. Adicionar LIFETIME em Seed/shared/SeedSettings e destruir no OnTick do Seed (Seed/server/Seed.luau:78-87).\n\nIMPLEMENTADO ModuxGames 2026-10-06: SeedSettings.SEED_LIFETIME = 30; Seed:OnTick destrói a semente não colhida após 30s desde PlantedAt (vale para seeds do WeaponSpawnService e plantadas por tiro). WeaponSpawnService já poda seeds destruídas e repõe. Testar: plantar/esperar 30s sem colher.",
+      "column": "awaiting-approval",
+      "tags": [
+        "farming",
+        "server",
+        "playtest"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-killfeed-002",
+      "title": "Kill feedback satisfatório: streaks, headshot, som",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nAnúncios na tela: \"Headshot\", \"Double/Triple Kill\", contador de streak atual. Som de kill satisfatório (estilo tomate esmagado -- ref Guts & Blackpowder, youtube.com/watch?v=lgHi-Jzm4qY aos 3:00). Server detecta headshot/streak e manda packet.\n\nAUDITORIA ModuxGames 2026-10-06: PARCIAL: headshot só como tag no killfeed (HitService:119-130). Sem streak/multikill, anúncio ou som de kill.\n\nIMPLEMENTADO 2026-10-07: MatchStatsService:RecordKill rastreia Multi (janela MedalSettings.MultiKillWindow=4s) e Streak (zera em RecordDeath e Reset/Starting) e manda KillFeed.Medal {Headshot,Multi,Streak} so ao killer (se Ready). Cliente: KillMedalController (ScreenGui KillMedalUI, DisplayOrder 15) + KillMedal (Vide + story), pop 1.4->1, fade ~1.2s, texto so para multi>=2 ou headshot, sub-texto \"N KILL STREAK\" se streak>=3. Sons 2D: KillSplat (todo kill), HeadshotSplat (headshot), MultiKill (multi>=2). Constantes em src/KillFeed/shared/MedalSettings.luau. PENDENTE: Adicionar Sounds KillSplat/HeadshotSplat/MultiKill em ReplicatedStorage.Assets.Sounds.",
+      "column": "awaiting-approval",
+      "tags": [
+        "killfeed",
+        "client",
+        "server",
+        "audio",
+        "playtest"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-audio-001",
+      "title": "Trocar músicas pelas feitas pro jogo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSubstituir IDs no MusicController/config pelas músicas próprias.\n\nAUDITORIA ModuxGames 2026-10-06: ASSET: Audio/client/MusicController toca tudo em ReplicatedStorage.Assets.Musics. Trocar Sounds no Studio.",
+      "column": "todo",
+      "tags": [
+        "audio",
+        "client",
+        "playtest"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-game-005",
+      "title": "Escolher sala e mapa pelo menu",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeature pedida: menu com seleção de sala/mapa. Precisa design (Architector) -- impacta votação (task-game-002).\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: LobbyController:215-221 JoinRoom/CreateRoom são print(); GameSelectionScreen só QUICK-PLAY/FFA/TDM/PRACTICE; mapa via pickMap random (MatchmakingService:51-64). Etapa 7 do IntegrationPlan.",
+      "column": "todo",
+      "tags": [
+        "game",
+        "ui",
+        "playtest"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-audio-002",
+      "title": "Som de tiro com atraso (Sniper1 e ping)",
+      "description": "Causa: som de tiro era criado no servidor (GunRules.PlayShootSound -> WeaponSounds.PlayPooled) apos validar o tiro, entao o atirador ouvia com 1 RTT de atraso; Sniper1 tem ataque lento (~0.13s ate o som). Correcao: HitController toca o som localmente (PlayShotSound, pool na camera) no disparo hitscan/projetil; servidor envia Weapon.ShotSound (ShooterID, GunID) via Lync.except(shooter) em Gun:PlaySound; VFXController.OnShotSound toca no visual da arma do atirador; WeaponSounds.TRIM (Sniper1=0.12) aplica TimePosition inicial.",
+      "column": "awaiting-approval",
+      "tags": [
+        "audio",
+        "weapon",
+        "client",
+        "server",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-06",
+      "updatedAt": "2026-10-06"
+    },
+    {
+      "id": "task-audio-003",
+      "title": "Sons do arco (tiro/draw) e rack da Shotgun",
+      "description": "Strawborry: SHOOT passa a BowShoot (fluxo existente HitController.FireProjectile/PlayShotSound + packet ShotSound via ThrowableService). Novo WeaponSounds.DRAW/DrawName (Strawborry = BowDraw). ArmsController toca o draw local ao equipar, ao comecar a mirar e apos cada disparo (task.delay com comprimento do ShootHip/ShootAim ou FireRate*0.6, cancelavel por token, so com municao), debounce 0.25s. Sounds BowShoot(123999003557051)/BowDraw(104582651559007) criados no place - salvar.\n\n2026-10-07: Shotgun rack -> Sound ShotgunPump (118501348963063) criado no place; toca no reload (tecla R) quando a animação de reload realmente começa (ArmsController:PlayReload). Tabela WeaponSounds.Pump.\n\n2026-10-07 (rev): rack da Shotgun agora toca APÓS CADA DISPARO (FireRate*0.5 depois do tiro, se ainda houver munição), mesmo mecanismo do draw do arco; removido do reload (R). Draw do arco ao sacar com atraso de 1s (cancelado se mirar/atirar antes).",
+      "column": "awaiting-approval",
+      "tags": [
+        "audio",
+        "weapon",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-07",
+      "updatedAt": "2026-10-07"
     }
   ]
 }

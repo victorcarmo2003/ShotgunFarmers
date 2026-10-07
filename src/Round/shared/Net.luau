@@ -9,4 +9,16 @@ return Lync.define("Round", {
 		Status = Lync.enum({ "Starting", "Match", "Intermission", "Vote" }),
 		Seconds = Lync.int(0, 3600),
 	})),
+
+	VoteOptions = Lync.replicate(Lync.struct({
+		Votes = Lync.int(0, 255),
+	})),
+
+	CastVote = Lync.packet(Lync.struct({
+		Option = Lync.int(1, 16),
+	})),
+
+	VoteResult = Lync.packet(Lync.struct({
+		Option = Lync.int(1, 16),
+	})),
 })

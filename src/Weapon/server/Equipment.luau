@@ -9,11 +9,16 @@ local Modux = require(ServerScriptService.server.Modux)
 export type SlotIndex = number
 
 const SLOT_COUNT = 3
+const MAX_AMMO = 255
 const VISUAL_WAIT_TIMEOUT = 5
+const INFINITE_AMMO = "InfiniteAmmo"
+const INFINITE_GRENADES = "InfiniteGrenades"
 
+const DEFAULT_SLOT: SlotIndex = 3
 const DEFAULT_LOADOUT: { [SlotIndex]: GetGun.GunNames } = {
-	[1] = "M6Bean",
+	[DEFAULT_SLOT] = "Hoe",
 }
+const DISCARD_SECONDS = 0.5
 
 const SLOT_BY_POSE_KIND: { [GetGun.PoseKind]: SlotIndex } = {
 	Firearm = 1,
@@ -21,7 +26,7 @@ const SLOT_BY_POSE_KIND: { [GetGun.PoseKind]: SlotIndex } = {
 	Melee = 3,
 }
 
-const Equipment = Modux.Component("Equipment", { Tag = "Equipment", Require = { "NetService" } })
+const Equipment = Modux.Component("Equipment", { Tag = "Equipment", Require = { "NetService", "MapVoteService" } })
 
 local function createWeaponInstance(gunName: string): Model
 	const model = Instance.new("Model")
@@ -41,11 +46,39 @@ local function createWeaponInstance(gunName: string): Model
 	return model
 end
 
+local function jointedParts(model: Model): { [BasePart]: boolean }
+	const jointed: { [BasePart]: boolean } = {}
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("JointInstance") or descendant:IsA("WeldConstraint") then
+			const part0 = descendant.Part0
+			const part1 = descendant.Part1
+			if part0 then
+				jointed[part0] = true
+			end
+			if part1 then
+				jointed[part1] = true
+			end
+		end
+	end
+	return jointed
+end
+
+const warned: { [string]: boolean } = {}
+
+local function warnOnce(key: string, message: string)
+	if warned[key] then
+		return
+	end
+	warned[key] = true
+	warn(`[Equipment] {message}`)
+end
+
 local function attachWeaponVisual(character: Model, gunData: GetGun.GunData): Model?
 	const assets = ReplicatedStorage:FindFirstChild("Assets")
 	const weapons = assets and assets:FindFirstChild("Weapons")
 	const asset = weapons and weapons:FindFirstChild(gunData.DisplayName)
 	if not asset or not asset:IsA("Model") then
+		warnOnce(`asset:{gunData.DisplayName}`, `Assets.Weapons.{gunData.DisplayName} nao existe ou nao e Model; arma invisivel para os outros jogadores`)
 		return nil
 	end
 
@@ -64,16 +97,32 @@ local function attachWeaponVisual(character: Model, gunData: GetGun.GunData): Mo
 
 	const handle = visual.PrimaryPart
 	if handle then
-		const bodyWeld = handle:FindFirstChild("BodyWeld")
-		if bodyWeld and bodyWeld:IsA("Motor6D") then
-			bodyWeld.Part0 = targetPart
-			bodyWeld.Part1 = handle
-		else
-			const weld = Instance.new("WeldConstraint")
-			weld.Part0 = targetPart
-			weld.Part1 = handle
-			weld.Parent = visual
+		local bodyWeld = handle:FindFirstChild("BodyWeld")
+		if not bodyWeld or not bodyWeld:IsA("Motor6D") then
+			warnOnce(`bodyweld:{gunData.DisplayName}`, `{gunData.DisplayName} sem Motor6D BodyWeld no PrimaryPart; criado com C0/C1 identidade (arma dentro do corpo)`)
+			const created = Instance.new("Motor6D")
+			created.Name = "BodyWeld"
+			created.Parent = handle
+			bodyWeld = created
 		end
+		const motor = bodyWeld :: Motor6D
+		motor.Part0 = targetPart
+		motor.Part1 = handle
+
+		const jointed = jointedParts(visual)
+		for _, descendant in visual:GetDescendants() do
+			if descendant:IsA("BasePart") then
+				descendant.Anchored = false
+				if descendant ~= handle and not jointed[descendant] then
+					const weld = Instance.new("WeldConstraint")
+					weld.Part0 = handle
+					weld.Part1 = descendant
+					weld.Parent = descendant
+				end
+			end
+		end
+	else
+		warnOnce(`primary:{gunData.DisplayName}`, `{gunData.DisplayName} sem PrimaryPart; visual nao e soldado ao personagem`)
 	end
 
 	visual.Parent = character
@@ -85,7 +134,8 @@ function Equipment:Setup()
 	self.Loadout = table.clone(DEFAULT_LOADOUT) :: { [SlotIndex]: GetGun.GunNames }
 	self.Ammo = table.create(SLOT_COUNT, 0) :: { number }
 	self.Weapons = {} :: { [SlotIndex]: Model }
-	self.ActiveSlot = 1 :: SlotIndex
+	self.ActiveSlot = DEFAULT_SLOT :: SlotIndex
+	self.DiscardTokens = {} :: { [SlotIndex]: number }
 	self.WeaponID = 0 :: number
 	self.Equipped = nil :: GetGun.GunNames?
 	self.Visual = nil :: Model?
@@ -123,15 +173,99 @@ function Equipment:ActiveAmmo(): number
 	return self.Ammo[self.ActiveSlot] or 0
 end
 
+function Equipment:IsInfinite(slot: SlotIndex): boolean
+	const gunName = self.Loadout[slot]
+	const gunData = gunName and GetGun.ByName(gunName)
+	if not gunData then
+		return false
+	end
+
+	const attribute = if gunData.PoseKind == "Throwable" then INFINITE_GRENADES else INFINITE_AMMO
+	return self.Owner:GetAttribute(attribute) == true
+end
+
+function Equipment:Refill()
+	self:ResetAmmo()
+	self:Publish()
+end
+
+local function fallbackSlot(self: any): SlotIndex?
+	if self.Loadout[DEFAULT_SLOT] then
+		return DEFAULT_SLOT
+	end
+
+	for slot = 1, SLOT_COUNT do
+		if self.Loadout[slot] then
+			return slot
+		end
+	end
+	return nil
+end
+
+local function discard(self: any, slot: SlotIndex)
+	const gunName = self.Loadout[slot]
+	const gunData = if gunName then GetGun.ByName(gunName) else nil
+	if not gunData then
+		return
+	end
+
+	const wasActive = slot == self.ActiveSlot
+	self:Clear(slot)
+
+	if wasActive and self.Dependencies.NetService:IsReady(self.Owner) then
+		self.Libs.Net.Weapon.Discarded:fireClient(self.Owner, { Gun = gunData.ID })
+	end
+
+	const fallback = if wasActive then fallbackSlot(self) else nil
+	if fallback and self:SwitchSlot(fallback) then
+		return
+	end
+
+	if wasActive then
+		self.Equipped = nil
+		self.WeaponID = 0
+		self:RefreshVisual()
+	end
+	self:Publish()
+end
+
+local function scheduleDiscard(self: any, slot: SlotIndex)
+	const gunName = self.Loadout[slot]
+	const token = (self.DiscardTokens[slot] or 0) + 1
+	self.DiscardTokens[slot] = token
+
+	task.delay(DISCARD_SECONDS, function()
+		if self.Destroyed or self.DiscardTokens[slot] ~= token then
+			return
+		end
+		if self.Loadout[slot] ~= gunName or (self.Ammo[slot] or 0) > 0 or self:IsInfinite(slot) then
+			return
+		end
+
+		discard(self, slot)
+	end)
+end
+
 function Equipment:ConsumeAmmo(amount: number): boolean
 	const slot = self.ActiveSlot
 	const current = self.Ammo[slot] or 0
+	if self:IsInfinite(slot) then
+		if current < amount then
+			self:Refill()
+		end
+		return true
+	end
+
 	if current < amount then
 		return false
 	end
 
 	self.Ammo[slot] = current - amount
 	self:Publish()
+
+	if self.Ammo[slot] <= 0 then
+		scheduleDiscard(self, slot)
+	end
 	return true
 end
 
@@ -157,7 +291,7 @@ function Equipment:AddAmmo(gunName: string, amount: number)
 			continue
 		end
 
-		self.Ammo[slot] = (self.Ammo[slot] or 0) + amount
+		self.Ammo[slot] = math.min((self.Ammo[slot] or 0) + amount, MAX_AMMO)
 		self:Publish()
 		return
 	end
@@ -218,6 +352,7 @@ function Equipment:Clear(slot: SlotIndex)
 
 	self.Loadout[slot] = nil
 	self.Ammo[slot] = 0
+	self.DiscardTokens[slot] = (self.DiscardTokens[slot] or 0) + 1
 end
 
 function Equipment:Equip(slot: SlotIndex): boolean
@@ -250,7 +385,12 @@ function Equipment:SwitchSlot(slot: SlotIndex): boolean
 	return true
 end
 
-function Equipment:Grant(gunName: GetGun.GunNames): boolean
+function Equipment:SlotFor(gunName: string): SlotIndex?
+	const gunData = GetGun.ByName(gunName)
+	return if gunData then SLOT_BY_POSE_KIND[gunData.PoseKind] else nil
+end
+
+function Equipment:SetSlot(gunName: GetGun.GunNames, focus: boolean): boolean
 	const gunData = GetGun.ByName(gunName)
 	if not gunData then
 		return false
@@ -265,9 +405,20 @@ function Equipment:Grant(gunName: GetGun.GunNames): boolean
 	self.Loadout[slot] = gunName
 	self.Ammo[slot] = gunData.Amount
 	self.Weapons[slot] = self:Spawn(gunName)
-	self:SwitchSlot(slot)
+
+	if focus or slot == self.ActiveSlot then
+		if not self:SwitchSlot(slot) then
+			self:Publish()
+		end
+	else
+		self:Publish()
+	end
 
 	return true
+end
+
+function Equipment:Grant(gunName: GetGun.GunNames): boolean
+	return self:SetSlot(gunName, true)
 end
 
 function Equipment:DiscardActive(): boolean
@@ -276,16 +427,40 @@ function Equipment:DiscardActive(): boolean
 		return false
 	end
 
-	self:Clear(slot)
-	return self:Grant("Shovel")
+	discard(self, slot)
+	return true
+end
+
+local function resetLoadout(self: any)
+	for slot = 1, SLOT_COUNT do
+		if self.Loadout[slot] ~= DEFAULT_LOADOUT[slot] then
+			self:Clear(slot)
+		end
+	end
+
+	for slot, gunName in DEFAULT_LOADOUT do
+		if not self.Weapons[slot] then
+			self.Loadout[slot] = gunName
+			self.Weapons[slot] = self:Spawn(gunName)
+		end
+	end
 end
 
 function Equipment:Respawn()
-	const gunName = self.Equipped
-
+	resetLoadout(self)
 	self:ResetAmmo()
-	self:RefreshVisual()
-	self:StartDraw(if gunName then GetGun.ByName(gunName) else nil)
+
+	const starting = self.Dependencies.MapVoteService:TakeStart(self.Owner)
+	if starting and self:SetSlot(starting, true) then
+		return
+	end
+
+	if not self:Equip(DEFAULT_SLOT) then
+		self.Equipped = nil
+		self.WeaponID = 0
+		self:RefreshVisual()
+	end
+	self.ActiveSlot = DEFAULT_SLOT
 	self:Publish()
 end
 

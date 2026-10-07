@@ -81,7 +81,7 @@ function WeaponController:SwitchSlot(slot: number)
 		return
 	end
 
-	if slot == self.ActiveSlot() then
+	if slot == self.ActiveSlot() or not self:SlotGun(slot) then
 		return
 	end
 
@@ -91,7 +91,7 @@ end
 function WeaponController:BindKeys()
 	for slot, keyCode in SLOT_KEYS do
 		self.Dependencies.InputController
-			:Bind({ Name = `SwitchSlot{slot}`, Key = keyCode, Priority = 10 })
+			:Bind({ Name = `SwitchSlot{slot}`, Key = keyCode, Priority = 10, Requires = "Loadout" })
 			.OnPress(function()
 				self:SwitchSlot(slot)
 			end)

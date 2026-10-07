@@ -5,6 +5,7 @@ export type EffectState = { Trauma: number, Seed: number }
 export type Public = {
 	CurrentTilt: number,
 	Effects: { [string]: EffectState },
+	FirstPerson: boolean,
 	Setup: (self: Public) -> (),
 	GetLookPart: (self: Public) -> (BasePart?, Player?),
 	GetLookAt: (self: Public) -> Vector3?,

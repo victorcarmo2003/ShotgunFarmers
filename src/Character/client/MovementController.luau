@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StarterPlayer = game:GetService("StarterPlayer")
+local TweenService = game:GetService("TweenService")
 local CharacterNet = require(ReplicatedStorage.shared.Character.Net)
 local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
 local Vide = require(ReplicatedStorage.Packages.Vide)
@@ -24,8 +25,11 @@ const SLIDE_END_SPEED = 6
 const SLIDE_TURN_RATE = 4
 const SLIDE_FRICTION = 1.4
 
+const CROUCH_CAMERA_OFFSET = Vector3.new(0, -1.5, 0)
+const CROUCH_CAMERA_TWEEN = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
 const MovementController = Modux.Controller("MovementController", {
-	Require = { "InputController" },
+	Require = { "InputController", "OptionsController" },
 	Priority = 800,
 })
 
@@ -39,6 +43,7 @@ function MovementController:Setup()
 	self.IsMoving = Vide.source(false) :: Vide.Source<boolean>
 
 	self.WalkSpeed = nil :: number?
+	self.CameraTween = nil :: Tween?
 
 	self.IsSliding = false :: boolean
 	self.SlideDirection = Vector3.zero :: Vector3
@@ -50,9 +55,42 @@ function MovementController:Setup()
 	self.Landed = self.Libs.Signal.new() :: SignalLib.Signal<number>
 end
 
+function MovementController:CancelCameraTween()
+	const tween = self.CameraTween
+	if tween then
+		tween:Cancel()
+		tween:Destroy()
+		self.CameraTween = nil
+	end
+end
+
+function MovementController:ApplyCameraOffset(instant: boolean)
+	const humanoid = self.Humanoid
+	if not humanoid then
+		return
+	end
+
+	self:CancelCameraTween()
+
+	const target = if self.MovementState() == "Crouch" then CROUCH_CAMERA_OFFSET else Vector3.zero
+	if instant then
+		humanoid.CameraOffset = target
+		return
+	end
+
+	if humanoid.CameraOffset == target then
+		return
+	end
+
+	const tween = TweenService:Create(humanoid, CROUCH_CAMERA_TWEEN, { CameraOffset = target })
+	self.CameraTween = tween
+	tween:Play()
+end
+
 function MovementController:SetHumanoid(humanoid: Humanoid)
 	self.Humanoid = humanoid
 	self:ApplyWalkSpeed()
+	self:ApplyCameraOffset(true)
 end
 
 function MovementController:BindCharacter(character: Model?)
@@ -62,6 +100,7 @@ function MovementController:BindCharacter(character: Model?)
 	end
 
 	self:EndSlide()
+	self:CancelCameraTween()
 	self.Character = character
 	self.Humanoid = nil
 	self.PreviousHumanoidState = nil
@@ -117,9 +156,14 @@ function MovementController:ApplyWalkSpeed()
 end
 
 function MovementController:Apply(record: MovementRecord)
+	const previousState = self.MovementState()
 	self.MovementState(record.State)
 	self.WalkSpeed = record.WalkSpeed
 	self:ApplyWalkSpeed()
+
+	if (previousState == "Crouch") ~= (record.State == "Crouch") then
+		self:ApplyCameraOffset(false)
+	end
 
 	if record.State ~= "Sliding" then
 		self:EndSlide()
@@ -267,11 +311,20 @@ function MovementController:StepMoving()
 end
 
 function MovementController:BindKeys()
-	self.Dependencies.InputController
-		:Bind({ Name = "Crouch", Key = Enum.KeyCode.C, TouchButton = true, Priority = 10 })
-		.OnPress(function()
+	const crouch = self.Dependencies.InputController
+		:Bind({ Name = "Crouch", Key = Enum.KeyCode.C, TouchButton = true, Priority = 10, Requires = "FirstPerson" })
+
+	crouch.OnPress(function()
+		if self.Dependencies.OptionsController:ToggleCrouch() or self.MovementState() ~= "Crouch" then
 			self:Perform("Crouch")
-		end)
+		end
+	end)
+
+	crouch.OnRelease(function()
+		if not self.Dependencies.OptionsController:ToggleCrouch() and self.MovementState() == "Crouch" then
+			self:Perform("Crouch")
+		end
+	end)
 end
 
 MovementController:OnInit(function(self)

@@ -9,6 +9,7 @@ local Struct = require(ReplicatedStorage.shared.Types.Struct)
 local Template = require(script.Template)
 local Modux = require(ServerScriptService.server.Modux)
 
+
 export type Data = typeof(Template)
 export type Profile = Atomic.Table<Data>
 
@@ -16,7 +17,7 @@ const STORE_NAME = "Player"
 
 const ProfileService = Modux.Service(
 	"ProfileService",
-	{ Require = { "PlayerService", "NetService" }, Priority = 800 }
+	{ Require = { "PlayerService", "NetService", "ServerRoleService", "TeleportGateway" }, Priority = 800 }
 )
 
 function ProfileService:Setup()
@@ -25,6 +26,19 @@ function ProfileService:Setup()
 	self.Profiles = {} :: { [Player]: Profile }
 	self.Disposers = {} :: { [Player]: () -> () }
 	self.Loaded = self.Libs.Signal.new() :: SignalLib.Signal<Player, Profile>
+	self.Enabled = false :: boolean
+	self.Started = {} :: { [Player]: boolean }
+end
+
+function ProfileService:Begin(player: Player)
+	if not self.Enabled or self.Started[player] or player.Parent ~= Players then
+		return
+	end
+
+	self.Started[player] = true
+	task.spawn(function()
+		self:Load(player)
+	end)
 end
 
 function ProfileService:Get(player: Player): Profile?
@@ -126,6 +140,9 @@ function ProfileService:Load(player: Player)
 			return
 		end
 		self:Forget(player)
+		if self.Dependencies.TeleportGateway:IsTeleporting(player) or player.Parent ~= Players then
+			return
+		end
 		player:Kick("Your data session ended. Please rejoin.")
 	end)
 
@@ -160,16 +177,29 @@ ProfileService:OnInit(function(self)
 	self:Setup()
 
 	self.Dependencies.PlayerService.PlayerAdded:Connect(function(player)
-		task.spawn(function()
-			self:Load(player)
-		end)
+		self:Begin(player)
 	end)
 	self.Dependencies.PlayerService.PlayerRemoving:Connect(function(player)
+		self.Started[player] = nil
 		self:Unload(player)
 	end)
 
 	self.Dependencies.NetService.ClientReady:Connect(function(player)
 		self:Replicate(player)
+	end)
+end)
+
+ProfileService:OnStart(function(self)
+	const roleService = self.Dependencies.ServerRoleService
+	roleService:OnReady(function()
+		if roleService:IsRouter() then
+			return
+		end
+
+		self.Enabled = true
+		for _, player in Players:GetPlayers() do
+			self:Begin(player)
+		end
 	end)
 end)
 

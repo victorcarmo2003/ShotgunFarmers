@@ -86,6 +86,12 @@ function DayNightService:StartCycle()
 	self:SetCycle("Day")
 end
 
+function DayNightService:StopCycle()
+	self.Running = false
+	self.SecondsLeft = 0
+	self:SetCycle("Idle")
+end
+
 function DayNightService:GetCycle(): Cycle
 	return self.Cycle
 end

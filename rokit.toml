@@ -4,4 +4,9 @@
 # New tools can be added by running `rokit add <tool>` in a terminal.
 
 [tools]
+wally = "UpliftGames/wally@0.3.2"
 rojo = "rojo-rbx/rojo@7.7.0"
+rogen = "ldgerrits/rogen@1.4.4"
+modux = "victorcarmo2003/ModuxWatcher@0.7.3"
+wally-package-types = "JohnnyMorganz/wally-package-types@1.6.2"
+syncteam = "victorcarmo2003/syncteam@0.2.6"

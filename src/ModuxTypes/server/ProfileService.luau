@@ -12,11 +12,14 @@ export type Profile = Atomic.Table<Data>
 
 export type Public = {
 	Disposers: { [Player]: () -> () },
+	Enabled: boolean,
 	Loaded: SignalLib.Signal<Player, Profile>,
 	Profiles: { [Player]: Profile },
 	Sessions: { [Player]: any },
+	Started: { [Player]: boolean },
 	Store: any,
 	Setup: (self: Public) -> (),
+	Begin: (self: Public, player: Player) -> (),
 	Get: (self: Public, player: Player) -> Profile?,
 	Update: (self: Public, player: Player, patch: Struct.Partial<Data>) -> (),
 	Replicate: (self: Public, player: Player) -> (),

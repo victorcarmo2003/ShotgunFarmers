@@ -1,9 +1,12 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
+local AdminArguments = require(ReplicatedStorage.shared.Admin.AdminArguments)
 local ConchUI = require(ReplicatedStorage.Packages.ConchUI)
 local conch = require(ReplicatedStorage.Packages.Conch)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
+
+const _ARGUMENTS = AdminArguments
 
 const TOGGLE_KEY = Enum.KeyCode.F2
 
