@@ -6,6 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
 const MAX_RANGE = 150
+const FIRST_PERSON_ZOOM = 0.5
 const LOOK_AT_DISTANCE = 20
 
 const RENDER_BIND_NAME = "CameraController_Shake"
@@ -173,7 +174,16 @@ end)
 CameraController:OnStart(function(self)
 	self.Dependencies.GameStateController:Watch("FirstPerson", function(on: boolean)
 		self.FirstPerson = on
-		Players.LocalPlayer.CameraMode = if on then Enum.CameraMode.LockFirstPerson else Enum.CameraMode.Classic
+		const player = Players.LocalPlayer
+		player.DevEnableMouseLock = not on
+		player.CameraMode = if on then Enum.CameraMode.LockFirstPerson else Enum.CameraMode.Classic
+		if on then
+			player.CameraMaxZoomDistance = FIRST_PERSON_ZOOM
+			player.CameraMinZoomDistance = FIRST_PERSON_ZOOM
+		else
+			player.CameraMaxZoomDistance = StarterPlayer.CameraMaxZoomDistance
+			player.CameraMinZoomDistance = StarterPlayer.CameraMinZoomDistance
+		end
 	end)
 
 	self.Dependencies.MovementController.Landed:Connect(function(intensity: number)

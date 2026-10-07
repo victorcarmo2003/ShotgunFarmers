@@ -67,6 +67,11 @@ function SeedController:Render(dirt: BasePart)
 	dirt.Size = startDirtSize
 
 	const seedInstance = template:Clone() :: Model
+	for _, part in seedInstance:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+		end
+	end
 	const startCFrame = CFrame.new(dirt.Position)
 	const endCFrame = CFrame.new(dirt.Position + Vector3.new(0, SeedSettings.SEED_RISE_HEIGHT, 0))
 	seedInstance:PivotTo(startCFrame)

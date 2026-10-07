@@ -434,8 +434,8 @@
     {
       "id": "task-game-003",
       "title": "Armas da partida anterior continuam no inventário",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nAo recomeçar partida, EquipmentComponent mantém slots antigos. Limpar inventário no início de cada round. depends:task-game-002.\n\nIMPLEMENTADO 2026-10-06: EquipmentComponent:ResetLoadout() destroi weapon instances, limpa Loadout/SlotAmmo, replica Ammo=0 e concede arma nova; chamado pelo GameService.BeginRound pra cada jogador a cada novo round. Aguardando playtest; regenerar tipos Modux.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: BUG: Weapon/server/Equipment.luau:420-437 só reseta loadout no respawn; round não respawna ninguém. Capability Loadout true em todos estados (GameState:119-122).\n\nIMPLEMENTADO ModuxGames 2026-10-06: a cada Starting o MapVoteService re-sorteia e SpawnService:RespawnAll recarrega todos os personagens; Equipment:Respawn (resetLoadout) apaga slots diferentes de Hoe antes de conceder a arma inicial. Rodar rogen build + modux generate; testar no Studio com ForceRole/ForceMode/ForceMap e RoundSettings reduzidos.",
-      "column": "awaiting-approval",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nAo recomeçar partida, EquipmentComponent mantém slots antigos. Limpar inventário no início de cada round. depends:task-game-002.\n\nIMPLEMENTADO 2026-10-06: EquipmentComponent:ResetLoadout() destroi weapon instances, limpa Loadout/SlotAmmo, replica Ammo=0 e concede arma nova; chamado pelo GameService.BeginRound pra cada jogador a cada novo round. Aguardando playtest; regenerar tipos Modux.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: BUG: Weapon/server/Equipment.luau:420-437 só reseta loadout no respawn; round não respawna ninguém. Capability Loadout true em todos estados (GameState:119-122).\n\nIMPLEMENTADO ModuxGames 2026-10-06: a cada Starting o MapVoteService re-sorteia e SpawnService:RespawnAll recarrega todos os personagens; Equipment:Respawn (resetLoadout) apaga slots diferentes de Hoe antes de conceder a arma inicial. Rodar rogen build + modux generate; testar no Studio com ForceRole/ForceMode/ForceMap e RoundSettings reduzidos.\n\nAPROVADO pelo usuário 2026-10-07.",
+      "column": "done",
       "tags": [
         "game",
         "weapon",
@@ -444,7 +444,7 @@
       ],
       "priority": "high",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-game-004",
@@ -606,9 +606,9 @@
     },
     {
       "id": "task-weapon-006",
-      "title": "Arco bugado",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nDetalhe não informado. Provável arma sem componente de tiro (task-weapon-003) ou projétil errado (task-projectile-*). Reproduzir.\n\nAUDITORIA ModuxGames 2026-10-06: Arco = Strawborry (GunsData:242-261, FireMode Projectile via ThrowableController/Service, ProjectileModel StrawborryArrow). Sem detalhe do bug; reproduzir.",
-      "column": "todo",
+      "title": "Arco: alvo arremessado ao ser atingido",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nDetalhe não informado. Provável arma sem componente de tiro (task-weapon-003) ou projétil errado (task-projectile-*). Reproduzir.\n\nAUDITORIA ModuxGames 2026-10-06: Arco = Strawborry (GunsData:242-261, FireMode Projectile via ThrowableController/Service, ProjectileModel StrawborryArrow). Sem detalhe do bug; reproduzir.\n\n2026-10-07: diagnóstico do usuário: o hit da flecha arremessa o alvo muito longe (knockback real exagerado).\n\n2026-10-07: código não aplica knockback na vítima de flecha (Strike/Blast só dano; visuais inertes). Único impulso: recuo no ATIRADOR (ThrowableService:215, Knockback 25). Aguardando usuário confirmar quem é arremessado.\n\n2026-10-07: usuário confirmou que é o ALVO. Causa provável: flecha ao acertar Farmland planta semente (GunRules.PlantAt, 30% Strawborry); Assets.Seeds.Dirt é Anchored + CanCollide=true (2x2) e nasce encostada/dentro do personagem → depenetração da física arremessa o alvo. Modelos de semente (ex. Peavolver MeshPart) também tinham CanCollide. Fix: GunRules.PlantAt e SeedController setam CanCollide=false em todas as parts da terra/semente. Testar: atirar flechas no chão de fazenda aos pés de um alvo.",
+      "column": "awaiting-approval",
       "tags": [
         "weapon",
         "client",
@@ -617,7 +617,7 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-weapon-007",
@@ -651,7 +651,7 @@
     {
       "id": "task-ui-002-pt",
       "title": "Opção de Crosshair não funciona",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSetting de crosshair na UI não aplica. Rastrear onde a opção é lida.\n\nAUDITORIA ModuxGames 2026-10-06: Cadeia completa opção->server->perfil->Crosshair.Resolve->UI (InterfaceController:158-175). Some ao mirar. Sem bug achado; testar in-game.",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSetting de crosshair na UI não aplica. Rastrear onde a opção é lida.\n\nAUDITORIA ModuxGames 2026-10-06: Cadeia completa opção->server->perfil->Crosshair.Resolve->UI (InterfaceController:158-175). Some ao mirar. Sem bug achado; testar in-game.\n\n2026-10-07: provável que os testers estivessem numa versão antiga; usuário vai pedir revisão. Aguardando retorno.",
       "column": "todo",
       "tags": [
         "ui",
@@ -660,13 +660,13 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-camera-002",
       "title": "Câmera bugada ao sair da terceira pessoa",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nTransição 3ª->1ª pessoa quebra. Revisar CameraController/UnlockCameraController (CameraMode, MouseBehavior, offset).\n\nAUDITORIA ModuxGames 2026-10-06: Provável: CameraController:170-178 troca Classic/LockFirstPerson sem resetar zoom; DeathCameraController:60-62 corrida com CharacterAdded. Reproduzir.",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nTransição 3ª->1ª pessoa quebra. Revisar CameraController/UnlockCameraController (CameraMode, MouseBehavior, offset).\n\nAUDITORIA ModuxGames 2026-10-06: Provável: CameraController:170-178 troca Classic/LockFirstPerson sem resetar zoom; DeathCameraController:60-62 corrida com CharacterAdded. Reproduzir.\n\n2026-10-07: diagnóstico do usuário (vídeo): jogador saiu da 1a pessoa via Shift Lock e se viu em 3a pessoa. Fix: forçar 1a pessoa (desabilitar Shift Lock / DevEnableMouseLock e travar zoom) quando a capability FirstPerson estiver ativa.\n\nIMPLEMENTADO 2026-10-07: CameraController, ao ligar FirstPerson: LocalPlayer.DevEnableMouseLock=false (sem Shift Lock), CameraMode LockFirstPerson, Min/MaxZoomDistance=0.5; ao desligar restaura Shift Lock e zoom do StarterPlayer.",
+      "column": "awaiting-approval",
       "tags": [
         "camera",
         "client",
@@ -674,13 +674,13 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-netcode-002",
       "title": "Ping muito alto",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nMedir: tamanho/frequência de packets lync (SnapshotController, Fire), loops no server, região do servidor. Usar MicroProfiler + Network stats.\n\nAUDITORIA ModuxGames 2026-10-06: Snapshot 60Hz cliente->server (SnapshotController:60-71), server 10Hz. Pacote leve; provavelmente rede/região. Medir.",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nMedir: tamanho/frequência de packets lync (SnapshotController, Fire), loops no server, região do servidor. Usar MicroProfiler + Network stats.\n\nAUDITORIA ModuxGames 2026-10-06: Snapshot 60Hz cliente->server (SnapshotController:60-71), server 10Hz. Pacote leve; provavelmente rede/região. Medir.\n\n2026-10-07: FECHADO — usuário identificou que o ping alto vem da alocação/região de servidores do Roblox, não do código.",
+      "column": "done",
       "tags": [
         "netcode",
         "server",
@@ -689,7 +689,7 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-pickup-001",
@@ -708,8 +708,8 @@
     {
       "id": "task-farming-004",
       "title": "Planta some após 30s sem colheita",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSugestão: timeout de 30s pra planta não colhida desaparecer, deixando o jogo mais rápido. Valor em config.\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: sem timeout. Adicionar LIFETIME em Seed/shared/SeedSettings e destruir no OnTick do Seed (Seed/server/Seed.luau:78-87).\n\nIMPLEMENTADO ModuxGames 2026-10-06: SeedSettings.SEED_LIFETIME = 30; Seed:OnTick destrói a semente não colhida após 30s desde PlantedAt (vale para seeds do WeaponSpawnService e plantadas por tiro). WeaponSpawnService já poda seeds destruídas e repõe. Testar: plantar/esperar 30s sem colher.",
-      "column": "awaiting-approval",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSugestão: timeout de 30s pra planta não colhida desaparecer, deixando o jogo mais rápido. Valor em config.\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: sem timeout. Adicionar LIFETIME em Seed/shared/SeedSettings e destruir no OnTick do Seed (Seed/server/Seed.luau:78-87).\n\nIMPLEMENTADO ModuxGames 2026-10-06: SeedSettings.SEED_LIFETIME = 30; Seed:OnTick destrói a semente não colhida após 30s desde PlantedAt (vale para seeds do WeaponSpawnService e plantadas por tiro). WeaponSpawnService já poda seeds destruídas e repõe. Testar: plantar/esperar 30s sem colher.\n\nAPROVADO pelo usuário 2026-10-07.",
+      "column": "done",
       "tags": [
         "farming",
         "server",
@@ -717,7 +717,7 @@
       ],
       "priority": "low",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-killfeed-002",
@@ -766,8 +766,8 @@
     {
       "id": "task-audio-002",
       "title": "Som de tiro com atraso (Sniper1 e ping)",
-      "description": "Causa: som de tiro era criado no servidor (GunRules.PlayShootSound -> WeaponSounds.PlayPooled) apos validar o tiro, entao o atirador ouvia com 1 RTT de atraso; Sniper1 tem ataque lento (~0.13s ate o som). Correcao: HitController toca o som localmente (PlayShotSound, pool na camera) no disparo hitscan/projetil; servidor envia Weapon.ShotSound (ShooterID, GunID) via Lync.except(shooter) em Gun:PlaySound; VFXController.OnShotSound toca no visual da arma do atirador; WeaponSounds.TRIM (Sniper1=0.12) aplica TimePosition inicial.",
-      "column": "awaiting-approval",
+      "description": "Causa: som de tiro era criado no servidor (GunRules.PlayShootSound -> WeaponSounds.PlayPooled) apos validar o tiro, entao o atirador ouvia com 1 RTT de atraso; Sniper1 tem ataque lento (~0.13s ate o som). Correcao: HitController toca o som localmente (PlayShotSound, pool na camera) no disparo hitscan/projetil; servidor envia Weapon.ShotSound (ShooterID, GunID) via Lync.except(shooter) em Gun:PlaySound; VFXController.OnShotSound toca no visual da arma do atirador; WeaponSounds.TRIM (Sniper1=0.12) aplica TimePosition inicial.\n\nAPROVADO pelo usuário 2026-10-07.",
+      "column": "done",
       "tags": [
         "audio",
         "weapon",
@@ -777,13 +777,13 @@
       ],
       "priority": "high",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-audio-003",
       "title": "Sons do arco (tiro/draw) e rack da Shotgun",
-      "description": "Strawborry: SHOOT passa a BowShoot (fluxo existente HitController.FireProjectile/PlayShotSound + packet ShotSound via ThrowableService). Novo WeaponSounds.DRAW/DrawName (Strawborry = BowDraw). ArmsController toca o draw local ao equipar, ao comecar a mirar e apos cada disparo (task.delay com comprimento do ShootHip/ShootAim ou FireRate*0.6, cancelavel por token, so com municao), debounce 0.25s. Sounds BowShoot(123999003557051)/BowDraw(104582651559007) criados no place - salvar.\n\n2026-10-07: Shotgun rack -> Sound ShotgunPump (118501348963063) criado no place; toca no reload (tecla R) quando a animação de reload realmente começa (ArmsController:PlayReload). Tabela WeaponSounds.Pump.\n\n2026-10-07 (rev): rack da Shotgun agora toca APÓS CADA DISPARO (FireRate*0.5 depois do tiro, se ainda houver munição), mesmo mecanismo do draw do arco; removido do reload (R). Draw do arco ao sacar com atraso de 1s (cancelado se mirar/atirar antes).",
-      "column": "awaiting-approval",
+      "description": "Strawborry: SHOOT passa a BowShoot (fluxo existente HitController.FireProjectile/PlayShotSound + packet ShotSound via ThrowableService). Novo WeaponSounds.DRAW/DrawName (Strawborry = BowDraw). ArmsController toca o draw local ao equipar, ao comecar a mirar e apos cada disparo (task.delay com comprimento do ShootHip/ShootAim ou FireRate*0.6, cancelavel por token, so com municao), debounce 0.25s. Sounds BowShoot(123999003557051)/BowDraw(104582651559007) criados no place - salvar.\n\n2026-10-07: Shotgun rack -> Sound ShotgunPump (118501348963063) criado no place; toca no reload (tecla R) quando a animação de reload realmente começa (ArmsController:PlayReload). Tabela WeaponSounds.Pump.\n\n2026-10-07 (rev): rack da Shotgun agora toca APÓS CADA DISPARO (FireRate*0.5 depois do tiro, se ainda houver munição), mesmo mecanismo do draw do arco; removido do reload (R). Draw do arco ao sacar com atraso de 1s (cancelado se mirar/atirar antes).\n\nAPROVADO pelo usuário 2026-10-07.",
+      "column": "done",
       "tags": [
         "audio",
         "weapon",

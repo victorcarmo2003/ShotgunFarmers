@@ -108,6 +108,11 @@ function GunRules.PlantAt(position: Vector3, gunName: string): BasePart?
 	end
 
 	const dirt = template:Clone() :: BasePart
+	for _, part in { dirt :: Instance, unpack(dirt:GetDescendants()) } do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+		end
+	end
 	dirt:PivotTo(CFrame.new(position) * dirt.CFrame.Rotation)
 	dirt:SetAttribute("GunName", gunName)
 	dirt:SetAttribute("PlantedAt", workspace:GetServerTimeNow())
