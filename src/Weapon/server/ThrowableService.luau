@@ -277,9 +277,40 @@ function ThrowableService:StepProjectile(projectile: Projectile): boolean
 		return true
 	end
 
-	if state.Age >= definition.Fuse or state.Position.Y < workspace.FallenPartsDestroyHeight then
+	if
+		state.Age >= definition.Fuse
+		or state.Position.Y < workspace.FallenPartsDestroyHeight
+		or self:NearEnemy(projectile)
+	then
 		self:Detonate(projectile, state.Position)
 		return true
+	end
+
+	return false
+end
+
+function ThrowableService:NearEnemy(projectile: Projectile): boolean
+	const proximity = projectile.Definition.Proximity
+	if not proximity then
+		return false
+	end
+
+	const owner = projectile.Owner
+	const ownerPresent = owner:IsDescendantOf(Players)
+	const position = projectile.State.Position
+	for _, player in Players:GetPlayers() do
+		if player == owner or not self:IsAlive(player) then
+			continue
+		end
+
+		if ownerPresent and self.Dependencies.TeamService:SameTeam(owner, player) then
+			continue
+		end
+
+		const root = rootPart(player.Character)
+		if root and (root.Position - position).Magnitude <= proximity then
+			return true
+		end
 	end
 
 	return false

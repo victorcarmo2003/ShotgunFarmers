@@ -28,4 +28,11 @@ return {
 	StudioTeleportDelay = 3,
 	RankedReturnDelay = 10,
 	AdmissionDelay = 2,
+	RoomCodeMapName = "RoomCodes",
+	RoomCodeLength = 5,
+	RoomCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
+	RoomCodeAttempts = 6,
+	RoomModes = { "FFA", "TDM", "Chicken" },
+	RoomListLimit = 30,
+	RoomListCooldown = 2,
 }

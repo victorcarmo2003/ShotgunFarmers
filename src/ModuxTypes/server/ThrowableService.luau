@@ -55,6 +55,7 @@ export type Public = {
 	ProcessThrow: (self: Public, request: ThrowRequest, player: Player) -> (),
 	Launch: (self: Public, owner: Player, gunName: string, kind: number, definition: Throwables.Definition, origin: Vector3, velocity: Vector3, curve: number, latency: number) -> (),
 	StepProjectile: (self: Public, projectile: Projectile) -> boolean,
+	NearEnemy: (self: Public, projectile: Projectile) -> boolean,
 	Strike: (self: Public, projectile: Projectile, instance: Instance) -> (),
 	CanSee: (self: Public, center: Vector3, character: Model) -> boolean,
 	Blast: (self: Public, projectile: Projectile, center: Vector3) -> (),

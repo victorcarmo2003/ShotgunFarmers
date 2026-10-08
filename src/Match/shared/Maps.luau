@@ -15,6 +15,7 @@ export type Map = {
 	Modes: { string },
 	Lighting: string,
 	DayCycle: boolean,
+	Boundary: { string }?,
 	ScopeLighting: ScopeLighting?,
 }
 
@@ -24,12 +25,14 @@ const Maps: { [string]: Map } = {
 		Modes = { "FFA", "TDM", "Chicken" },
 		Lighting = "HappyFarm",
 		DayCycle = false,
+		Boundary = { "CERCAS", "CERCA", "MUROPEDRA" },
 	},
 	WildWest = {
 		DisplayName = "Wild West",
 		Modes = { "FFA", "TDM", "Chicken" },
 		Lighting = "WildWest",
 		DayCycle = false,
+		Boundary = { "Cerca" },
 	},
 	Practice = {
 		DisplayName = "Practice Range",

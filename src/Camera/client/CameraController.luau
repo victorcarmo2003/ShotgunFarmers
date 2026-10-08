@@ -175,7 +175,6 @@ CameraController:OnStart(function(self)
 	self.Dependencies.GameStateController:Watch("FirstPerson", function(on: boolean)
 		self.FirstPerson = on
 		const player = Players.LocalPlayer
-		player.DevEnableMouseLock = not on
 		player.CameraMode = if on then Enum.CameraMode.LockFirstPerson else Enum.CameraMode.Classic
 		if on then
 			player.CameraMaxZoomDistance = FIRST_PERSON_ZOOM

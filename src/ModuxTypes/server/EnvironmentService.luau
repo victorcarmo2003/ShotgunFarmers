@@ -20,6 +20,7 @@ export type Public = {
 	ValidateMap: (self: Public, mapName: string, source: Instance?, problems: { string }) -> (),
 	Validate: (self: Public) -> (),
 	ApplyLighting: (self: Public, presetName: string) -> (),
+	BuildBoundary: (self: Public, root: Instance, mapName: string) -> (),
 	InstantiateMap: (self: Public, mapName: string) -> (Instance, string),
 	Instantiate: (self: Public, role: string, config: MatchConfig?) -> (Instance, string),
 	Mount: (self: Public, root: Instance, lightingName: string) -> (),

@@ -22,6 +22,8 @@ export type Entry = {
 
 export type Lobby = { Key: string, AccessCode: string, Players: number, Owner: number? }
 export type Target = { Key: string, AccessCode: string }
+export type RoomCode = { Key: string, AccessCode: string, Private: boolean }
+export type Room = { Key: string, Map: string, Mode: string, Players: number, MaxPlayers: number }
 
 const MatchRegistryService = Modux.Service("MatchRegistryService", {
 	Require = { "PlayerService", "ServerRoleService", "RoundService", "TeleportGateway" },
@@ -36,6 +38,20 @@ local function countPending(pending: { [string]: number }, now: number): number
 		end
 	end
 	return total
+end
+
+local function randomCode(): string
+	const alphabet = MatchmakingSettings.RoomCodeAlphabet
+	const characters: { string } = {}
+	for index = 1, MatchmakingSettings.RoomCodeLength do
+		const at = math.random(1, #alphabet)
+		characters[index] = string.sub(alphabet, at, at)
+	end
+	return table.concat(characters)
+end
+
+local function normalizeCode(code: string): string
+	return string.upper((string.gsub(code, "%s", "")))
 end
 
 local function sanitizeEntry(raw: any): Entry?
@@ -69,6 +85,8 @@ end
 function MatchRegistryService:Setup()
 	self.ConfigMap = nil :: MemoryStoreHashMap?
 	self.Registry = nil :: MemoryStoreSortedMap?
+	self.CodeMap = nil :: MemoryStoreHashMap?
+	self.LocalCodes = {} :: { [string]: RoomCode }
 	self.Key = game.PrivateServerId :: string
 	self.Running = false :: boolean
 	self.Beating = false :: boolean
@@ -100,6 +118,14 @@ function MatchRegistryService:GetRegistry(): MemoryStoreSortedMap
 	end
 
 	return self.Registry :: MemoryStoreSortedMap
+end
+
+function MatchRegistryService:GetCodeMap(): MemoryStoreHashMap
+	if not self.CodeMap then
+		self.CodeMap = MemoryStoreService:GetHashMap(MatchmakingSettings.RoomCodeMapName)
+	end
+
+	return self.CodeMap :: MemoryStoreHashMap
 end
 
 function MatchRegistryService:IsSimulated(): boolean
@@ -373,6 +399,97 @@ function MatchRegistryService:FindMatch(modes: { string }, userIds: { number }):
 	return nil
 end
 
+function MatchRegistryService:ClaimCode(room: RoomCode): string?
+	for _ = 1, MatchmakingSettings.RoomCodeAttempts do
+		const code = randomCode()
+		if self:IsSimulated() then
+			if not self.LocalCodes[code] then
+				self.LocalCodes[code] = room
+				return code
+			end
+			continue
+		end
+
+		local claimed = false
+		const ok = pcall(function()
+			self:GetCodeMap():UpdateAsync(code, function(current: any): any
+				claimed = current == nil
+				return if claimed then room else nil
+			end, MatchmakingSettings.MatchConfigTTL)
+		end)
+		if ok and claimed then
+			return code
+		end
+	end
+
+	return nil
+end
+
+function MatchRegistryService:FindCode(code: string): RoomCode?
+	const normalized = normalizeCode(code)
+	if #normalized ~= MatchmakingSettings.RoomCodeLength then
+		return nil
+	end
+
+	if self:IsSimulated() then
+		return self.LocalCodes[normalized]
+	end
+
+	const ok, raw = self:Attempt(function()
+		return self:GetCodeMap():GetAsync(normalized)
+	end)
+	if not ok or typeof(raw) ~= "table" or typeof(raw.Key) ~= "string" or typeof(raw.AccessCode) ~= "string" then
+		return nil
+	end
+
+	return { Key = raw.Key, AccessCode = raw.AccessCode, Private = raw.Private == true }
+end
+
+function MatchRegistryService:JoinKey(key: string, userIds: { number }): Target?
+	if key == "" or self:IsSimulated() then
+		return nil
+	end
+
+	const ok, raw = self:Attempt(function()
+		return self:GetRegistry():GetAsync(key)
+	end)
+	const entry = if ok then sanitizeEntry(raw) else nil
+	if not entry or not self:ReserveSlots(key, userIds) then
+		return nil
+	end
+
+	self:AppendSquad(key, userIds)
+	return { Key = key, AccessCode = entry.AccessCode }
+end
+
+function MatchRegistryService:ListRooms(limit: number): { Room }
+	const now = os.time()
+	const rooms: { Room } = {}
+	for key, entry in self:ListMatches() do
+		if entry.Private or not entry.JoinInProgress or now - entry.UpdatedAt > MatchmakingSettings.RegistryTTL then
+			continue
+		end
+
+		table.insert(rooms, {
+			Key = key,
+			Map = string.sub(entry.Map, 1, 32),
+			Mode = string.sub(entry.Mode, 1, 16),
+			Players = math.clamp(entry.Players + countPending(entry.Pending, now), 0, 255),
+			MaxPlayers = math.clamp(entry.MaxPlayers, 0, 255),
+		})
+	end
+
+	table.sort(rooms, function(a: Room, b: Room): boolean
+		return a.Players > b.Players
+	end)
+
+	while #rooms > limit do
+		table.remove(rooms)
+	end
+
+	return rooms
+end
+
 function MatchRegistryService:RegisterMatch(key: string, config: { [string]: any }, userIds: { number }): boolean
 	const now = os.time()
 	const pending: { [string]: number } = {}
@@ -557,6 +674,13 @@ function MatchRegistryService:Cleanup()
 			self:GetConfigMap():SetAsync(self.Key, lobby, MatchmakingSettings.LobbyConfigTTL)
 		end)
 		return
+	end
+
+	if raw and typeof(raw.Code) == "string" then
+		const code = raw.Code
+		pcall(function()
+			self:GetCodeMap():RemoveAsync(code)
+		end)
 	end
 
 	if not self:IsPublicMatch() then

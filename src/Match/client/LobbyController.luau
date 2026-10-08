@@ -10,6 +10,8 @@ local LobbyScreen = require(StarterPlayer.StarterPlayerScripts.client.Lobby.Lobb
 local ShopScreen = require(StarterPlayer.StarterPlayerScripts.client.Shop.ShopScreen)
 local CosmeticsScreen = require(StarterPlayer.StarterPlayerScripts.client.Cosmetics.CosmeticsScreen)
 local GameSelectionScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.GameSelectionScreen)
+local CreateRoomScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.CreateRoomScreen)
+local JoinRoomScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.JoinRoomScreen)
 local CareerScreen = require(StarterPlayer.StarterPlayerScripts.client.Career.CareerScreen)
 local QuestsScreen = require(StarterPlayer.StarterPlayerScripts.client.Quests.QuestsScreen)
 local FriendsScreen = require(StarterPlayer.StarterPlayerScripts.client.Party.FriendsScreen)
@@ -24,12 +26,21 @@ const CONTROLS_WAIT = 10
 
 const DEFAULT_CAMERA = "CameraPosition1"
 
+const ROOM_SCREENS: { [string]: boolean } = { CreateRoom = true, JoinRoom = true }
+const SEARCH_SCREENS: { [string]: boolean } = { Play = true, CreateRoom = true, JoinRoom = true }
+
 type ScreenProps = {
 	Visible: (() -> boolean)?,
 	OnClose: (() -> ())?,
 	OnSelectMode: ((mode: GameSelectionScreen.Mode) -> ())?,
 	OnJoinRoom: (() -> ())?,
 	OnCreateRoom: (() -> ())?,
+	OnCreate: ((mode: CreateRoomScreen.RoomMode, mapName: string, private: boolean) -> ())?,
+	Rooms: (() -> { JoinRoomScreen.Room })?,
+	RoomsLoading: (() -> boolean)?,
+	OnRefreshRooms: (() -> ())?,
+	OnJoinCode: ((code: string) -> ())?,
+	OnJoinMatch: ((key: string) -> ())?,
 	OnBuyRobux: ((id: string) -> ())?,
 	OnBuyCoins: ((id: string) -> ())?,
 	PlayerName: (() -> string)?,
@@ -75,6 +86,30 @@ const SCREENS: { [string]: { Component: ScreenComponent, Camera: string? } } = {
 				OnSelectMode = props.OnSelectMode,
 				OnJoinRoom = props.OnJoinRoom,
 				OnCreateRoom = props.OnCreateRoom,
+				Status = props.Status,
+			})
+		end,
+	},
+	CreateRoom = {
+		Component = function(props: ScreenProps): Frame
+			return CreateRoomScreen({
+				Visible = props.Visible,
+				OnClose = props.OnClose,
+				OnCreate = props.OnCreate,
+				Status = props.Status,
+			})
+		end,
+	},
+	JoinRoom = {
+		Component = function(props: ScreenProps): Frame
+			return JoinRoomScreen({
+				Visible = props.Visible,
+				OnClose = props.OnClose,
+				Rooms = props.Rooms,
+				Loading = props.RoomsLoading,
+				OnRefresh = props.OnRefreshRooms,
+				OnJoinCode = props.OnJoinCode,
+				OnJoinRoom = props.OnJoinMatch,
 				Status = props.Status,
 			})
 		end,
@@ -152,11 +187,12 @@ end
 
 function LobbyController:Close()
 	const matchmaking = self.Dependencies.MatchmakingController
-	if self.CurrentScreen() == "Play" and matchmaking.State() == "Searching" then
+	const current = self.CurrentScreen()
+	if SEARCH_SCREENS[current] and matchmaking.State() == "Searching" then
 		matchmaking:Cancel()
 	end
 
-	self.CurrentScreen("")
+	self.CurrentScreen(if ROOM_SCREENS[current] then "Play" else "")
 	self:UpdateCamera()
 end
 
@@ -188,17 +224,40 @@ function LobbyController:UpdateCamera()
 	end
 end
 
-function LobbyController:SelectMode(mode: GameSelectionScreen.Mode)
-	const matchmaking = self.Dependencies.MatchmakingController
-	if matchmaking:IsBusy() then
+function LobbyController:Request(call: () -> (boolean, string))
+	if self.Dependencies.MatchmakingController:IsBusy() then
 		return
 	end
 
 	task.spawn(function()
-		const accepted, reason = matchmaking:Play(mode)
+		const accepted, reason = call()
 		if not accepted then
 			self:ShowError(reason)
 		end
+	end)
+end
+
+function LobbyController:SelectMode(mode: GameSelectionScreen.Mode)
+	self:Request(function()
+		return self.Dependencies.MatchmakingController:Play(mode)
+	end)
+end
+
+function LobbyController:SubmitRoom(mode: CreateRoomScreen.RoomMode, mapName: string, private: boolean)
+	self:Request(function()
+		return self.Dependencies.MatchmakingController:CreateRoom(mode, mapName, private)
+	end)
+end
+
+function LobbyController:JoinCode(code: string)
+	self:Request(function()
+		return self.Dependencies.MatchmakingController:JoinRoom(code)
+	end)
+end
+
+function LobbyController:JoinMatch(key: string)
+	self:Request(function()
+		return self.Dependencies.MatchmakingController:JoinMatch(key)
 	end)
 end
 
@@ -213,11 +272,12 @@ function LobbyController:StatusText(): string
 end
 
 function LobbyController:JoinRoom()
-	print("[LobbyController] join room")
+	self:Open("JoinRoom")
+	self.Dependencies.MatchmakingController:RefreshRooms()
 end
 
 function LobbyController:CreateRoom()
-	print("[LobbyController] create room")
+	self:Open("CreateRoom")
 end
 
 function LobbyController:BuyRobux(id: string)
@@ -308,6 +368,20 @@ function LobbyController:MountScreen()
 					end,
 					OnCreateRoom = function()
 						self:CreateRoom()
+					end,
+					OnCreate = function(mode, mapName, private)
+						self:SubmitRoom(mode, mapName, private)
+					end,
+					Rooms = self.Dependencies.MatchmakingController.Rooms,
+					RoomsLoading = self.Dependencies.MatchmakingController.RoomsLoading,
+					OnRefreshRooms = function()
+						self.Dependencies.MatchmakingController:RefreshRooms()
+					end,
+					OnJoinCode = function(code)
+						self:JoinCode(code)
+					end,
+					OnJoinMatch = function(key)
+						self:JoinMatch(key)
 					end,
 					OnBuyRobux = function(id)
 						self:BuyRobux(id)

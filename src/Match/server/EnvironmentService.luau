@@ -14,6 +14,18 @@ const FFA_SPAWN_TAG = "FFASpawn"
 const PLACEHOLDER_RIG = "Rig"
 const PROPERTIES_FOLDER = "Properties"
 const CLEARED_LIGHTING_CLASSES = { "Sky", "Atmosphere", "Clouds", "PostEffect" }
+const PROPS_FOLDER = "Props"
+const BOUNDARY_NAME = "Boundary"
+const BOUNDARY_CORNERS = {
+	Vector3.new(1, 1, 1),
+	Vector3.new(1, 1, -1),
+	Vector3.new(1, -1, 1),
+	Vector3.new(1, -1, -1),
+	Vector3.new(-1, 1, 1),
+	Vector3.new(-1, 1, -1),
+	Vector3.new(-1, -1, 1),
+	Vector3.new(-1, -1, -1),
+}
 
 type MatchConfig = { Map: string, Mode: string }
 
@@ -205,6 +217,82 @@ function EnvironmentService:ApplyLighting(presetName: string)
 	end
 end
 
+local function extentsOf(sources: { Instance }): (Vector3?, Vector3?)
+	local low: Vector3? = nil
+	local high: Vector3? = nil
+	for _, source in sources do
+		for _, part in source:GetDescendants() do
+			if not part:IsA("BasePart") then
+				continue
+			end
+
+			const half = part.Size / 2
+			for _, corner in BOUNDARY_CORNERS do
+				const point = part.CFrame:PointToWorldSpace(half * corner)
+				low = if low then low:Min(point) else point
+				high = if high then high:Max(point) else point
+			end
+		end
+	end
+	return low, high
+end
+
+local function boundaryWall(parent: Instance, center: Vector3, size: Vector3)
+	const wall = Instance.new("Part")
+	wall.Name = "Wall"
+	wall.Anchored = true
+	wall.CanCollide = true
+	wall.CanQuery = false
+	wall.CanTouch = false
+	wall.CastShadow = false
+	wall.Transparency = 1
+	wall.Size = size
+	wall.CFrame = CFrame.new(center)
+	wall.Parent = parent
+end
+
+function EnvironmentService:BuildBoundary(root: Instance, mapName: string)
+	const map = Maps[mapName]
+	const props = root:FindFirstChild(PROPS_FOLDER)
+	if not map or not map.Boundary or not props then
+		return
+	end
+
+	const sources: { Instance } = {}
+	for _, name in map.Boundary do
+		const source = props:FindFirstChild(name)
+		if source then
+			table.insert(sources, source)
+		else
+			warn(`[EnvironmentService] Boundary "{name}" nao encontrado em {mapName}.Props`)
+		end
+	end
+
+	const low, high = extentsOf(sources)
+	if not low or not high then
+		return
+	end
+
+	const padding = MatchSettings.BoundaryPadding
+	const thickness = MatchSettings.BoundaryThickness
+	const height = MatchSettings.BoundaryHeight
+	const minX = low.X - padding - thickness / 2
+	const maxX = high.X + padding + thickness / 2
+	const minZ = low.Z - padding - thickness / 2
+	const maxZ = high.Z + padding + thickness / 2
+	const centerY = low.Y - MatchSettings.BoundaryDepth + height / 2
+	const spanX = maxX - minX + thickness
+	const spanZ = maxZ - minZ + thickness
+
+	const folder = Instance.new("Folder")
+	folder.Name = BOUNDARY_NAME
+	boundaryWall(folder, Vector3.new(minX, centerY, (minZ + maxZ) / 2), Vector3.new(thickness, height, spanZ))
+	boundaryWall(folder, Vector3.new(maxX, centerY, (minZ + maxZ) / 2), Vector3.new(thickness, height, spanZ))
+	boundaryWall(folder, Vector3.new((minX + maxX) / 2, centerY, minZ), Vector3.new(spanX, height, thickness))
+	boundaryWall(folder, Vector3.new((minX + maxX) / 2, centerY, maxZ), Vector3.new(spanX, height, thickness))
+	folder.Parent = root
+end
+
 function EnvironmentService:InstantiateMap(mapName: string): (Instance, string)
 	const mapsFolder = ServerStorage:FindFirstChild("Maps")
 	const template = if mapsFolder then mapsFolder:FindFirstChild(mapName) else nil
@@ -214,6 +302,7 @@ function EnvironmentService:InstantiateMap(mapName: string): (Instance, string)
 
 	const map = template:Clone()
 	map.Name = "Map"
+	self:BuildBoundary(map, mapName)
 	return map, Maps[mapName].Lighting
 end
 

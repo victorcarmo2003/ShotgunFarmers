@@ -386,7 +386,7 @@ function ThrowableController:HeldMode(): number
 	if self.Left and self.Right then
 		return Throwables.MEDIUM_THROW
 	end
-	return if self.Right then Throwables.LONG_THROW else Throwables.SHORT_THROW
+	return if self.Left then Throwables.LONG_THROW else Throwables.SHORT_THROW
 end
 
 function ThrowableController:Press(button: Button): boolean
@@ -432,7 +432,7 @@ function ThrowableController:ReleaseButton(button: Button)
 	if splitAt and os.clock() - splitAt <= SPLIT_RELEASE_WINDOW then
 		self:Commit(Throwables.MEDIUM_THROW)
 	else
-		self:Commit(if button == "Right" then Throwables.LONG_THROW else Throwables.SHORT_THROW)
+		self:Commit(if button == "Left" then Throwables.LONG_THROW else Throwables.SHORT_THROW)
 	end
 end
 

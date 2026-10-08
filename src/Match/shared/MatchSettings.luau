@@ -22,4 +22,8 @@ return {
 	StudioMode = "FFA",
 	PrivateStartHold = 60,
 	TeamNames = { "Red", "Blue" },
+	BoundaryHeight = 120,
+	BoundaryThickness = 4,
+	BoundaryPadding = 1,
+	BoundaryDepth = 12,
 }

@@ -11,6 +11,7 @@ local Modux = require(ServerScriptService.server.Modux)
 type PlayMode = MatchmakingNet.PlayMode
 type State = MatchmakingNet.State
 type Target = { Key: string, AccessCode: string }
+type Finder = (userIds: { number }) -> (Target?, string?)
 type Search = {
 	Token: number,
 	Squad: string,
@@ -46,6 +47,11 @@ local function modesFor(mode: PlayMode): { string }
 		end
 	end
 	return modes
+end
+
+local function mapAllows(mapName: string, modeName: string): boolean
+	const map = Maps[mapName]
+	return map ~= nil and table.find(map.Modes, modeName) ~= nil
 end
 
 local function pickMap(modeName: string): string?
@@ -94,6 +100,9 @@ function MatchmakingService:Setup()
 	self.LastPlay = 0 :: number
 	self.LobbyActive = false :: boolean
 	self.MatchActive = false :: boolean
+	self.RoomCache = {} :: { MatchmakingNet.Room }
+	self.RoomCacheAt = 0 :: number
+	self.RoomListAt = {} :: { [Player]: number }
 end
 
 function MatchmakingService:SetStatus(players: { Player }, state: State, reason: string?)
@@ -167,13 +176,9 @@ function MatchmakingService:EndSearch(token: number?, keepTraveling: boolean?)
 	end
 end
 
-function MatchmakingService:Validate(player: Player, mode: string): string?
+function MatchmakingService:Validate(player: Player): string?
 	if not self.LobbyActive then
 		return "Matchmaking indisponivel neste servidor"
-	end
-
-	if not PLAY_MODES[mode] then
-		return "Modo invalido"
 	end
 
 	if not self.Dependencies.GameStateService:Is("Lobby") then
@@ -204,9 +209,15 @@ function MatchmakingService:Validate(player: Player, mode: string): string?
 	return nil
 end
 
-function MatchmakingService:Create(modeName: string, private: boolean, userIds: { number }): (Target?, string?)
+function MatchmakingService:Create(
+	modeName: string,
+	private: boolean,
+	userIds: { number },
+	chosenMap: string?,
+	withCode: boolean?
+): (Target?, string?)
 	const mode = GameModes.Modes[modeName]
-	const mapName = pickMap(modeName)
+	const mapName = if chosenMap and mapAllows(chosenMap, modeName) then chosenMap else pickMap(modeName)
 	if not mode or not mapName then
 		return nil, `Nenhum mapa disponivel para {modeName}`
 	end
@@ -215,6 +226,18 @@ function MatchmakingService:Create(modeName: string, private: boolean, userIds: 
 	const reservation, reason = self.Dependencies.TeleportGateway:Reserve()
 	if not reservation then
 		return nil, reason
+	end
+
+	local code: string? = nil
+	if withCode then
+		code = registry:ClaimCode({
+			Key = reservation.ServerId,
+			AccessCode = reservation.AccessCode,
+			Private = private,
+		})
+		if not code then
+			return nil, "Falha ao gerar codigo da sala"
+		end
 	end
 
 	const config = {
@@ -226,6 +249,7 @@ function MatchmakingService:Create(modeName: string, private: boolean, userIds: 
 		AccessCode = reservation.AccessCode,
 		Squads = { userIds },
 		Created = os.time(),
+		Code = code,
 	}
 
 	const saved, saveReason = registry:SetConfig(reservation.ServerId, config, MatchmakingSettings.MatchConfigTTL)
@@ -259,14 +283,27 @@ function MatchmakingService:Travelers(): { Player }
 	return if #members > 0 then members else Players:GetPlayers()
 end
 
-function MatchmakingService:Run(search: Search, mode: PlayMode)
+function MatchmakingService:FindRoom(code: string, userIds: { number }): (Target?, string?)
+	const registry = self.Dependencies.MatchRegistryService
+	const room = registry:FindCode(code)
+	if not room then
+		return nil, "Sala nao encontrada"
+	end
+
+	if not room.Private and not registry:IsSimulated() and not registry:ReserveSlots(room.Key, userIds) then
+		return nil, "Sala lotada ou encerrada"
+	end
+
+	registry:AppendSquad(room.Key, userIds)
+	return { Key = room.Key, AccessCode = room.AccessCode }, nil
+end
+
+function MatchmakingService:Run(search: Search, find: Finder)
 	const token = search.Token
 	const userIds = search.UserIds
 	self:SetStatus(presentPlayers(userIds), "Searching", "")
 
-	const found, target, reason = pcall(function()
-		return self:FindTarget(mode, userIds)
-	end)
+	const found, target, reason = pcall(find, userIds)
 
 	if token ~= self.Token then
 		if found and target then
@@ -306,7 +343,72 @@ function MatchmakingService:Run(search: Search, mode: PlayMode)
 end
 
 function MatchmakingService:Play(player: Player, mode: string): (boolean, string)
-	const problem = self:Validate(player, mode)
+	if not PLAY_MODES[mode] then
+		return false, "Modo invalido"
+	end
+
+	return self:Begin(player, function(userIds: { number }): (Target?, string?)
+		return self:FindTarget(mode :: PlayMode, userIds)
+	end)
+end
+
+function MatchmakingService:CreateRoom(player: Player, mode: string, mapName: string, private: boolean): (boolean, string)
+	if not table.find(MatchmakingSettings.RoomModes, mode) then
+		return false, "Modo invalido"
+	end
+
+	if mapName ~= "" and not mapAllows(mapName, mode) then
+		return false, "Mapa invalido para este modo"
+	end
+
+	return self:Begin(player, function(userIds: { number }): (Target?, string?)
+		return self:Create(mode, private, userIds, if mapName ~= "" then mapName else nil, true)
+	end)
+end
+
+function MatchmakingService:JoinRoom(player: Player, code: string): (boolean, string)
+	if code == "" then
+		return false, "Digite o codigo da sala"
+	end
+
+	return self:Begin(player, function(userIds: { number }): (Target?, string?)
+		return self:FindRoom(code, userIds)
+	end)
+end
+
+function MatchmakingService:JoinMatch(player: Player, key: string): (boolean, string)
+	if key == "" then
+		return false, "Sala invalida"
+	end
+
+	return self:Begin(player, function(userIds: { number }): (Target?, string?)
+		const target = self.Dependencies.MatchRegistryService:JoinKey(key, userIds)
+		return target, if target then nil else "Sala lotada ou encerrada"
+	end)
+end
+
+function MatchmakingService:ListRooms(player: Player): { MatchmakingNet.Room }
+	if not self.LobbyActive then
+		return {}
+	end
+
+	const now = os.clock()
+	const last = self.RoomListAt[player]
+	if last and now - last < MatchmakingSettings.RoomListCooldown then
+		return self.RoomCache
+	end
+	self.RoomListAt[player] = now
+
+	if self.RoomCacheAt == 0 or now - self.RoomCacheAt >= MatchmakingSettings.RoomListCooldown then
+		self.RoomCacheAt = now
+		self.RoomCache = self.Dependencies.MatchRegistryService:ListRooms(MatchmakingSettings.RoomListLimit)
+	end
+
+	return self.RoomCache
+end
+
+function MatchmakingService:Begin(player: Player, find: Finder): (boolean, string)
+	const problem = self:Validate(player)
 	if problem then
 		return false, problem
 	end
@@ -324,7 +426,7 @@ function MatchmakingService:Play(player: Player, mode: string): (boolean, string
 	self.Search = search
 
 	task.spawn(function()
-		self:Run(search, mode :: PlayMode)
+		self:Run(search, find)
 	end)
 
 	return true, ""
@@ -471,6 +573,11 @@ end
 function MatchmakingService:ActivateMatch()
 	self.MatchActive = true
 
+	const raw = self.Dependencies.ServerRoleService:GetRaw()
+	if raw and typeof(raw.Code) == "string" then
+		workspace:SetAttribute("RoomCode", raw.Code)
+	end
+
 	for _, player in Players:GetPlayers() do
 		task.spawn(function()
 			self:Admit(player)
@@ -507,6 +614,7 @@ function MatchmakingService:OnPlayerRemoving(player: Player)
 
 	self.States[player] = nil
 	self.Returning[player] = nil
+	self.RoomListAt[player] = nil
 
 	const search = self.Search
 	if search and search.Leader == player then
@@ -516,14 +624,32 @@ function MatchmakingService:OnPlayerRemoving(player: Player)
 	self:PublishLeader()
 end
 
-MatchmakingService:OnInit(function(self)
-	self:Setup()
+function MatchmakingService:BindNet()
 
 	const net = self.Libs.Net.Matchmaking
 
 	net.Play:onServer(function(request, player)
 		const accepted, reason = self:Play(player, request.Mode)
 		return { Accepted = accepted, Reason = reason }
+	end)
+
+	net.CreateRoom:onServer(function(request, player)
+		const accepted, reason = self:CreateRoom(player, request.Mode, request.Map, request.Private)
+		return { Accepted = accepted, Reason = reason }
+	end)
+
+	net.JoinRoom:onServer(function(request, player)
+		const accepted, reason = self:JoinRoom(player, request.Code)
+		return { Accepted = accepted, Reason = reason }
+	end)
+
+	net.JoinMatch:onServer(function(request, player)
+		const accepted, reason = self:JoinMatch(player, request.Key)
+		return { Accepted = accepted, Reason = reason }
+	end)
+
+	net.ListRooms:onServer(function(_, player)
+		return { Rooms = self:ListRooms(player) }
 	end)
 
 	net.Cancel:onServer(function(_, player)
@@ -543,9 +669,9 @@ MatchmakingService:OnInit(function(self)
 	self.Dependencies.PlayerService.PlayerRemoving:Connect(function(player)
 		self:OnPlayerRemoving(player)
 	end)
-end)
+end
 
-MatchmakingService:OnStart(function(self)
+function MatchmakingService:Start()
 	const roleService = self.Dependencies.ServerRoleService
 	roleService:OnReady(function()
 		if roleService:IsLobby() then
@@ -574,6 +700,15 @@ MatchmakingService:OnStart(function(self)
 			self:SetStatus({ player }, state, "")
 		end
 	end)
+end
+
+MatchmakingService:OnInit(function(self)
+	self:Setup()
+	self:BindNet()
+end)
+
+MatchmakingService:OnStart(function(self)
+	self:Start()
 end)
 
 return MatchmakingService

@@ -21,32 +21,6 @@
       "updatedAt": "2026-07-12"
     },
     {
-      "id": "task-shell-001",
-      "title": "Implementar LeaderstatsService",
-      "description": "CONFIRMADO ainda stub em 2026-07-12: src/server/Services/LeaderstatsService.luau continua com OnInit/OnStart vazios, sem nenhuma leitura de ProfileService. Implementar leaderboard stats (Wins, Gems, etc.) usando dados do ProfileService.",
-      "column": "todo",
-      "tags": [
-        "misc",
-        "server"
-      ],
-      "priority": "low",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-shell-002",
-      "title": "Implementar NotificationController",
-      "description": "CONFIRMADO ainda stub em 2026-07-12: src/client/Controllers/NotificationController.luau continua com OnInit/OnStart vazios. Implementar sistema de notificações toast/popup -- útil, por exemplo, pra feedback de colheita de semente (task-farming-003) e resultado de troca de arma.",
-      "column": "todo",
-      "tags": [
-        "ui",
-        "client"
-      ],
-      "priority": "low",
-      "createdAt": "2026-06-26",
-      "updatedAt": "2026-07-12"
-    },
-    {
       "id": "task-anim-001",
       "title": "Criar AnimateController (substitui Animate padrão)",
       "description": "CONFIRMADO implementado e funcional em 2026-07-12. src/client/Controllers/AnimateController.luau: carrega Idle/Walk/CrouchIdle/CrouchWalk via Animator:LoadAnimation e alterna a AnimationTrack ativa num OnTick(Hz30), inferindo crouch pelo LocalHumanoid.WalkSpeed (<=15). CharacterService.luau destrói o script 'Animate' padrão de cada Character. Pendente (não bloqueante): se quiser um sinal explícito de crouch (em vez do heurístico por WalkSpeed), expor self.IsCrouching no MovementController como já existe self.IsSliding.",
@@ -61,267 +35,10 @@
       "updatedAt": "2026-07-12"
     },
     {
-      "id": "task-projectile-001",
-      "title": "Adicionar campos de fisica balistica em Guns.luau",
-      "description": "CONFIRMADO ainda não iniciado em 2026-07-12 -- src/shared/Datas/Guns.luau segue sem MuzzleVelocity/ProjectileGravity/ProjectileLifetime/SplashRadius em nenhuma das 9 armas.\n\nAdicionar por arma em src/shared/Datas/Guns.luau: MuzzleVelocity (studs/s, velocidade inicial), ProjectileGravity (studs/s^2, queda; 0 ou baixo = quase reto), ProjectileLifetime (s, tempo max de voo antes de sumir), SplashRadius (studs, 0 pra Single/Multi, >0 pra Area). Atualizar o type GunData em src/shared/Utils/GetGun.luau com esses campos. Valores por perfil: Sniperagus = velocidade altissima + gravidade ~0 (vira hitscan pelo fast-path); Gromato Launcher = velocidade baixa + gravidade alta + SplashRadius grande (arco de granada); Chilli Thrower = lifetime curto + SplashRadius pequeno (spray); Shotgun/Double Cob = velocidade media, gravidade leve. Sem dependencias. Fundacional.",
-      "column": "todo",
-      "tags": [
-        "projectile-physics",
-        "shared"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-11",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-projectile-002",
-      "title": "Criar util compartilhado Ballistics.luau",
-      "description": "CONFIRMADO ainda não iniciado em 2026-07-12 -- src/shared/Utils/Ballistics.luau não existe.\n\nCriar src/shared/Utils/Ballistics.luau: matematica pura e DETERMINISTICA da trajetoria parabolica, usada IGUAL por client (desenho) e server (validacao) pra garantir que visual bate com a autoridade. API: GetVelocityVector(direction, muzzleVelocity) -> Vector3; GetPosition(origin, velocityVec, gravity, t) -> Vector3 (origin + v*t + 0.5*g*t^2 no eixo Y); DeterministicSpread(baseDir, spreadDeg, seed, index) -> Vector3 (fan de pellets reproduzivel a partir de um seed compartilhado, substitui o RandomSpread aleatorio); opcional Step(origin, dir, gunPhysics, dt, maxT, callback) iterando a curva. Esta e a UNICA fonte de verdade da formula do arco. Sem dependencias de codigo. Fundacional, paralelo com task-projectile-001.",
-      "column": "todo",
-      "tags": [
-        "projectile-physics",
-        "shared"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-11",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-projectile-003",
-      "title": "Atualizar packet Fire + adicionar HitConfirmed no registry de rede",
-      "description": "CONFIRMADO ainda não iniciado em 2026-07-12 -- src/shared/Modux/src/Network/init.luau segue com o schema antigo: Fire.request tem Pellets = array(struct{TargetID,HitPart}, 8) (SEM Seed) e Fire.response tem { Accepted, Hits } síncrono (SEM HitConfirmed). O cap de 8 pellets no array já é um problema real pra Double Cob (Bullets=12) quando essa arma ganhar componente -- reforça a prioridade desta task.\n\nEm src/shared/Modux/src/Network/init.luau (ATENCAO: fica dentro de Modux, mas e o unico lugar onde packets sao registrados e ja esta modificado no working tree -- confirmar com o usuario). 1) Mudar o query Fire: request vira struct { Origin=vec3int16, Direction=vec3(-1,1,0.001), Seed=int(0, 2^31-1), TimeStamp=f64 } (REMOVER o array Pellets -- server passa a gerar os pellets pelo Seed); response vira struct { Accepted=bool } (REMOVER Hits, que agora chega assincrono). Manter rateLimit e o validate de janela de timestamp. 2) Adicionar packet HitConfirmed (server->client, so pro atirador): struct { Hits = array(struct { TargetID=int(0,255), HitPart=int(0,15), Damage=int(0,1000), ImpactPosition=vec3int16, Killed=bool }, 12) } -- array dimensionado pro maior pellet count (Double Cob=12). Efeito colateral bom: o cap antigo de 8 no array Pellets some. depends: nenhum (mas 005/007 dependem deste).",
-      "column": "todo",
-      "tags": [
-        "projectile-physics",
-        "shared",
-        "network"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-11",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-projectile-004",
-      "title": "Criar ProjectileService (simulacao balistica autoritativa no server)",
-      "description": "CONFIRMADO ainda não iniciado em 2026-07-12 -- src/server/Services/ProjectileService.luau não existe. HitService.ResolvePellet (síncrono) continua sendo o único caminho de validação de hit.\n\nCriar src/server/Services/ProjectileService.luau -- o simulador de trajetoria autoritativo. Mantem uma lista de projeteis EM VOO e avanca cada um em passos de STEP_TIME (~0.04-0.06s) num loop OnTick/OnSimulation, NAO tudo no clique. Insight-chave de lag-comp: pra cada step com tempo de voo acumulado pelletElapsed, rebobina o alvo pra self.SnapshotService:GetRewoundPosition(targetID, clickTimestamp + pelletElapsed) -- como o projetil e simulado em tempo real do server, esse timestamp fica atrasado ~latencia do atirador (sempre no PASSADO, dentro de MaxRewindSeconds=0.3), casando com o rewind existente sem precisar mexer no SnapshotService. Por step: 1 raycast do segmento contra o mundo (para em parede) + checagem de proximidade (HITBOX_RADIUS) contra a posicao rebobinada de cada player candidato (broad-phase por distancia). Fast-path: se MuzzleVelocity alta e gravidade ~0, resolve com 1 raycast reto (hitscan) em vez de stepar. API: SpawnPellet(shooter, origin, dirUnit, gunPhysics, clickTimestamp, excludeChars, onResolve); SimulateSplash(impactPos, radius, atTime, excludeShooter) -> lista de {player, distancia} rebobinados. Ao impactar (mundo/alvo/lifetime) chama callback de resolucao no HitService. Limpar projeteis em voo em OnPlayerRemoved e na morte do atirador (memory mgmt). Imports: IDService, SnapshotService, PlayerService. Move pra ca a logica que hoje esta em HitService.ResolvePellet. depends: task-projectile-002, task-projectile-001. Nucleo do sistema.",
-      "column": "todo",
-      "tags": [
-        "projectile-physics",
-        "server"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-11",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-projectile-005",
-      "title": "Refatorar HitService para confirmacao de hit assincrona",
-      "description": "CONFIRMADO ainda não iniciado em 2026-07-12 -- HitService.ProcessFire continua resolvendo dano de forma síncrona via ResolvePellet dentro do mesmo request.\n\nModificar src/server/Services/HitService.luau. ProcessFire passa a: (a) validar vital/origin/fire-rate SINCRONO como hoje; (b) aplicar o RECUO DO ATIRADOR imediatamente (self:ApplyKnockback(shooterRoot, -direction, Knockback)) -- ISSO CONTINUA SINCRONO NO CLIQUE, acerte ou erre, pra preservar o shotgun-jump; (c) consumir municao; (d) retornar { Accepted = true } de imediato (sem Hits). A resolucao de dano deixa de ser sincrona: delega os pellets ao ProjectileService (via gunComponent:Shoot) e, no callback de impacto de cada pellet, chama self:DealDamage + knockback NA VITIMA (agora no momento do impacto, nao do clique) e acumula os hits confirmados pra enviar via novo packet self.Network.Packages.HitConfirmed:send({ Hits = {...} }, Shooter). Aposentar/remover ResolvePellet (logica migrou pro ProjectileService). Manter DealDamage e ApplyKnockback. Imports podem passar a incluir ProjectileService. depends: task-projectile-004, task-projectile-003.",
-      "column": "todo",
-      "tags": [
-        "projectile-physics",
-        "server"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-11",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-projectile-006",
-      "title": "Atualizar GunMixin + componentes de arma pro novo contrato Shoot",
-      "description": "CONFIRMADO ainda não iniciado em 2026-07-12 -- GunMixin/ShotgunComponent/PeavolverComponent seguem no contrato antigo (claimedPellets síncronos).\n\nModificar src/server/Components/Mixin/GunMixin.luau e os componentes de arma existentes (ex: ShotgunComponent). GunMixin.OnStart passa a puxar MuzzleVelocity, ProjectileGravity, ProjectileLifetime e SplashRadius do GetGun (alem de Damage/FireRate/Knockback ja existentes). Novo contrato de Shoot: em vez de receber claimedPellets e retornar {Player} sincrono, Shoot gera as direcoes AUTORITATIVAS de cada pellet usando Ballistics.DeterministicSpread(baseDir, self.Spread, seed, i) (seed vindo do request) e delega cada pellet ao ProjectileService (via HitService) pra simulacao/resolucao assincrona. Tratar por BulletType: Single = 1 pellet balistico; Multi = N pellets (self.ShootAmount/Bullets) balisticos; Area = 1 projetil balistico que ao impactar dispara SimulateSplash no SplashRadius. Manter ConsumeAndReplicateAmmo e o gate CanShoot. Componentes de arma ficam finos (so definem contagem/spread/tipo); o peso da simulacao esta no ProjectileService. depends: task-projectile-004, task-projectile-005, task-projectile-001, task-projectile-002.",
-      "column": "todo",
-      "tags": [
-        "projectile-physics",
-        "server"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-11",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-projectile-007",
-      "title": "Reescrever fluxo de disparo do HitController (client)",
-      "description": "CONFIRMADO ainda não iniciado em 2026-07-12 -- src/client/Controllers/HitController.luau segue fazendo raycast local, montando o array Pellets e mandando Fire:request sem Seed, exatamente como antes.\n\nModificar src/client/Controllers/HitController.luau. TryHit deixa de fazer raycast local pra resolver TargetID (o server e autoritativo agora). Novo fluxo: computa originPosition (character), lookDirection e um Seed aleatorio (int); pra cada pellet computa a direcao via Ballistics.DeterministicSpread(lookDirection, spread, seed, i) -- MESMA funcao/seed que o server -- e chama ProjectileController:Shoot com params BALISTICOS (startPos visual do muzzle, direction, gunPhysics {MuzzleVelocity, ProjectileGravity, ProjectileLifetime}, ammoType, seed), SEM endPos pre-computado. Envia Fire:request({ Origin, Direction=lookDirection, Seed, TimeStamp }) -- sem lista de Pellets. A resposta { Accepted } so libera recuo/prediction/municao, NAO da feedback de acerto. Adicionar handler self.Network.Packages.HitConfirmed:on(...) que mostra hitmarker/numeros de dano quando a confirmacao assincrona chega (pode ser bem depois do clique, pro tempo de voo). depends: task-projectile-002, task-projectile-003. Independente do spine do server (004-006) -- da pra fazer em paralelo assim que 002 e 003 existirem.",
-      "column": "todo",
-      "tags": [
-        "projectile-physics",
-        "client"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-11",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-projectile-008",
-      "title": "Reescrever ProjectileController pra voo parabolico (client)",
-      "description": "CONFIRMADO ainda não iniciado em 2026-07-12 -- src/client/Controllers/ProjectileController.luau segue com Lerp linear startPos/endPos (BULLET_SPEED = 1200), sem noção de gravidade/parábola.\n\nModificar src/client/Controllers/ProjectileController.luau. Trocar o Lerp LINEAR por integracao PARABOLICA usando Ballistics.GetPosition com a MESMA velocidade/gravidade por arma do server (parity visual). Nova assinatura de Shoot: { startPos, direction, gunPhysics = {MuzzleVelocity, ProjectileGravity, ProjectileLifetime}, ammoType, seed } em vez de { startPos, endPos }. No Heartbeat, posicao = Ballistics.GetPosition(startPos, velVec, gravity, elapsed). Como o client NAO sabe mais o endPos de antemao, integra ate: bater em geometria do mundo (raycast cosmetico client-side -> fx de impacto), estourar ProjectileLifetime, ou passar do alcance max. Pra ammoType Area, tocar fx de splash (indicador de raio) no ponto terminal. Continuar em Heartbeat (nao OnSimulation) por causa do Destroy. depends: task-projectile-002, task-projectile-001. Depende so do shared -> paralelizavel.",
-      "column": "todo",
-      "tags": [
-        "projectile-physics",
-        "client"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-11",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-projectile-009",
-      "title": "Broadcast de projeteis pros outros jogadores (dodge de granada)",
-      "description": "CONFIRMADO ainda não iniciado em 2026-07-12.\n\nPermitir que OUTROS players vejam projeteis chegando (relevante pra esquivar, principalmente das granadas lentas da Gromato). Adicionar packet ProjectileFired (server->todos exceto atirador, ou broadcast) com { ShooterID, Origin=vec3int16, Direction=vec3, WeaponID, Seed, TimeStamp } no registry de rede. No server, HitService/ProjectileService emite esse packet no disparo. Nos outros clients, o ProjectileController desenha o MESMO arco deterministico via Ballistics (mesmo Seed + mesma formula). Nice-to-have pro MVP mas importante pra gameplay de projetil lento. depends: task-projectile-003, task-projectile-004, task-projectile-008.",
-      "column": "todo",
-      "tags": [
-        "projectile-physics",
-        "client",
-        "server"
-      ],
-      "priority": "medium",
-      "createdAt": "2026-07-11",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-projectile-010",
-      "title": "Pass de tuning e validacao da migracao balistica",
-      "description": "Ainda não aplicável em 2026-07-12 -- depende de 004/006/007/008, nenhum iniciado.\n\nPass de integracao/QA depois que o pipeline estiver ligado. 1) Ajustar MuzzleVelocity/ProjectileGravity/ProjectileLifetime/SplashRadius por arma ate o feel ficar bom (Sniperagus quase-hitscan, Gromato arco lento, etc.). 2) Tunar STEP_TIME vs custo (raycasts por tick) e o HITSCAN_VELOCITY_THRESHOLD do fast-path. 3) Verificar que o arco desenhado no client BATE com o ponto/tempo de impacto do server dentro da tolerancia de latencia. 4) Verificar que o recuo/shotgun-jump continua INSTANTANEO no clique, acerte ou erre. 5) Verificar splash das armas Area (Gromato/Chilli). 6) Confirmar limpeza de projeteis em voo em OnPlayerRemoved/morte. depends: task-projectile-006, task-projectile-007, task-projectile-008.",
-      "column": "todo",
-      "tags": [
-        "projectile-physics",
-        "server",
-        "client"
-      ],
-      "priority": "medium",
-      "createdAt": "2026-07-11",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-spawn-001",
-      "title": "SpawnService ignora MatchActive de novo -- gate comentado",
-      "description": "BUG (regressão): src/server/Services/SpawnService.luau linhas 41-53. RequestSpawn tem a lógica de gate correta (só spawna de fato se self.MatchActive, senão marca como PendingPlayers) mas está TODA COMENTADA -- o código ativo hoje é `self.PendingPlayers[Player] = nil; warn(Player); self:SpawnPlayer(Player)`, ou seja, spawna IMEDIATAMENTE sempre, ignorando o estado do round (Starting/Intermission/Vote) por completo. GameService.AdvanceState já chama SetMatchActive corretamente (ver task-game-001), mas isso não tem efeito prático porque RequestSpawn não checa mais MatchActive. Reativar o bloco comentado (removendo o código morto acima) e remover os 2 `warn()` de debug (ver task-spawn-002).",
-      "column": "todo",
-      "tags": [
-        "spawn-system",
-        "server",
-        "code-issue"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-12",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-spawn-002",
-      "title": "Remover warn() de debug deixados no SpawnService",
-      "description": "Anti-pattern/limpeza: src/server/Services/SpawnService.luau tem `warn(Player)` (linha 43, dentro do bloco ativo de RequestSpawn) e `warn(\\`done\\`)` (linha 72, dentro de OnInit/OnPlayerAdded) -- claramente resíduo de debug, sem valor de log real (nome genérico, sem contexto). Remover ao corrigir task-spawn-001.",
-      "column": "todo",
-      "tags": [
-        "spawn-system",
-        "server",
-        "code-issue"
-      ],
-      "priority": "medium",
-      "createdAt": "2026-07-12",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-daynight-001",
-      "title": "DayNightService trava em Idle -- ciclo dia/noite não avança",
-      "description": "BUG confirmado (mesmo relatado em levantamento anterior, ainda não corrigido): src/server/Services/DayNightService.luau. Ordem de lifecycle do Modux é OnInit de tudo, depois OnStart de tudo. GameService:OnInit chama self.DayNightService:StartCycle() (seta CurrentCycle=\"Day\"), mas isso roda ANTES da fase OnStart -- e DayNightService:OnStart(function(self) self:SetCycle(\"Idle\") end) roda DEPOIS, sobrescrevendo de volta pra \"Idle\" incondicionalmente. Além disso, o OnTick que decrementaria CurrentClock e chamaria ToggleCycle (Day<->Night) está inteiramente comentado (linhas 128-139) -- mesmo corrigindo o OnStart, o ciclo nunca avançaria sozinho. Resultado: DayNightService fica permanentemente parado em \"Idle\", CurrentClock nunca muda, DayCycleController (client) nunca recebe uma transição real. Fix: remover o SetCycle(\"Idle\") indevido do OnStart (ou só aplicar se StartCycle nunca tiver sido chamado) e reativar/revisar o OnTick comentado.",
-      "column": "todo",
-      "tags": [
-        "daynight-system",
-        "server",
-        "code-issue"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-12",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-farming-001",
-      "title": "PlantAt nunca é chamado + seed clonado nunca é parentado",
-      "description": "BUG confirmado (mesmo relatado em levantamento anterior, ainda não corrigido): src/server/Components/Mixin/GunMixin.luau linhas 84-88, GunMixin.PlantAt clona ReplicatedStorage.Assets.SeedProp, faz PivotTo e adiciona a tag \"SeedComponent\" -- mas NUNCA seta seedProp.Parent. Instance:Clone() cria a cópia com Parent nil; sem reparentar, a semente nunca aparece no mundo e vira garbage collection assim que a função retorna (nenhuma outra referência sobrevive). Além disso, grep confirma que PlantAt não é chamado em NENHUM lugar do código -- nem ShotgunComponent nem PeavolverComponent chamam self:PlantAt ao errar um tiro (ver ShotgunComponent.Shoot/PeavolverComponent.Shoot, que só resolvem hits e nunca tratam o caso de miss batendo no chão). Ou seja: o mecanismo central de \"Shotgun Farmers\" (plantar semente ao errar) está com 0% de cobertura de gameplay hoje, mesmo com SeedComponent.luau e SeedSettings.luau já existindo como scaffolding. Fix: (1) parentar seedProp em workspace (ou pasta dedicada) dentro de PlantAt; (2) decidir onde detectar \"miss bateu no chão\" (ProjectileService futuro, ver task-projectile-004, é o lugar natural) e chamar self:PlantAt(posição) de lá.",
-      "column": "todo",
-      "tags": [
-        "farming",
-        "server",
-        "code-issue"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-12",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-farming-002",
-      "title": "SeedComponent.OnTick compara contra o campo errado (PlantTime não usado)",
-      "description": "BUG confirmado (mesmo relatado em levantamento anterior, ainda não corrigido): src/server/Components/SeedComponent.luau linha 48-52. OnTick faz `if (workspace:GetServerTimeNow() - self.HarvestTime) >= self.HarvestTime then self.Proximity.Enabled = true end` -- deveria comparar contra self.PlantTime (setado em OnStart como workspace:GetServerTimeNow() no momento do plantio), não contra self.HarvestTime de novo (que é só a DURAÇÃO, ex. 4s via SeedSettings.HARVEST_TIME). self.PlantTime é atribuído mas nunca lido -- variável morta. Como GetServerTimeNow() cresce com o uptime do server (tipicamente >> 4), essa condição pode ficar true quase imediatamente ou nunca fazer sentido temporal. Fix: `if (workspace:GetServerTimeNow() - self.PlantTime) >= self.HarvestTime then ...`.",
-      "column": "todo",
-      "tags": [
-        "farming",
-        "server",
-        "code-issue"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-12",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-farming-003",
-      "title": "SeedComponent.Harvest nunca é conectado + callback vazio",
-      "description": "Stub confirmado: src/server/Components/SeedComponent.luau. OnStart só chama self:StartAnimations() e self:Setup() -- nunca chama self:Harvest(), então o ProximityPrompt.Triggered nunca é conectado a nada, mesmo depois do prompt ser Enabled=true pelo OnTick. E mesmo que fosse chamado, o corpo do callback dentro de Harvest (linha 9-11) está vazio -- nenhuma munição é creditada, a semente não é destruída, nada acontece. Falta: chamar self:Harvest() em OnStart, e implementar o corpo (creditar munição -- cedo=30%/tardia=100% conforme intenção documentada no board.json antigo -- e destruir/limpar a instância). Depende de task-farming-001 (semente precisa existir no mundo primeiro) e task-farming-002 (timer precisa fazer sentido).",
-      "column": "todo",
-      "tags": [
-        "farming",
-        "server",
-        "code-issue"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-12",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-snapshot-001",
-      "title": "SnapshotController sempre manda WeaponID=0 (TODO obsoleto)",
-      "description": "Inconsistência: src/client/Controllers/SnapshotController.luau linha 73, `WeaponID = 0, -- TODO: popular quando a cadeia de arma (EquipmentComponent) existir`. A cadeia de EquipmentComponent JÁ EXISTE hoje (self.WeaponController.WeaponID já é replicado via WeaponKey e fica disponível no client) -- o TODO está desatualizado. Efeito prático: qualquer consumidor futuro de SnapshotFrame.WeaponID (killcam, replay, anti-cheat por arma) vai ler sempre 0. Fix: usar Fusion.peek(self.WeaponController.WeaponID) (ou equivalente) em vez do literal 0.",
-      "column": "todo",
-      "tags": [
-        "snapshot-system",
-        "client",
-        "code-issue"
-      ],
-      "priority": "medium",
-      "createdAt": "2026-07-12",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-weapon-003",
-      "title": "7 de 9 armas ainda sem *Component.luau nem AimType",
-      "description": "Gap confirmado em 2026-07-12: só existem src/server/Components/Weapon/ShotgunComponent.luau e PeavolverComponent.luau. As outras 7 armas de src/shared/Datas/Guns.luau (Sniperagus, Carrocket, Gromato Launcher, Chilli Thrower, M6Bean, WatermeLMG, Double Cob) não têm componente próprio (não dá pra atirar com elas), não têm AimType setado (caem no fallback \"Default\" do Crosshair) e não têm ImageID/Animations/ShootSound preenchidos (tudo placeholder/noAnimations()/\"\"). Padrão a seguir: GunMixin (Extend) + CanShoot/Shoot conforme ShotgunComponent (Multi) ou PeavolverComponent (Single) -- Gromato/Chilli são BulletType=\"Area\" e ainda não têm um padrão de referência (nenhuma arma Area implementada ainda), então a primeira arma Area vai precisar desenhar esse caminho (idealmente já pensando no SplashRadius de task-projectile-001/006). depends: nenhuma tecnicamente, mas Area-type se beneficia de esperar task-projectile-004/006 pra não retrabalhar.",
-      "column": "todo",
-      "tags": [
-        "weapons",
-        "server"
-      ],
-      "priority": "high",
-      "createdAt": "2026-07-12",
-      "updatedAt": "2026-07-12"
-    },
-    {
-      "id": "task-zone-001",
-      "title": "ZoneService está com --modux ignore file -- decidir destino",
-      "description": "src/server/Services/ZoneService.luau tem a anotação `--modux ignore file` na linha 1, ou seja, o Modux NÃO carrega esse Service (fica morto por escolha explícita, não por engano). Ele já importa ProfileService e tem ChangePlayerZone/ChangePlayerSafeZone funcionais (gravam CurrentZone no profile), mas nada chama essas funções porque o Service inteiro nunca inicializa. Existem também src/shared/Components/RegionComponent.luau (também `--modux ignore file`) e src/server/Components/ZoneComponent.luau (idem) -- os 3 arquivos de zona do projeto estão desligados. Decidir: (a) reativar ZoneService + os Components de zona removendo as anotações ignore, ou (b) consolidar zona/região num único caminho (ex: só PlayerZoneComponent, que está ativo) e formalmente descontinuar os outros 3 arquivos. Baixa prioridade -- nenhum sistema atual depende de zonas pro MVP de combate.",
-      "column": "todo",
-      "tags": [
-        "zone-system",
-        "server"
-      ],
-      "priority": "low",
-      "createdAt": "2026-07-12",
-      "updatedAt": "2026-07-12"
-    },
-    {
       "id": "task-weapon-discard-001",
       "title": "Descartar arma sem munição (animação de jogar fora)",
-      "description": "Quando a munição acaba, o jogador joga a arma fora. Depende da animação que o usuário vai criar (Throw/Discard no AnimationSet). Integrar: estado no PoseMachine, remoção do slot no Equipment (servidor) e efeito visual da arma caindo.",
-      "column": "todo",
+      "description": "Quando a munição acaba, o jogador joga a arma fora. Depende da animação que o usuário vai criar (Throw/Discard no AnimationSet). Integrar: estado no PoseMachine, remoção do slot no Equipment (servidor) e efeito visual da arma caindo.\n\n2026-10-07: movido para revisão pelo usuário.\n\n2026-10-07: usuário: sem animação por enquanto; se testers pedirem, reabrir. Fluxo atual já existe: armas com DiscardWhenEmpty disparam Weapon.DiscardWeapon no marker Pump com munição 0 (ArmsController:OnPumpMarker) e PoseMachine:PlayDiscard toca Discard só se a animação existir.",
+      "column": "awaiting-approval",
       "tags": [
         "weapon",
         "client",
@@ -329,7 +46,7 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-01",
-      "updatedAt": "2026-10-01"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-vfx-muzzle-002",
@@ -523,8 +240,8 @@
     {
       "id": "task-map-001",
       "title": "Portas e celeiros bloqueando passagem",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedbacks: \"nao consigo passar da porta\", \"porta bugada\", \"nao da pra entrar no celeiro\", \"tambem nao e possivel entrar no celeiro no mapa azul\". Revisar colisão das portas e entradas de celeiro em todos os mapas.\n\n2026-10-06: causa confirmada pelo usuário -- CollisionFidelity dos meshes (celeiros/portas). Usuário vai ajustar no Blender/reimportar.",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedbacks: \"nao consigo passar da porta\", \"porta bugada\", \"nao da pra entrar no celeiro\", \"tambem nao e possivel entrar no celeiro no mapa azul\". Revisar colisão das portas e entradas de celeiro em todos os mapas.\n\n2026-10-06: causa confirmada pelo usuário -- CollisionFidelity dos meshes (celeiros/portas). Usuário vai ajustar no Blender/reimportar.\n\n2026-10-07: WildWest Props.Model.Door (free model): tudo Anchored com HingeConstraint, nunca abre; Door.Base invisivel CanCollide=true bloqueia a passagem. 'E to Open Door' gira so o Hinge via tween, Base invisivel colidivel tambem pode ficar no vao. Corrigir no Studio (CanCollide=false na Base ou remover portas).\n\nFEITO 2026-10-07 (parcial): 4 Door.Base invisiveis do WildWest com CanCollide=false (atravessaveis; prompt E continua). Celeiros/CollisionFidelity seguem com o usuario no Blender.\n\n2026-10-07: movido para revisão pelo usuário.",
+      "column": "awaiting-approval",
       "tags": [
         "map",
         "studio",
@@ -532,13 +249,13 @@
       ],
       "priority": "high",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-map-002",
       "title": "Cerca permite pular e fugir do mapa",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nAumentar altura da cerca ou adicionar parede invisível nos limites + kill zone fora do mapa.",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nAumentar altura da cerca ou adicionar parede invisível nos limites + kill zone fora do mapa.\n\nFEITO 2026-10-07: cercas tem ~6 studs. EnvironmentService:BuildBoundary gera 4 paredes invisiveis (altura 120, CanQuery/CanTouch false, nao bloqueiam tiro/raycast) na caixa das pecas listadas em Maps[x].Boundary (HappyFarm: CERCAS/CERCA/MUROPEDRA; WildWest: Cerca). Constantes em MatchSettings.Boundary*.",
+      "column": "awaiting-approval",
       "tags": [
         "map",
         "studio",
@@ -546,13 +263,13 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-map-003",
       "title": "Props flutuando e atravessando geometria",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nBarril flutuando, outras caixas flutuando, bloco de palha atravessando a primeira casa do mapa. Ajuste manual no Studio.",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nBarril flutuando, outras caixas flutuando, bloco de palha atravessando a primeira casa do mapa. Ajuste manual no Studio.\n\n2026-10-07: movido para revisão pelo usuário.",
+      "column": "awaiting-approval",
       "tags": [
         "map",
         "studio",
@@ -560,13 +277,13 @@
       ],
       "priority": "low",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-map-004",
       "title": "Pontos brancos espalhados pelo mapa",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nOrigem desconhecida. Suspeitas: parts/attachments de spawn visíveis, partículas, decals sem textura. Inspecionar no Studio.",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nOrigem desconhecida. Suspeitas: parts/attachments de spawn visíveis, partículas, decals sem textura. Inspecionar no Studio.\n\n2026-10-07: suspeita forte: ParticleEmitter Wind (HappyFarm.Ambient.Wind, WildWest.Props.Effects.Wind): cor quase branca, LightEmission 1, Lifetime 75-120s, Rate 13 => ~1300 particulas paradas no ar. Testar desativando o emitter; se for, reduzir Lifetime/LightEmission.\n\n2026-10-07: APROVADO pelo usuário.",
+      "column": "done",
       "tags": [
         "map",
         "studio",
@@ -574,7 +291,7 @@
       ],
       "priority": "low",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-map-005",
@@ -622,8 +339,8 @@
     {
       "id": "task-weapon-007",
       "title": "Armas com range infinito",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nDefinir range máximo por arma em Guns.luau e aplicar no HitService. A migração balística (task-projectile-*) pode resolver via queda/tempo de vida -- conferir antes de duplicar.\n\nAUDITORIA ModuxGames 2026-10-06: PARECE RESOLVIDO: Range por arma + raycast limitado (HitService:155-185), balística com queda e falloff. Se ainda parece infinito: tracer visual ou HITBOX_RADIUS 4.5 (HitService:33).",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nDefinir range máximo por arma em Guns.luau e aplicar no HitService. A migração balística (task-projectile-*) pode resolver via queda/tempo de vida -- conferir antes de duplicar.\n\nAUDITORIA ModuxGames 2026-10-06: PARECE RESOLVIDO: Range por arma + raycast limitado (HitService:155-185), balística com queda e falloff. Se ainda parece infinito: tracer visual ou HITBOX_RADIUS 4.5 (HitService:33).\n\nVERIFICADO 2026-10-07: range já aplicado no cliente (Ballistics.Cast para em Range) e servidor (ResolvePellet raycast até Range). Falloff 100% até 60% do range, cai até 50% no máximo. Ranges: Shotgun 60, Uzichinni 150, Peavolver 250, M6Bean/Raygun 400, WatermeLMG 350, Strawborry 500, Snipine 800, Sniperagus 1000. Sem mudança de código; provável versão antiga nos testers. Ajustar valores em GunsData se quiser.",
+      "column": "awaiting-approval",
       "tags": [
         "weapon",
         "server",
@@ -631,13 +348,13 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-weapon-008",
       "title": "Granadeira: explodir no ar",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSugestão: projétil da granadeira detonar no ar (por tempo/distância ou proximidade), não só no impacto.\n\nAUDITORIA ModuxGames 2026-10-06: PARCIAL: Gromato Launcher já tem Fuse ~2.7s + Contact (Throwables:205-224). Falta proximidade, se desejado.",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSugestão: projétil da granadeira detonar no ar (por tempo/distância ou proximidade), não só no impacto.\n\nAUDITORIA ModuxGames 2026-10-06: PARCIAL: Gromato Launcher já tem Fuse ~2.7s + Contact (Throwables:205-224). Falta proximidade, se desejado.\n\nFEITO 2026-10-07: Definition.Proximity (Throwables.luau); Gromato Launcher Proximity = 4. ThrowableService:NearEnemy detona no ar quando inimigo vivo (não dono, não mesmo time) fica a <= 4 studs do projétil. Fuse 2.7s e contato seguem.",
+      "column": "awaiting-approval",
       "tags": [
         "weapon",
         "server",
@@ -646,13 +363,13 @@
       ],
       "priority": "low",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-ui-002-pt",
       "title": "Opção de Crosshair não funciona",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSetting de crosshair na UI não aplica. Rastrear onde a opção é lida.\n\nAUDITORIA ModuxGames 2026-10-06: Cadeia completa opção->server->perfil->Crosshair.Resolve->UI (InterfaceController:158-175). Some ao mirar. Sem bug achado; testar in-game.\n\n2026-10-07: provável que os testers estivessem numa versão antiga; usuário vai pedir revisão. Aguardando retorno.",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSetting de crosshair na UI não aplica. Rastrear onde a opção é lida.\n\nAUDITORIA ModuxGames 2026-10-06: Cadeia completa opção->server->perfil->Crosshair.Resolve->UI (InterfaceController:158-175). Some ao mirar. Sem bug achado; testar in-game.\n\n2026-10-07: provável que os testers estivessem numa versão antiga; usuário vai pedir revisão. Aguardando retorno.\n\n2026-10-07: movido para revisão pelo usuário.",
+      "column": "awaiting-approval",
       "tags": [
         "ui",
         "client",
@@ -665,7 +382,7 @@
     {
       "id": "task-camera-002",
       "title": "Câmera bugada ao sair da terceira pessoa",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nTransição 3ª->1ª pessoa quebra. Revisar CameraController/UnlockCameraController (CameraMode, MouseBehavior, offset).\n\nAUDITORIA ModuxGames 2026-10-06: Provável: CameraController:170-178 troca Classic/LockFirstPerson sem resetar zoom; DeathCameraController:60-62 corrida com CharacterAdded. Reproduzir.\n\n2026-10-07: diagnóstico do usuário (vídeo): jogador saiu da 1a pessoa via Shift Lock e se viu em 3a pessoa. Fix: forçar 1a pessoa (desabilitar Shift Lock / DevEnableMouseLock e travar zoom) quando a capability FirstPerson estiver ativa.\n\nIMPLEMENTADO 2026-10-07: CameraController, ao ligar FirstPerson: LocalPlayer.DevEnableMouseLock=false (sem Shift Lock), CameraMode LockFirstPerson, Min/MaxZoomDistance=0.5; ao desligar restaura Shift Lock e zoom do StarterPlayer.",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nTransição 3ª->1ª pessoa quebra. Revisar CameraController/UnlockCameraController (CameraMode, MouseBehavior, offset).\n\nAUDITORIA ModuxGames 2026-10-06: Provável: CameraController:170-178 troca Classic/LockFirstPerson sem resetar zoom; DeathCameraController:60-62 corrida com CharacterAdded. Reproduzir.\n\n2026-10-07: diagnóstico do usuário (vídeo): jogador saiu da 1a pessoa via Shift Lock e se viu em 3a pessoa. Fix: forçar 1a pessoa (desabilitar Shift Lock / DevEnableMouseLock e travar zoom) quando a capability FirstPerson estiver ativa.\n\nIMPLEMENTADO 2026-10-07: CameraController, ao ligar FirstPerson: LocalPlayer.DevEnableMouseLock=false (sem Shift Lock), CameraMode LockFirstPerson, Min/MaxZoomDistance=0.5; ao desligar restaura Shift Lock e zoom do StarterPlayer.\n\nFIX 2026-10-07: cliente nao pode setar Player.DevEnableMouseLock (erro abortava callback e 1a pessoa nao aplicava). Linha removida; StarterPlayer.EnableMouseLockOption = false no place (salvar).",
       "column": "awaiting-approval",
       "tags": [
         "camera",
@@ -752,8 +469,8 @@
     {
       "id": "task-game-005",
       "title": "Escolher sala e mapa pelo menu",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeature pedida: menu com seleção de sala/mapa. Precisa design (Architector) -- impacta votação (task-game-002).\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: LobbyController:215-221 JoinRoom/CreateRoom são print(); GameSelectionScreen só QUICK-PLAY/FFA/TDM/PRACTICE; mapa via pickMap random (MatchmakingService:51-64). Etapa 7 do IntegrationPlan.",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeature pedida: menu com seleção de sala/mapa. Precisa design (Architector) -- impacta votação (task-game-002).\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: LobbyController:215-221 JoinRoom/CreateRoom são print(); GameSelectionScreen só QUICK-PLAY/FFA/TDM/PRACTICE; mapa via pickMap random (MatchmakingService:51-64). Etapa 7 do IntegrationPlan.\n\nFEITO 2026-10-07: CREATE ROOM (CreateRoomScreen: modo FFA/TDM/Chicken, mapa ou RANDOM, PUBLIC/PRIVATE) cria partida com codigo de 5 letras (MatchRegistryService:ClaimCode, MemoryStore RoomCodes). JOIN ROOM (JoinRoomScreen): campo de codigo + lista de salas publicas (ListRooms, cache 2s) com JOIN por sala (JoinKey). Codigo aparece no canto da partida (RoomCodeLabel, atributo workspace RoomCode). Votacao de mapa segue normal. Net: Matchmaking.CreateRoom/JoinRoom/JoinMatch/ListRooms. Teste real so publicado (teleport/MemoryStore simulados no Studio).",
+      "column": "awaiting-approval",
       "tags": [
         "game",
         "ui",
@@ -761,7 +478,7 @@
       ],
       "priority": "low",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-07"
     },
     {
       "id": "task-audio-002",
@@ -786,6 +503,33 @@
       "column": "done",
       "tags": [
         "audio",
+        "weapon",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-07",
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-security-001",
+      "title": "Backdoor free model no WildWest (CoreSkyboxSystem)",
+      "description": "2026-10-07: ServerStorage.Maps.WildWest.Props.Model.CoreSkyboxSystem e backdoor: se destroi no Studio (game.JobId == \"\") e em servidor real faz require(128320524036560) (modulo remoto de terceiro, execucao arbitraria no server). DESATIVADO (Enabled=false) pelo Claude. Usuario deve DELETAR o Script (e o modelo se nao usar as luzes) e salvar/publicar. Varredura do place nao achou outros.\n\n2026-10-07: Script CoreSkyboxSystem DELETADO do place. Falta salvar e publicar.",
+      "column": "awaiting-approval",
+      "tags": [
+        "security",
+        "map",
+        "server"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-07",
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-weapon-009",
+      "title": "Inverter botões do arremesso de granada",
+      "description": "2026-10-07: pedido do usuário. Botão esquerdo = arremesso forte (LONG_THROW), botão direito = curto (SHORT_THROW); os dois juntos seguem MEDIUM. ThrowableController:HeldMode e ReleaseButton.",
+      "column": "awaiting-approval",
+      "tags": [
         "weapon",
         "client"
       ],

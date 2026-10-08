@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local GameSelectionScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.GameSelectionScreen)
+local CreateRoomScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.CreateRoomScreen)
 
 export type Public = {
 	Active: boolean,
@@ -21,7 +22,11 @@ export type Public = {
 	Close: (self: Public) -> (),
 	Toggle: (self: Public, name: string) -> (),
 	UpdateCamera: (self: Public) -> (),
+	Request: (self: Public, call: () -> (boolean, string)) -> (),
 	SelectMode: (self: Public, mode: GameSelectionScreen.Mode) -> (),
+	SubmitRoom: (self: Public, mode: CreateRoomScreen.RoomMode, mapName: string, private: boolean) -> (),
+	JoinCode: (self: Public, code: string) -> (),
+	JoinMatch: (self: Public, key: string) -> (),
 	StatusText: (self: Public) -> string,
 	JoinRoom: (self: Public) -> (),
 	CreateRoom: (self: Public) -> (),
