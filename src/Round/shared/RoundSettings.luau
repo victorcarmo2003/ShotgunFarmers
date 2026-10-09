@@ -1,7 +1,7 @@
 --!strict
 return {
-	Starting = 10,
+	Starting = 5,
 	Match = 180,
-	Intermission = 20,
-	Vote = 15,
+	Intermission = 5,
+	Vote = 5,
 }
