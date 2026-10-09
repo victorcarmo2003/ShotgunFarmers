@@ -13,7 +13,7 @@ export type SeedState = {
 	Stages: { Model }?,
 	StageScale: number,
 }
-export type Timer = { Gui: BillboardGui, Label: TextLabel, Expires: number, Shown: number }
+export type Timer = { Gui: BillboardGui, Anchor: Attachment, Label: TextLabel, Expires: number, Shown: number }
 
 export type Public = {
 	Active: { [BasePart]: SeedState },
@@ -21,9 +21,8 @@ export type Public = {
 	Timers: { [BasePart]: Timer },
 	Setup: (self: Public) -> (),
 	Forget: (self: Public, dirt: BasePart) -> (),
-	StartTimer: (self: Public, dirt: BasePart, height: number) -> (),
+	StartTimer: (self: Public, dirt: BasePart, plant: Model) -> (),
 	StepTimers: (self: Public, now: number) -> (),
-	PlantHeight: (self: Public, state: SeedState) -> number,
 	Render: (self: Public, dirt: BasePart) -> (),
 	TargetGrowth: (self: Public, state: SeedState) -> number,
 	AdvanceStage: (self: Public, state: SeedState, stage: number, parent: Instance) -> (),

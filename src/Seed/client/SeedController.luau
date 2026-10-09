@@ -30,7 +30,7 @@ export type SeedState = {
 	StageScale: number,
 }
 
-export type Timer = { Gui: BillboardGui, Label: TextLabel, Expires: number, Shown: number }
+export type Timer = { Gui: BillboardGui, Anchor: Attachment, Label: TextLabel, Expires: number, Shown: number }
 
 const SeedController = Modux.Controller("SeedController", { Priority = 400 })
 
@@ -133,22 +133,29 @@ function SeedController:Forget(dirt: BasePart)
 	self.Finished[dirt] = nil
 	const timer = self.Timers[dirt]
 	if timer then
-		timer.Gui:Destroy()
+		timer.Anchor:Destroy()
 		self.Timers[dirt] = nil
 	end
 end
 
-function SeedController:StartTimer(dirt: BasePart, height: number)
+function SeedController:StartTimer(dirt: BasePart, plant: Model)
 	const plantedAt = dirt:GetAttribute("PlantedAt")
 	if self.Timers[dirt] or type(plantedAt) ~= "number" then
 		return
 	end
 
+	const boxCFrame, boxSize = plant:GetBoundingBox()
+	const top = boxCFrame.Position.Y + boxSize.Y / 2
+	const anchor = Instance.new("Attachment")
+	anchor.Name = "SeedTimerAnchor"
+	anchor.Parent = dirt
+	anchor.WorldPosition = Vector3.new(dirt.Position.X, top + SeedSettings.TIMER_GAP, dirt.Position.Z)
+
 	const size = SeedSettings.TIMER_SIZE
 	const gui = Instance.new("BillboardGui")
 	gui.Name = "SeedTimer"
+	gui.Adornee = anchor
 	gui.Size = UDim2.fromOffset(size.X, size.Y)
-	gui.StudsOffsetWorldSpace = Vector3.new(0, height + SeedSettings.TIMER_GAP, 0)
 	gui.MaxDistance = SeedSettings.TIMER_MAX_DISTANCE
 	gui.LightInfluence = 0
 	gui.ResetOnSpawn = false
@@ -167,8 +174,8 @@ function SeedController:StartTimer(dirt: BasePart, height: number)
 	stroke.Thickness = 1
 	stroke.Parent = label
 
-	gui.Parent = dirt
-	self.Timers[dirt] = { Gui = gui, Label = label, Expires = plantedAt + SeedSettings.SEED_LIFETIME, Shown = -1 }
+	gui.Parent = anchor
+	self.Timers[dirt] = { Gui = gui, Anchor = anchor, Label = label, Expires = plantedAt + SeedSettings.SEED_LIFETIME, Shown = -1 }
 end
 
 function SeedController:StepTimers(now: number)
@@ -179,16 +186,6 @@ function SeedController:StepTimers(now: number)
 			timer.Label.Text = `{remaining}s`
 		end
 	end
-end
-
-function SeedController:PlantHeight(state: SeedState): number
-	const stages = state.Stages
-	if stages then
-		const final = stages[#stages]
-		const height = final:GetAttribute("Height")
-		return (if type(height) == "number" then height else 4) * state.StageScale
-	end
-	return SeedSettings.SEED_RISE_HEIGHT + 1
 end
 
 function SeedController:Render(dirt: BasePart)
@@ -223,8 +220,9 @@ function SeedController:Render(dirt: BasePart)
 	const initialStage = stageAt(workspace:GetServerTimeNow() - plantedAt)
 	const shown = if stages then stages[math.max(initialStage, 1)] else template
 	const seedInstance = prepare(shown:Clone())
-	const startCFrame = CFrame.new(dirt.Position)
-	const endCFrame = CFrame.new(dirt.Position + Vector3.new(0, SeedSettings.SEED_RISE_HEIGHT, 0))
+	const surface = dirt.Position + Vector3.yAxis * (width / 2)
+	const startCFrame = CFrame.new(surface)
+	const endCFrame = CFrame.new(surface + Vector3.new(0, SeedSettings.SEED_RISE_HEIGHT, 0))
 	const initialGrowth = if stages then (if initialStage <= 0 then SeedSettings.STAGE_SPROUT_GROWTH else 1)
 		else stageGrowth(initialStage)
 	seedInstance:PivotTo(startCFrame)
@@ -323,7 +321,7 @@ function SeedController:Step()
 		if dirtAlpha >= 1 and state.Stage >= finalStage and settled then
 			self.Active[dirt] = nil
 			self.Finished[dirt] = true
-			self:StartTimer(dirt, self:PlantHeight(state))
+			self:StartTimer(dirt, state.SeedInstance)
 		end
 	end
 
