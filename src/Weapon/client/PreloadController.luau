@@ -1,5 +1,6 @@
 --!strict
 local ContentProvider = game:GetService("ContentProvider")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
@@ -9,6 +10,7 @@ local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 const ASSET_PREFIX = "rbxassetid://"
 const PRIORITY_FOLDERS = { "Weapons" }
 const LATER_FOLDERS = { "VFX", "Sounds", "Seeds" }
+const LOADING_DONE_ATTRIBUTE = "LoadingDone"
 
 const PreloadController = Modux.Controller("PreloadController", {
 	Priority = 990,
@@ -97,6 +99,7 @@ function PreloadController:Run()
 		table.insert(first, folder)
 	end
 	preload(first)
+	Players.LocalPlayer:SetAttribute(LOADING_DONE_ATTRIBUTE, true)
 
 	const later: { any } = assetFolders(LATER_FOLDERS)
 	for _, image in gunImages() do

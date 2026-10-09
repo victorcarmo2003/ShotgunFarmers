@@ -761,8 +761,8 @@
     {
       "id": "task-ui-011",
       "title": "Tela de carregamento",
-      "description": "2026-10-08: auditoria profunda. ReplicatedFirst vazio; Preload leva 1-7s sem feedback. Falta loading screen com logo/progresso (remove o loading padrão do Roblox).",
-      "column": "todo",
+      "description": "2026-10-08: auditoria profunda. ReplicatedFirst vazio; Preload leva 1-7s sem feedback. Falta loading screen com logo/progresso (remove o loading padrão do Roblox).\n\n2026-10-08: FEITO: boot/LoadingScreen.client.luau em ReplicatedFirst (via project tree do .rogen.json): remove loading padrão, fundo verde escuro, título SHOTGUN FARMERS, roda girando (Rhos Loading Wheel rbxassetid://128841160920937), espera game.Loaded + atributo LoadingDone (PreloadController após armas) com timeout 25s, mínimo 1s, fade 0.5s. Precisa reiniciar rojo serve (mudou o projeto).",
+      "column": "awaiting-approval",
       "tags": [
         "ui",
         "preload"

@@ -10,6 +10,11 @@
 		"name": "SHOTGUN FARMERS",
 		"tree": {
 			"$className": "DataModel",
+			"ReplicatedFirst": {
+				"LoadingScreen": {
+					"$path": "boot/LoadingScreen.client.luau"
+				}
+			},
 			"ReplicatedStorage": {
 				"Packages": {
 					"$path": "Packages"

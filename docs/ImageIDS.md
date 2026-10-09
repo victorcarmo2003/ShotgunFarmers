@@ -34,3 +34,4 @@
 - Gamepass 256 (2X GEMS): rbxassetid://108490785575131
 - Trophy 256: rbxassetid://105467907115908
 - Skull 256: rbxassetid://76382981380066
+- Loading Wheel White 256: rbxassetid://128841160920937
