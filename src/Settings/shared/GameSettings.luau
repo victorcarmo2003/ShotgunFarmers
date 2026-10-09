@@ -9,4 +9,6 @@ return {
 	MovingSpreadMultiplier = 1.5,
 
 	WeaponDrawLock = 0.5,
+
+	MeleeAttackSpeed = 1.5,
 }

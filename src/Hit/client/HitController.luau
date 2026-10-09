@@ -266,7 +266,7 @@ end
 function HitController:FireMelee(gunData: GetGun.GunData)
 	self.Dependencies.ArmsController:PlayAttack()
 
-	const delay = gunData.HitDelay or 0
+	const delay = (gunData.HitDelay or 0) / GameSettings.MeleeAttackSpeed
 	if delay <= 0 then
 		self:Strike(gunData)
 		return

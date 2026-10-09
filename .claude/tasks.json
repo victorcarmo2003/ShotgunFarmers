@@ -919,6 +919,20 @@
       "priority": "medium",
       "createdAt": "2026-10-08",
       "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-weapon-012",
+      "title": "Acelerar animação melee",
+      "description": "2026-10-08: pedido do usuário. GameSettings.MeleeAttackSpeed = 1.5: PoseMachine._playRole toca o papel Attack (viewmodel e 3a pessoa) com speed 1.5; HitController:FireMelee divide HitDelay pela mesma velocidade (dano continua sincronizado com o golpe). Cadência (FireRate 0.6 Hoe / 0.8 Shovel) não mudou.",
+      "column": "awaiting-approval",
+      "tags": [
+        "weapon",
+        "animation",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
     }
   ]
 }

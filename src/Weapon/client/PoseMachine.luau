@@ -2,6 +2,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 local FSMLib = require(ReplicatedStorage.shared.Libs.FSM)
+local GameSettings = require(ReplicatedStorage.shared.Settings.GameSettings)
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
 local AnimationSetLoader = require(StarterPlayer.StarterPlayerScripts.client.Weapon.AnimationSetLoader)
 
@@ -146,11 +147,12 @@ local function fadeFor(previousState: PoseState, nextState: PoseState): number
 end
 
 function PoseMachine._playRole(self: PoseMachine, role: Role, fade: number)
+	const speed = if role == "Attack" then GameSettings.MeleeAttackSpeed else 1
 	for _, track in { self._viewmodelTracks[role], self._characterTracks[role] } do
 		if role == BASE_ROLE and track.IsPlaying then
 			continue
 		end
-		track:Play(fade)
+		track:Play(fade, 1, speed)
 	end
 end
 
