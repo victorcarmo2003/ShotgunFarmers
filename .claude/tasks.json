@@ -613,7 +613,7 @@
     {
       "id": "task-weapon-010",
       "title": "Modelos de arma faltando",
-      "description": "2026-10-08: levantamento do que falta. Assets.Weapons sem Gromato Launcher, Chilli Thrower, Double Cob (Disabled). ImageID vazio nessas 3 (barra de armas/practice mostram iniciais).",
+      "description": "2026-10-08: levantamento do que falta. Assets.Weapons sem Gromato Launcher, Chilli Thrower, Double Cob (Disabled). ImageID vazio nessas 3 (barra de armas/practice mostram iniciais).\n\n2026-10-09: Gromato Launcher e Chilli Thrower marcados Disabled = true (Double Cob já estava): saem do spawn de sementes, do Practice e do sorteio de arma; não atiram se alguém tiver. Reativar tirando o Disabled quando o modelo existir.",
       "column": "todo",
       "tags": [
         "weapon",
@@ -621,7 +621,7 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-08",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-killfeed-003",

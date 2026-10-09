@@ -86,6 +86,7 @@ return {
 	["Gromato Launcher"] = {
 		ID = 105,
 		DisplayName = "Gromato Launcher",
+		Disabled = true,
 		Amount = 6,
 		Damage = 70,
 		Spread = 1,
@@ -104,6 +105,7 @@ return {
 	["Chilli Thrower"] = {
 		ID = 106,
 		DisplayName = "Chilli Thrower",
+		Disabled = true,
 		Amount = 150,
 		Damage = 6,
 		Spread = 15,
