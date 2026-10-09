@@ -40,7 +40,6 @@ export type Public = {
 	PreviewActive: number,
 	PreviewDots: { BasePart },
 	PreviewFolder: Folder?,
-	PreviewMarker: BasePart?,
 	PreviewParams: RaycastParams,
 	PreviewVisible: boolean,
 	Queued: boolean,

@@ -951,7 +951,7 @@
     {
       "id": "task-weapon-014",
       "title": "Física de granada estilo CS",
-      "description": "2026-10-09: pedido do usuário: granadas leves (low gravity), rápidas e com bem mais alcance no long throw; só trajetória (raio de efeito inalterado). Pinapple/Onionnade/Lemonade/Moolotov: Speed 65->115, Lift 12->18, GravityScale 0.8/1->0.35 (constantes GRENADE_* em Throwables.luau). Simulado: long 45° ~205 studs (antes 34), long reto ~67 (antes 15), curto 45° ~60 (antes 10). Granadas de fuse 2s (Lemonade/Onionnade) podem estourar no ar em arremessos longos (~165 studs). Bananarang e lançadores não mudaram.",
+      "description": "2026-10-09: pedido do usuário: granadas leves (low gravity), rápidas e com bem mais alcance no long throw; só trajetória (raio de efeito inalterado). Pinapple/Onionnade/Lemonade/Moolotov: Speed 65->115, Lift 12->18, GravityScale 0.8/1->0.35 (constantes GRENADE_* em Throwables.luau). Simulado: long 45° ~205 studs (antes 34), long reto ~67 (antes 15), curto 45° ~60 (antes 10). Granadas de fuse 2s (Lemonade/Onionnade) podem estourar no ar em arremessos longos (~165 studs). Bananarang e lançadores não mudaram.\n\n2026-10-09: removido o círculo de área no chão da prévia (marker); fica só a linha pontilhada da trajetória (ThrowableController).",
       "column": "awaiting-approval",
       "tags": [
         "weapon",

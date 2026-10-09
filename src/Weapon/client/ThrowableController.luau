@@ -49,10 +49,7 @@ const PREVIEW_MAX_STEPS = 360
 const PREVIEW_DOT_EVERY = 4
 const PREVIEW_DOT_COUNT = 90
 const PREVIEW_DOT_SIZE = 0.3
-const PREVIEW_MARKER_LIFT = 0.06
-const PREVIEW_MARKER_TRANSPARENCY = 0.75
 const PREVIEW_DOT_TRANSPARENCY = 0.15
-const PREVIEW_MIN_MARKER = 1.5
 const VISUAL_BLEND_SECONDS = 0.3
 const SPLIT_RELEASE_WINDOW = 0.15
 const ARMED_STATES: { [string]: boolean } = {
@@ -111,7 +108,6 @@ function ThrowableController:Setup()
 	self.PreviewDots = {} :: { BasePart }
 	self.PreviewActive = 0 :: number
 	self.PreviewVisible = false :: boolean
-	self.PreviewMarker = nil :: BasePart?
 	self.PreviewFolder = nil :: Folder?
 	self.PreviewParams = ThrowSim.Params() :: RaycastParams
 	self.AimParams = ThrowSim.Params() :: RaycastParams
@@ -594,14 +590,6 @@ function ThrowableController:BuildPreview()
 		inertPart(dot)
 		table.insert(self.PreviewDots, dot)
 	end
-
-	const marker = Instance.new("Part")
-	marker.Name = "Marker"
-	marker.Shape = Enum.PartType.Cylinder
-	marker.Material = Enum.Material.Neon
-	marker.Transparency = PREVIEW_MARKER_TRANSPARENCY
-	inertPart(marker)
-	self.PreviewMarker = marker
 end
 
 function ThrowableController:HidePreview()
@@ -614,11 +602,6 @@ function ThrowableController:HidePreview()
 		self.PreviewDots[index].Parent = nil
 	end
 	self.PreviewActive = 0
-
-	const marker = self.PreviewMarker
-	if marker then
-		marker.Parent = nil
-	end
 end
 
 function ThrowableController:PreviewDefinition(): Throwables.Definition?
@@ -665,7 +648,6 @@ function ThrowableController:StepPreview()
 		self:BuildPreview()
 	end
 	const folder = self.PreviewFolder :: Folder
-	const marker = self.PreviewMarker :: BasePart
 
 	const target = self:AimTarget(camera, definition)
 	const power = ThrowSim.Power(not self:IsThrowableEquipped(), self:PreviewMode())
@@ -677,12 +659,9 @@ function ThrowableController:StepPreview()
 	params.FilterDescendantsInstances = ThrowSim.Ignore(Players.LocalPlayer, definition.Contact)
 
 	const maxSteps = math.min(math.ceil(definition.Fuse / Throwables.STEP), PREVIEW_MAX_STEPS)
-	local normal = Vector3.yAxis
 	local count = 0
 	for step = 1, maxSteps do
-		const contact = ThrowSim.Step(definition, state, params)
-		if contact then
-			normal = contact.Normal
+		if ThrowSim.Step(definition, state, params) then
 			break
 		end
 		if state.Resting then
@@ -702,13 +681,6 @@ function ThrowableController:StepPreview()
 	end
 	self.PreviewActive = count
 	self.PreviewVisible = true
-
-	const diameter = math.max(definition.Radius * 2, PREVIEW_MIN_MARKER)
-	const position = state.Position + normal * PREVIEW_MARKER_LIFT
-	marker.Color = definition.Color
-	marker.Size = Vector3.new(PREVIEW_DOT_SIZE * 0.5, diameter, diameter)
-	marker.CFrame = CFrame.lookAt(position, position + normal) * CFrame.Angles(0, math.pi / 2, 0)
-	marker.Parent = folder
 end
 
 function ThrowableController:StepQueue()
