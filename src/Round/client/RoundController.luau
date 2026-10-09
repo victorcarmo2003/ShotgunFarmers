@@ -11,15 +11,15 @@ local MatchSummary = require(StarterPlayer.StarterPlayerScripts.client.Round.Mat
 export type Status = RoundNet.Status
 
 const LABELS: { [string]: string } = {
-	Starting = "Preparando",
-	Match = "Partida",
-	Intermission = "Intervalo",
-	Vote = "Votacao",
+	Starting = "Starting",
+	Match = "Match",
+	Intermission = "Intermission",
+	Vote = "Vote",
 }
 
 const OUTCOME_DELAY = 1.5
 const PRACTICE_MODE = "Practice"
-const PRACTICE_LABEL = "Treino"
+const PRACTICE_LABEL = "Practice"
 const SUMMARY_SECONDS = 12
 const SUMMARY_DISPLAY_ORDER = 15
 

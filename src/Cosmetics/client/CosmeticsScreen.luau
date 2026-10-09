@@ -188,7 +188,7 @@ return function(props: Props): Frame
 			tabs,
 			content,
 
-			wideButton("Code", "CODIGO", 95, CODE_COLOR, props.OnCode),
+			wideButton("Code", "CODE", 95, CODE_COLOR, props.OnCode),
 			wideButton("Done", "DONE", 360, ScreenKit.Colors.Green, function()
 				if props.OnDone then
 					props.OnDone()

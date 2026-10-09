@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local Theme = require(ReplicatedStorage.shared.Interface.Theme)
 local CreateRaw = require(ReplicatedStorage.shared.Interface.CreateRaw)
+local UISounds = require(script.Parent.UISounds)
 
 const create = Vide.create
 const source = Vide.source
@@ -115,12 +116,14 @@ function ScreenKit.pressable(props: PressableProps): Frame
 			AutoButtonColor = false,
 
 			Activated = function()
+				UISounds.Play("Click")
 				if props.OnActivated then
 					props.OnActivated()
 				end
 			end,
 			MouseEnter = function()
 				hovered(true)
+				UISounds.Play("Hover")
 			end,
 			MouseLeave = function()
 				hovered(false)
@@ -222,6 +225,7 @@ function ScreenKit.returnButton(y: number, onClose: (() -> ())?): ImageButton
 		BackgroundTransparency = 1,
 
 		Activated = function()
+			UISounds.Play("Click")
 			if onClose then
 				onClose()
 			end

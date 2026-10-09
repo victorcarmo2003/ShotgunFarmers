@@ -18,6 +18,7 @@ local FriendsScreen = require(StarterPlayer.StarterPlayerScripts.client.Party.Fr
 local SocialService = game:GetService("SocialService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local ShopCatalog = require(ReplicatedStorage.shared.Shop.ShopCatalog)
+local UISounds = require(StarterPlayer.StarterPlayerScripts.client.Interface.UISounds)
 
 const create = Vide.create
 const source = Vide.source
@@ -185,6 +186,9 @@ function LobbyController:Open(name: string)
 		return
 	end
 
+	if self.CurrentScreen() ~= name then
+		UISounds.Play("Open")
+	end
 	self.CurrentScreen(name)
 	self:UpdateCamera()
 end
@@ -653,6 +657,7 @@ function LobbyController:OnState(state: string)
 end
 
 function LobbyController:ShowError(message: string, title: string?)
+	UISounds.Play("Error")
 	if self.PopupUnmount then
 		self.PopupUnmount()
 		self.PopupUnmount = nil

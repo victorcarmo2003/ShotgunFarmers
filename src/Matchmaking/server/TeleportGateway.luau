@@ -72,7 +72,7 @@ function TeleportGateway:Reserve(): (Reservation?, string?)
 		return TeleportService:ReserveServer(game.PlaceId)
 	end)
 	if not reserved then
-		return nil, `Falha ao reservar servidor: {tostring(accessCode)}`
+		return nil, `Could not reserve a server: {tostring(accessCode)}`
 	end
 
 	return { AccessCode = accessCode, ServerId = serverId }, nil
@@ -81,7 +81,7 @@ end
 function TeleportGateway:Teleport(players: { Player }, accessCode: string?, data: TeleportData?): (boolean, string?)
 	const present = presentOf(players)
 	if #present == 0 then
-		return false, "Nenhum jogador para teleportar"
+		return false, "No players to teleport"
 	end
 
 	if self.Simulated then
@@ -96,7 +96,7 @@ function TeleportGateway:Teleport(players: { Player }, accessCode: string?, data
 	for attempt = 0, MatchmakingSettings.TeleportRetries do
 		const current = presentOf(present)
 		if #current == 0 then
-			return false, "Nenhum jogador para teleportar"
+			return false, "No players to teleport"
 		end
 
 		for _, player in current do
@@ -143,7 +143,7 @@ function TeleportGateway:HandleInitFailed(player: Player, message: string, optio
 
 	self.Retries[player] = nil
 	self.InFlight[player] = nil
-	self.Failed:Fire(player, `Falha no teleporte: {message}`)
+	self.Failed:Fire(player, `Teleport failed: {message}`)
 end
 
 TeleportGateway:OnInit(function(self)

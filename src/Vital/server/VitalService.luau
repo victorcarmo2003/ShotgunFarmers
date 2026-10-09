@@ -1,10 +1,10 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local MatchSettings = require(ReplicatedStorage.shared.Match.MatchSettings)
 local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
 local Modux = require(ServerScriptService.server.Modux)
 
-const RESPAWN_DELAY = 3
 const RESET_COOLDOWN = 1
 
 const VitalService = Modux.Service("VitalService", { Require = { "PlayerService", "SpawnService" }, Priority = 700 })
@@ -64,7 +64,7 @@ function VitalService:Kill(player: Player)
 		end
 	end
 
-	self.Dependencies.SpawnService:Respawn(player, RESPAWN_DELAY)
+	self.Dependencies.SpawnService:Respawn(player, MatchSettings.RespawnDelay)
 	self.Died:Fire(player)
 end
 

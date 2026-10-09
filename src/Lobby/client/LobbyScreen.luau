@@ -2,6 +2,8 @@ const ReplicatedStorage = game:GetService "ReplicatedStorage"
 const Vide = require(ReplicatedStorage.Packages.Vide)
 const Theme = require(ReplicatedStorage.shared.Interface.Theme)
 const CreateRaw = require(ReplicatedStorage.shared.Interface.CreateRaw)
+const StarterPlayer = game:GetService "StarterPlayer"
+const UISounds = require(StarterPlayer.StarterPlayerScripts.client.Interface.UISounds)
 
 const create = Vide.create
 const source = Vide.source
@@ -68,7 +70,10 @@ local function createTopButton(props: TopButtonProps)
 			Size = UDim2.fromScale(1, 1),
 			BackgroundTransparency = props.BackgroundTransparency,
 
-			Activated = props.Activated,
+			Activated = function(input: InputObject, clicks: number)
+				UISounds.Play("Click")
+				props.Activated(input, clicks)
+			end,
 
 			BackgroundColor3 = function()
 				const color = props.BackgroundColor3 or Color3.new(1, 1, 1)
@@ -77,6 +82,7 @@ local function createTopButton(props: TopButtonProps)
 
 			MouseEnter = function()
 				hovered(true)
+				UISounds.Play("Hover")
 			end,
 
 			MouseLeave = function()
@@ -340,6 +346,7 @@ return function(props: Props): Frame
 				Position = UDim2.fromScale(0.94, 0.5),
 
 				Activated = function()
+					UISounds.Play("Click")
 					if props.OnInvite then
 						props.OnInvite()
 					end
@@ -347,6 +354,7 @@ return function(props: Props): Frame
 
 				MouseEnter = function()
 					inviteHovered(true)
+					UISounds.Play("Hover")
 				end,
 
 				MouseLeave = function()

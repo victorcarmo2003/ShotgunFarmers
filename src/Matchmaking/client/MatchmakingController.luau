@@ -15,7 +15,7 @@ type RoomMode = MatchmakingNet.RoomMode
 
 const ROOM_CODE_ATTRIBUTE = "RoomCode"
 
-const NO_REPLY = "O servidor nao respondeu, tente novamente"
+const NO_REPLY = "The server did not respond, try again"
 
 local function answerOf(ok: boolean, reply: any): (boolean, string)
 	if not ok or typeof(reply) ~= "table" then
@@ -122,7 +122,7 @@ MatchmakingController:OnInit(function(self)
 		end)
 
 		if state == "Failed" then
-			self.Failed:Fire(if status.Reason ~= "" then status.Reason else "Falha no matchmaking")
+			self.Failed:Fire(if status.Reason ~= "" then status.Reason else "Matchmaking failed")
 		end
 	end)
 end)

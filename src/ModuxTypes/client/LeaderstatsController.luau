@@ -5,6 +5,7 @@ local StarterPlayer = game:GetService("StarterPlayer")
 local StatsNet = require(ReplicatedStorage.shared.Stats.Net)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local LeaderstatsScreen = require(StarterPlayer.StarterPlayerScripts.client.Leaderstats.LeaderstatsScreen)
+local TeamScore = require(StarterPlayer.StarterPlayerScripts.client.Stats.TeamScore)
 
 export type Record = {
 	Kills: number,
@@ -20,6 +21,7 @@ export type Public = {
 	Blue: Vide.Source<{ LeaderstatsScreen.Row }>,
 	Held: Vide.Source<boolean>,
 	Loading: { [number]: boolean },
+	LocalTeam: Vide.Source<TeamScore.Team>,
 	Mode: Vide.Source<LeaderstatsScreen.Mode>,
 	Records: { [number]: Record },
 	Red: Vide.Source<{ LeaderstatsScreen.Row }>,

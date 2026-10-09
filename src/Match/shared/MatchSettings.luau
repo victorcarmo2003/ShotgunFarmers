@@ -22,6 +22,7 @@ return {
 	StudioMode = "FFA",
 	PrivateStartHold = 60,
 	TeamNames = { "Red", "Blue" },
+	RespawnDelay = 3,
 	BoundaryHeight = 120,
 	BoundaryThickness = 4,
 	BoundaryPadding = 1,

@@ -9,6 +9,7 @@ local StatsNet = require(ReplicatedStorage.shared.Stats.Net)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 local LeaderstatsScreen = require(StarterPlayer.StarterPlayerScripts.client.Leaderstats.LeaderstatsScreen)
+local TeamScore = require(StarterPlayer.StarterPlayerScripts.client.Stats.TeamScore)
 
 export type Record = {
 	Kills: number,
@@ -39,6 +40,7 @@ function LeaderstatsController:Setup()
 	self.Totals = Vide.source({ Red = 0, Blue = 0 }) :: Vide.Source<{ Red: number, Blue: number }>
 	self.Mode = Vide.source("FFA") :: Vide.Source<LeaderstatsScreen.Mode>
 	self.Held = Vide.source(false) :: Vide.Source<boolean>
+	self.LocalTeam = Vide.source("None" :: TeamScore.Team) :: Vide.Source<TeamScore.Team>
 	self.Unmount = nil :: (() -> ())?
 end
 
@@ -101,10 +103,12 @@ function LeaderstatsController:Refresh()
 	table.sort(red, byScore)
 	table.sort(blue, byScore)
 
+	const own = self.Records[Players.LocalPlayer.UserId]
 	Vide.batch(function()
 		self.Rows(everyone)
 		self.Red(red)
 		self.Blue(blue)
+		self.LocalTeam(if own then own.Team else "None")
 	end)
 end
 
@@ -176,6 +180,19 @@ function LeaderstatsController:Mount()
 				Level = career.Level,
 				Xp = career.Xp,
 				XpMax = career.XpMax,
+			}),
+
+			TeamScore({
+				Visible = function()
+					return self.Mode() == "TDM" and not self:IsShown()
+				end,
+				Red = function()
+					return self.Totals().Red
+				end,
+				Blue = function()
+					return self.Totals().Blue
+				end,
+				LocalTeam = self.LocalTeam,
 			}),
 		})
 	end, playerGui)

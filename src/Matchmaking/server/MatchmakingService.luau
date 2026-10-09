@@ -178,23 +178,23 @@ end
 
 function MatchmakingService:Validate(player: Player): string?
 	if not self.LobbyActive then
-		return "Matchmaking indisponivel neste servidor"
+		return "Matchmaking is unavailable on this server"
 	end
 
 	if not self.Dependencies.GameStateService:Is("Lobby") then
-		return "O lobby ainda nao esta pronto"
+		return "The lobby is not ready yet"
 	end
 
 	if self:GetLeader() ~= player then
-		return "Apenas o lider do squad pode iniciar a partida"
+		return "Only the squad leader can start a match"
 	end
 
 	if self:IsBusy() then
-		return "Ja existe uma busca em andamento"
+		return "A search is already in progress"
 	end
 
 	if self.Dependencies.SquadService:AnyTraveling() then
-		return "Aguarde o squad terminar de viajar"
+		return "Wait for your squad to finish traveling"
 	end
 
 	const blocker = self.Dependencies.SquadService:PlayBlocker()
@@ -203,7 +203,7 @@ function MatchmakingService:Validate(player: Player): string?
 	end
 
 	if os.clock() - self.LastPlay < MatchmakingSettings.PlayCooldown then
-		return "Aguarde alguns segundos antes de tentar novamente"
+		return "Wait a few seconds before trying again"
 	end
 
 	return nil
@@ -219,7 +219,7 @@ function MatchmakingService:Create(
 	const mode = GameModes.Modes[modeName]
 	const mapName = if chosenMap and mapAllows(chosenMap, modeName) then chosenMap else pickMap(modeName)
 	if not mode or not mapName then
-		return nil, `Nenhum mapa disponivel para {modeName}`
+		return nil, `No map available for {modeName}`
 	end
 
 	const registry = self.Dependencies.MatchRegistryService
@@ -236,7 +236,7 @@ function MatchmakingService:Create(
 			Private = private,
 		})
 		if not code then
-			return nil, "Falha ao gerar codigo da sala"
+			return nil, "Could not create a room code"
 		end
 	end
 
@@ -254,7 +254,7 @@ function MatchmakingService:Create(
 
 	const saved, saveReason = registry:SetConfig(reservation.ServerId, config, MatchmakingSettings.MatchConfigTTL)
 	if not saved then
-		return nil, `Falha ao registrar partida: {saveReason}`
+		return nil, `Could not register the match: {saveReason}`
 	end
 
 	if not private then
@@ -287,11 +287,11 @@ function MatchmakingService:FindRoom(code: string, userIds: { number }): (Target
 	const registry = self.Dependencies.MatchRegistryService
 	const room = registry:FindCode(code)
 	if not room then
-		return nil, "Sala nao encontrada"
+		return nil, "Room not found"
 	end
 
 	if not room.Private and not registry:IsSimulated() and not registry:ReserveSlots(room.Key, userIds) then
-		return nil, "Sala lotada ou encerrada"
+		return nil, "Room is full or closed"
 	end
 
 	registry:AppendSquad(room.Key, userIds)
@@ -344,7 +344,7 @@ end
 
 function MatchmakingService:Play(player: Player, mode: string): (boolean, string)
 	if not PLAY_MODES[mode] then
-		return false, "Modo invalido"
+		return false, "Invalid mode"
 	end
 
 	return self:Begin(player, function(userIds: { number }): (Target?, string?)
@@ -354,11 +354,11 @@ end
 
 function MatchmakingService:CreateRoom(player: Player, mode: string, mapName: string, private: boolean): (boolean, string)
 	if not table.find(MatchmakingSettings.RoomModes, mode) then
-		return false, "Modo invalido"
+		return false, "Invalid mode"
 	end
 
 	if mapName ~= "" and not mapAllows(mapName, mode) then
-		return false, "Mapa invalido para este modo"
+		return false, "Invalid map for this mode"
 	end
 
 	return self:Begin(player, function(userIds: { number }): (Target?, string?)
@@ -368,7 +368,7 @@ end
 
 function MatchmakingService:JoinRoom(player: Player, code: string): (boolean, string)
 	if code == "" then
-		return false, "Digite o codigo da sala"
+		return false, "Enter a room code"
 	end
 
 	return self:Begin(player, function(userIds: { number }): (Target?, string?)
@@ -378,12 +378,12 @@ end
 
 function MatchmakingService:JoinMatch(player: Player, key: string): (boolean, string)
 	if key == "" then
-		return false, "Sala invalida"
+		return false, "Invalid room"
 	end
 
 	return self:Begin(player, function(userIds: { number }): (Target?, string?)
 		const target = self.Dependencies.MatchRegistryService:JoinKey(key, userIds)
-		return target, if target then nil else "Sala lotada ou encerrada"
+		return target, if target then nil else "Room is full or closed"
 	end)
 end
 
@@ -498,7 +498,7 @@ function MatchmakingService:ReturnToLobby(player: Player, reason: string?)
 
 	if not teleported then
 		self.Returning[player] = nil
-		self:SetStatus({ player }, "Failed", failure or "Falha ao voltar ao lobby")
+		self:SetStatus({ player }, "Failed", failure or "Could not return to the lobby")
 		return
 	end
 
@@ -541,15 +541,15 @@ function MatchmakingService:AdmissionProblem(player: Player): string?
 	const mode = GameModes.Modes[config.Mode]
 	const member = config.Private and self:InSquads(player)
 	if config.Private and not member then
-		return "Esta partida e privada"
+		return "This match is private"
 	end
 
 	if #Players:GetPlayers() > GameModes.GetMaxPlayers(config.Mode) then
-		return "A partida esta lotada"
+		return "This match is full"
 	end
 
 	if mode and not mode.AllowJoinInProgress and not member and self.Dependencies.RoundService.Status() ~= "Starting" then
-		return "A partida ja comecou"
+		return "This match has already started"
 	end
 
 	return nil

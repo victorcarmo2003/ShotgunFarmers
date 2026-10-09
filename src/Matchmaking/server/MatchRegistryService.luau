@@ -240,7 +240,7 @@ function MatchRegistryService:CreateLobby(ownerId: number): (Target?, string?)
 		Players = 0,
 	}, MatchmakingSettings.LobbyConfigTTL)
 	if not saved then
-		return nil, `Falha ao registrar lobby: {saveReason}`
+		return nil, `Could not register the lobby: {saveReason}`
 	end
 
 	return { Key = reservation.ServerId, AccessCode = reservation.AccessCode }, nil
