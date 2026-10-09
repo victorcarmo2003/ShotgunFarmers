@@ -541,8 +541,8 @@
     {
       "id": "task-seed-001",
       "title": "Modelos de semente faltando em Assets.Seeds",
-      "description": "2026-10-08: ReplicatedStorage.Assets.Seeds só tem Dirt, Peavolver e Shotgun. Faltam modelos para Sniperagus, Carrocket, Gromato Launcher, Chilli Thrower, M6Bean, WatermeLMG, Double Cob, Snipine, Uzichinni, Raygun, Strawborry (nome = GunsData.SeedModel). Sem modelo a terra aparece mas sem planta. SeedController agora avisa 1x por modelo.",
-      "column": "todo",
+      "description": "2026-10-08: ReplicatedStorage.Assets.Seeds só tem Dirt, Peavolver e Shotgun. Faltam modelos para Sniperagus, Carrocket, Gromato Launcher, Chilli Thrower, M6Bean, WatermeLMG, Double Cob, Snipine, Uzichinni, Raygun, Strawborry (nome = GunsData.SeedModel). Sem modelo a terra aparece mas sem planta. SeedController agora avisa 1x por modelo.\n\n2026-10-09: usando o pack 'Plants and Seeds' (Workspace, estilo voxel). Criado no place ReplicatedStorage.Assets.SeedStages/<SeedModel>/{1,2,3} = estágios 2/4/5 da planta, sem Soil/SoilTop/Clod, ancorados, sem colisão/query, pivô no pé, atributo Scale (estágio final cabe em ~3.5 de largura x 5 de altura). Mapa: Sniperagus=Bamboo, Carrocket=Carrot, Gromato Launcher=Tomato, Chilli Thrower=Chili Pepper, M6Bean=Beanstalk, WatermeLMG=Watermelon, Double Cob=Corn, Snipine=Pineapple, Uzichinni=Cucumber, Raygun=Moonflower, Strawborry=Strawberry. SeedController: se existir SeedStages troca de modelo a cada estágio com pop + mola (0.55 -> 1); senão usa o modelo antigo de Assets.Seeds (Shotgun, Peavolver). SALVAR o place. Workspace['Plants and Seeds'] pode ser movido pra ServerStorage ou apagado depois.",
+      "column": "awaiting-approval",
       "tags": [
         "seed",
         "asset",
@@ -550,7 +550,7 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-08",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-ui-003",

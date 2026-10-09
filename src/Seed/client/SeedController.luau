@@ -24,6 +24,8 @@ export type SeedState = {
 	Stage: number,
 	Growth: number,
 	Velocity: number,
+	Stages: { Model }?,
+	StageScale: number,
 }
 
 const SeedController = Modux.Controller("SeedController", { Priority = 400 })
@@ -72,6 +74,39 @@ local function pop(position: Vector3)
 	end)
 end
 
+local function stageModels(name: string): ({ Model }?, number)
+	const assets = ReplicatedStorage:FindFirstChild("Assets")
+	const root = assets and assets:FindFirstChild("SeedStages")
+	const folder = root and root:FindFirstChild(name)
+	if not folder then
+		return nil, 1
+	end
+
+	const models: { Model } = {}
+	for index = 1, #SeedSettings.GROWTH_STAGES do
+		const model = folder:FindFirstChild(tostring(index))
+		if not model or not model:IsA("Model") then
+			return nil, 1
+		end
+		models[index] = model
+	end
+
+	const scale = folder:GetAttribute("Scale")
+	return models, if type(scale) == "number" then scale else 1
+end
+
+local function prepare(model: Model): Model
+	for _, part in model:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.Anchored = true
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+		end
+	end
+	return model
+end
+
 local function seedTemplate(name: string): Model?
 	const assets = ReplicatedStorage:FindFirstChild("Assets")
 	const seeds = assets and assets:FindFirstChild("Seeds")
@@ -106,7 +141,8 @@ function SeedController:Render(dirt: BasePart)
 		return
 	end
 
-	const template = seedTemplate(gunData.SeedModel)
+	const stages, stageScale = stageModels(gunData.SeedModel)
+	const template = if stages then stages[1] else seedTemplate(gunData.SeedModel)
 	if not template then
 		if not warnedTemplates[gunData.SeedModel] then
 			warnedTemplates[gunData.SeedModel] = true
@@ -121,18 +157,14 @@ function SeedController:Render(dirt: BasePart)
 	const endDirtSize = Vector3.new(width, SeedSettings.DIRT_END_DIAMETER, SeedSettings.DIRT_END_DIAMETER)
 	dirt.Size = startDirtSize
 
-	const seedInstance = template:Clone() :: Model
-	for _, part in seedInstance:GetDescendants() do
-		if part:IsA("BasePart") then
-			part.CanCollide = false
-		end
-	end
+	const initialStage = stageAt(workspace:GetServerTimeNow() - plantedAt)
+	const shown = if stages then stages[math.max(initialStage, 1)] else template
+	const seedInstance = prepare(shown:Clone())
 	const startCFrame = CFrame.new(dirt.Position)
 	const endCFrame = CFrame.new(dirt.Position + Vector3.new(0, SeedSettings.SEED_RISE_HEIGHT, 0))
-	const initialStage = stageAt(workspace:GetServerTimeNow() - plantedAt)
-	const initialGrowth = stageGrowth(initialStage)
+	const initialGrowth = if stages then (if initialStage <= 0 then SeedSettings.STAGE_SPROUT_GROWTH else 1)
+		else stageGrowth(initialStage)
 	seedInstance:PivotTo(startCFrame)
-	seedInstance:ScaleTo(SeedSettings.SEED_START_SCALE)
 	seedInstance.Parent = dirt
 
 	self.Active[dirt] = {
@@ -145,6 +177,8 @@ function SeedController:Render(dirt: BasePart)
 		Stage = initialStage,
 		Growth = initialGrowth,
 		Velocity = 0,
+		Stages = stages,
+		StageScale = stageScale,
 	}
 	self:ApplyGrowth(self.Active[dirt])
 
@@ -153,8 +187,35 @@ function SeedController:Render(dirt: BasePart)
 	end)
 end
 
+function SeedController:TargetGrowth(state: SeedState): number
+	if state.Stages then
+		return if state.Stage <= 0 then SeedSettings.STAGE_SPROUT_GROWTH else 1
+	end
+	return stageGrowth(state.Stage)
+end
+
+function SeedController:AdvanceStage(state: SeedState, stage: number, parent: Instance)
+	state.Stage = stage
+	const stages = state.Stages
+	if stages and stages[stage] then
+		state.SeedInstance:Destroy()
+		const model = prepare(stages[stage]:Clone())
+		model:PivotTo(state.StartCFrame)
+		model.Parent = parent
+		state.SeedInstance = model
+		state.Growth = SeedSettings.STAGE_POP_FROM
+		state.Velocity = 0
+	end
+	pop(state.SeedInstance:GetPivot().Position)
+end
+
 function SeedController:ApplyGrowth(state: SeedState)
 	const growth = state.Growth
+	if state.Stages then
+		state.SeedInstance:PivotTo(state.StartCFrame)
+		state.SeedInstance:ScaleTo(math.max(state.StageScale * growth, 0.01))
+		return
+	end
 	const rise = math.clamp(growth, 0, 1)
 	state.SeedInstance:PivotTo(state.StartCFrame:Lerp(state.EndCFrame, rise))
 	state.SeedInstance:ScaleTo(math.max(
@@ -164,7 +225,7 @@ function SeedController:ApplyGrowth(state: SeedState)
 end
 
 function SeedController:StepSpring(state: SeedState): boolean
-	const target = stageGrowth(state.Stage)
+	const target = self:TargetGrowth(state)
 	const omega = SeedSettings.GROWTH_SPRING_FREQUENCY
 	const accel = omega * omega * (target - state.Growth) - 2 * SeedSettings.GROWTH_SPRING_DAMPING * omega * state.Velocity
 	state.Velocity += accel * STEP
@@ -190,8 +251,7 @@ function SeedController:Step()
 
 		const stage = stageAt(elapsed)
 		if stage > state.Stage then
-			state.Stage = stage
-			pop(state.SeedInstance:GetPivot().Position)
+			self:AdvanceStage(state, stage, dirt)
 		end
 
 		const settled = self:StepSpring(state)

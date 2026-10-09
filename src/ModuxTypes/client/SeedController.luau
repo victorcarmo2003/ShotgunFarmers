@@ -10,6 +10,8 @@ export type SeedState = {
 	Stage: number,
 	Growth: number,
 	Velocity: number,
+	Stages: { Model }?,
+	StageScale: number,
 }
 
 export type Public = {
@@ -18,6 +20,8 @@ export type Public = {
 	Setup: (self: Public) -> (),
 	Forget: (self: Public, dirt: BasePart) -> (),
 	Render: (self: Public, dirt: BasePart) -> (),
+	TargetGrowth: (self: Public, state: SeedState) -> number,
+	AdvanceStage: (self: Public, state: SeedState, stage: number, parent: Instance) -> (),
 	ApplyGrowth: (self: Public, state: SeedState) -> (),
 	StepSpring: (self: Public, state: SeedState) -> boolean,
 	Step: (self: Public) -> (),
