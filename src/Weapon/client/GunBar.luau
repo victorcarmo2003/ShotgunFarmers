@@ -39,7 +39,7 @@ return function(props: Props): Frame
 	return create("Frame")({
 		Name = props.Name or "GunBar",
 		AnchorPoint = props.AnchorPoint or Vector2.new(1, 0),
-		Position = props.Position or UDim2.fromScale(1.05, 0.55),
+		Position = props.Position or UDim2.fromScale(1.12, 0.55),
 		Size = props.Size or UDim2.fromScale(0.15, 0.5),
 		BackgroundTransparency = 1,
 

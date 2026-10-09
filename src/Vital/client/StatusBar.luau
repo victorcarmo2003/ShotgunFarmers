@@ -34,7 +34,7 @@ return function(props: Props): CanvasGroup
 		Name = "StatusBar",
 
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = props.Position or UDim2.fromScale(0.15, 0.895),
+		Position = props.Position or UDim2.fromScale(0.03, 0.895),
 		Size = props.Size or UDim2.fromScale(0.3, 0.2),
 		BackgroundTransparency = 1,
 
