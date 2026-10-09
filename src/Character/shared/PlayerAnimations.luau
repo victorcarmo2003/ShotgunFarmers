@@ -106,11 +106,11 @@ return {
 
 	Viewmodels = {
 		Shotgun = {
-			Hold = "rbxassetid://80970480540647",
-			Aim = "rbxassetid://97971442571579",
-			ShootHip = "rbxassetid://135936926117428",
-			ShootAim = "rbxassetid://135936926117428",
-			Draw = "",
+			Hold = "rbxassetid://87555449301596",
+			Aim = "rbxassetid://96034016821470",
+			ShootHip = "rbxassetid://137522190510037",
+			ShootAim = "rbxassetid://101049333679318",
+			Draw = "rbxassetid://130418169100111",
 			Reload = "",
 		},
 		Peavolver = {
