@@ -1,10 +1,12 @@
 --!strict
 local CollectionService = game:GetService("CollectionService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
 local WeaponSounds = require(ReplicatedStorage.shared.Weapon.WeaponSounds)
 local SeedSettings = require(ReplicatedStorage.shared.Seed.SeedSettings)
+local Fonts = require(ReplicatedStorage.shared.Interface.Fonts)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
 const TAG = "Seed"
@@ -28,6 +30,8 @@ export type SeedState = {
 	StageScale: number,
 }
 
+export type Timer = { Gui: BillboardGui, Label: TextLabel, Expires: number, Shown: number }
+
 const SeedController = Modux.Controller("SeedController", { Priority = 400 })
 
 const warnedTemplates: { [string]: boolean } = {}
@@ -42,7 +46,7 @@ local function stageGrowth(stage: number): number
 	return if stage <= 0 then 0 else SeedSettings.GROWTH_STAGES[stage]
 end
 
-local function pop(position: Vector3)
+local function pop(position: Vector3, stage: number)
 	const anchor = Instance.new("Attachment")
 	anchor.WorldPosition = position
 	anchor.Parent = workspace.Terrain
@@ -68,7 +72,7 @@ local function pop(position: Vector3)
 	emitter.Parent = anchor
 	emitter:Emit(SeedSettings.POP_PARTICLES)
 
-	WeaponSounds.PlayAt(SeedSettings.GROW_SOUND, position)
+	WeaponSounds.PlayAt(SeedSettings.GROW_SOUND, position, 1 + (stage - 1) * SeedSettings.GROW_SPEED_STEP)
 	task.delay(POP_LIFETIME, function()
 		anchor:Destroy()
 	end)
@@ -121,11 +125,70 @@ end
 function SeedController:Setup()
 	self.Active = {} :: { [BasePart]: SeedState }
 	self.Finished = {} :: { [BasePart]: boolean }
+	self.Timers = {} :: { [BasePart]: Timer }
 end
 
 function SeedController:Forget(dirt: BasePart)
 	self.Active[dirt] = nil
 	self.Finished[dirt] = nil
+	const timer = self.Timers[dirt]
+	if timer then
+		timer.Gui:Destroy()
+		self.Timers[dirt] = nil
+	end
+end
+
+function SeedController:StartTimer(dirt: BasePart, height: number)
+	const plantedAt = dirt:GetAttribute("PlantedAt")
+	if self.Timers[dirt] or type(plantedAt) ~= "number" then
+		return
+	end
+
+	const size = SeedSettings.TIMER_SIZE
+	const gui = Instance.new("BillboardGui")
+	gui.Name = "SeedTimer"
+	gui.Size = UDim2.fromOffset(size.X, size.Y)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, height + SeedSettings.TIMER_GAP, 0)
+	gui.MaxDistance = SeedSettings.TIMER_MAX_DISTANCE
+	gui.LightInfluence = 0
+	gui.ResetOnSpawn = false
+
+	const label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.FontFace = Fonts.FredokaOne
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.TextScaled = true
+	label.Text = ""
+	label.Parent = gui
+
+	const stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.new(0, 0, 0)
+	stroke.Thickness = 1
+	stroke.Parent = label
+
+	gui.Parent = dirt
+	self.Timers[dirt] = { Gui = gui, Label = label, Expires = plantedAt + SeedSettings.SEED_LIFETIME, Shown = -1 }
+end
+
+function SeedController:StepTimers(now: number)
+	for _, timer in self.Timers do
+		const remaining = math.max(0, math.ceil(timer.Expires - now))
+		if remaining ~= timer.Shown then
+			timer.Shown = remaining
+			timer.Label.Text = `{remaining}s`
+		end
+	end
+end
+
+function SeedController:PlantHeight(state: SeedState): number
+	const stages = state.Stages
+	if stages then
+		const final = stages[#stages]
+		const height = final:GetAttribute("Height")
+		return (if type(height) == "number" then height else 4) * state.StageScale
+	end
+	return SeedSettings.SEED_RISE_HEIGHT + 1
 end
 
 function SeedController:Render(dirt: BasePart)
@@ -206,7 +269,7 @@ function SeedController:AdvanceStage(state: SeedState, stage: number, parent: In
 		state.Growth = SeedSettings.STAGE_POP_FROM
 		state.Velocity = 0
 	end
-	pop(state.SeedInstance:GetPivot().Position)
+	pop(state.SeedInstance:GetPivot().Position, stage)
 end
 
 function SeedController:ApplyGrowth(state: SeedState)
@@ -260,8 +323,11 @@ function SeedController:Step()
 		if dirtAlpha >= 1 and state.Stage >= finalStage and settled then
 			self.Active[dirt] = nil
 			self.Finished[dirt] = true
+			self:StartTimer(dirt, self:PlantHeight(state))
 		end
 	end
+
+	self:StepTimers(now)
 end
 
 SeedController:OnInit(function(self)
@@ -269,6 +335,13 @@ SeedController:OnInit(function(self)
 end)
 
 SeedController:OnStart(function(self)
+	ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
+		const parent = prompt.Parent
+		if parent and CollectionService:HasTag(parent, TAG) then
+			WeaponSounds.Play2D(SeedSettings.PICKUP_SOUND)
+		end
+	end)
+
 	CollectionService:GetInstanceAddedSignal(TAG):Connect(function(instance: Instance)
 		if instance:IsA("BasePart") then
 			self:Render(instance)

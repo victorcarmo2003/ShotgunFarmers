@@ -148,7 +148,7 @@ function WeaponSounds.PlayPooled(name: string, parent: Instance)
 	sound:Play()
 end
 
-function WeaponSounds.PlayAt(name: string, position: Vector3)
+function WeaponSounds.PlayAt(name: string, position: Vector3, speed: number?)
 	if positionalCount >= MAX_POSITIONAL then
 		return
 	end
@@ -163,12 +163,15 @@ function WeaponSounds.PlayAt(name: string, position: Vector3)
 	anchor.Parent = workspace.Terrain
 
 	const sound = template:Clone()
+	if speed then
+		sound.PlaybackSpeed = template.PlaybackSpeed * speed
+	end
 	sound.Parent = anchor
 	sound.TimePosition = TRIM[name] or 0
 	sound:Play()
 
 	positionalCount += 1
-	const lifetime = math.max(sound.TimeLength, MIN_LIFETIME) + 0.5
+	const lifetime = math.max(sound.TimeLength / math.max(sound.PlaybackSpeed, 0.01), MIN_LIFETIME) + 0.5
 	anchor.Destroying:Once(function()
 		positionalCount -= 1
 	end)
