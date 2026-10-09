@@ -2,7 +2,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 local FSMLib = require(ReplicatedStorage.shared.Libs.FSM)
-local GameSettings = require(ReplicatedStorage.shared.Settings.GameSettings)
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
 local AnimationSetLoader = require(StarterPlayer.StarterPlayerScripts.client.Weapon.AnimationSetLoader)
 
@@ -108,6 +107,7 @@ export type PoseMachine = {
 	_connections: { RBXScriptConnection },
 	_advanceGeneration: number,
 	_destroyed: boolean,
+	_attackDuration: number?,
 
 	_playRole: (self: PoseMachine, role: Role, fade: number) -> (),
 	_stopRole: (self: PoseMachine, role: Role, fade: number) -> (),
@@ -125,7 +125,7 @@ export type PoseMachine = {
 	IsShootAimPlaying: (self: PoseMachine) -> boolean,
 	PlayShoot: (self: PoseMachine) -> (),
 	PlayReload: (self: PoseMachine) -> (),
-	PlayAttack: (self: PoseMachine) -> (),
+	PlayAttack: (self: PoseMachine, duration: number?) -> (),
 	BeginThrow: (self: PoseMachine) -> (),
 	SetThrowStance: (self: PoseMachine, long: boolean) -> (),
 	ReleaseThrow: (self: PoseMachine, short: boolean) -> (),
@@ -147,11 +147,12 @@ local function fadeFor(previousState: PoseState, nextState: PoseState): number
 end
 
 function PoseMachine._playRole(self: PoseMachine, role: Role, fade: number)
-	const speed = if role == "Attack" then GameSettings.MeleeAttackSpeed else 1
+	const duration = if role == "Attack" then self._attackDuration else nil
 	for _, track in { self._viewmodelTracks[role], self._characterTracks[role] } do
 		if role == BASE_ROLE and track.IsPlaying then
 			continue
 		end
+		const speed = if duration and duration > 0 and track.Length > 0 then track.Length / duration else 1
 		track:Play(fade, 1, speed)
 	end
 end
@@ -265,7 +266,8 @@ function PoseMachine.PlayReload(self: PoseMachine)
 	self.FSM:Transition("Reloading")
 end
 
-function PoseMachine.PlayAttack(self: PoseMachine)
+function PoseMachine.PlayAttack(self: PoseMachine, duration: number?)
+	self._attackDuration = duration
 	self.FSM:Transition("Attacking")
 end
 
@@ -326,6 +328,7 @@ function PoseMachine.new(viewmodelTracks: TrackSet, characterTracks: TrackSet, p
 		_connections = {} :: { RBXScriptConnection },
 		_advanceGeneration = 0,
 		_destroyed = false,
+		_attackDuration = nil,
 	}, PoseMachine) :: any
 
 	self.FSM:OnTransition(function(previousState: PoseState, nextState: PoseState)

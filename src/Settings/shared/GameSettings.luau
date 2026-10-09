@@ -10,5 +10,5 @@ return {
 
 	WeaponDrawLock = 0.5,
 
-	MeleeAttackSpeed = 1.5,
+	MeleeImpactFraction = 0.36,
 }

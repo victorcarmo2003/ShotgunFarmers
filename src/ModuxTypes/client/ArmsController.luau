@@ -50,7 +50,7 @@ export type Public = {
 	PlayPumpSound: (self: Public) -> (),
 	PlayShoot: (self: Public) -> (),
 	PlayReload: (self: Public) -> (),
-	PlayAttack: (self: Public) -> (),
+	PlayAttack: (self: Public, duration: number?) -> (),
 	BeginThrow: (self: Public) -> (),
 	SetThrowStance: (self: Public, long: boolean) -> (),
 	ReleaseThrow: (self: Public, short: boolean) -> (),

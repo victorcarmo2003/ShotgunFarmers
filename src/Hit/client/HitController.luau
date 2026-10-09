@@ -264,9 +264,9 @@ function HitController:FireHitscan(gunData: GetGun.GunData, origin: Vector3, loo
 end
 
 function HitController:FireMelee(gunData: GetGun.GunData)
-	self.Dependencies.ArmsController:PlayAttack()
+	self.Dependencies.ArmsController:PlayAttack(gunData.FireRate)
 
-	const delay = (gunData.HitDelay or 0) / GameSettings.MeleeAttackSpeed
+	const delay = gunData.FireRate * GameSettings.MeleeImpactFraction
 	if delay <= 0 then
 		self:Strike(gunData)
 		return

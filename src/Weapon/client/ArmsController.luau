@@ -544,10 +544,10 @@ function ArmsController:PlayReload()
 	end
 end
 
-function ArmsController:PlayAttack()
+function ArmsController:PlayAttack(duration: number?)
 	const poseMachine = self.PoseMachine
 	if poseMachine then
-		poseMachine:PlayAttack()
+		poseMachine:PlayAttack(duration)
 	end
 end
 

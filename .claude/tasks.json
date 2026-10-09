@@ -923,7 +923,7 @@
     {
       "id": "task-weapon-012",
       "title": "Acelerar animação melee",
-      "description": "2026-10-08: pedido do usuário. GameSettings.MeleeAttackSpeed = 1.5: PoseMachine._playRole toca o papel Attack (viewmodel e 3a pessoa) com speed 1.5; HitController:FireMelee divide HitDelay pela mesma velocidade (dano continua sincronizado com o golpe). Cadência (FireRate 0.6 Hoe / 0.8 Shovel) não mudou.",
+      "description": "2026-10-08: pedido do usuário. GameSettings.MeleeAttackSpeed = 1.5: PoseMachine._playRole toca o papel Attack (viewmodel e 3a pessoa) com speed 1.5; HitController:FireMelee divide HitDelay pela mesma velocidade (dano continua sincronizado com o golpe). Cadência (FireRate 0.6 Hoe / 0.8 Shovel) não mudou.\n\n2026-10-08 (v2): animação Attack da pá (77809076943291) medida: 1.40s, sobe 0-0.30, golpe 0.38-0.55, impacto ~0.50 (36%), volta lenta 0.55-1.40. Agora a animação dura exatamente o FireRate da arma (speed = Length/FireRate: Hoe 0.6s = 2.33x, Shovel 0.8s = 1.75x) e o dano sai em FireRate * GameSettings.MeleeImpactFraction (0.36): Hoe 0.22s, Shovel 0.29s. Removido HitDelay fixo (0.25) do GunsData.",
       "column": "awaiting-approval",
       "tags": [
         "weapon",

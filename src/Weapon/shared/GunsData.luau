@@ -276,7 +276,6 @@ return {
 		HeadshotMultiplier = 1,
 		Range = 6,
 		FireMode = "Melee",
-		HitDelay = 0.25,
 		SeedModel = "",
 	},
 	["Shovel"] = {
@@ -294,7 +293,6 @@ return {
 		HeadshotMultiplier = 1,
 		Range = 6,
 		FireMode = "Melee",
-		HitDelay = 0.25,
 		SeedModel = "",
 	},
 	["Bananarang"] = {

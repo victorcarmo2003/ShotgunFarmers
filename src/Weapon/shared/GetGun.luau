@@ -57,7 +57,6 @@ export type GunData = {
 	SeedChance: number?,
 	BulletSpeed: number?,
 	BulletDrop: number?,
-	HitDelay: number?,
 	AimType: AimType?,
 	DiscardWhenEmpty: boolean?,
 	WeldTo: WeldPart?,
