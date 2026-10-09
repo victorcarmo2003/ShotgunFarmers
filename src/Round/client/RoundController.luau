@@ -6,6 +6,7 @@ local RoundNet = require(ReplicatedStorage.shared.Round.Net)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local WeaponSounds = require(ReplicatedStorage.shared.Weapon.WeaponSounds)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
+local MatchSummary = require(StarterPlayer.StarterPlayerScripts.client.Round.MatchSummary)
 
 export type Status = RoundNet.Status
 
@@ -19,12 +20,73 @@ const LABELS: { [string]: string } = {
 const OUTCOME_DELAY = 1.5
 const PRACTICE_MODE = "Practice"
 const PRACTICE_LABEL = "Treino"
+const SUMMARY_SECONDS = 12
+const SUMMARY_DISPLAY_ORDER = 15
+
+const EMPTY_SUMMARY: MatchSummary.Summary = {
+	Outcome = "Draw",
+	Placement = 0,
+	Players = 0,
+	Kills = 0,
+	Deaths = 0,
+	Assists = 0,
+	Score = 0,
+	XpGained = 0,
+	GemsGained = 0,
+	Level = 1,
+	LevelsGained = 0,
+	Xp = 0,
+	XpMax = 1,
+	Counted = false,
+}
 
 const RoundController = Modux.Controller("RoundController", { Priority = 800 })
 
 function RoundController:Setup()
 	self.Status = Vide.source("Starting") :: Vide.Source<Status>
 	self.Seconds = Vide.source(0) :: Vide.Source<number>
+	self.Summary = Vide.source(EMPTY_SUMMARY) :: Vide.Source<MatchSummary.Summary>
+	self.SummaryVisible = Vide.source(false) :: Vide.Source<boolean>
+	self.SummaryToken = 0 :: number
+end
+
+function RoundController:ShowSummary(summary: MatchSummary.Summary)
+	self.SummaryToken += 1
+	const token = self.SummaryToken
+	Vide.batch(function()
+		self.Summary(summary)
+		self.SummaryVisible(true)
+	end)
+
+	task.delay(SUMMARY_SECONDS, function()
+		if self.SummaryToken == token then
+			self:HideSummary()
+		end
+	end)
+end
+
+function RoundController:HideSummary()
+	self.SummaryToken += 1
+	self.SummaryVisible(false)
+end
+
+function RoundController:MountSummary()
+	Vide.mount(function()
+		return Vide.create("ScreenGui")({
+			Name = "MatchSummaryUI",
+			ResetOnSpawn = false,
+			IgnoreGuiInset = true,
+			DisplayOrder = SUMMARY_DISPLAY_ORDER,
+
+			MatchSummary({
+				Visible = self.SummaryVisible,
+				Summary = self.Summary,
+				OnClose = function()
+					self:HideSummary()
+				end,
+			}),
+		})
+	end, Players.LocalPlayer:WaitForChild("PlayerGui"))
 end
 
 local function formatSeconds(seconds: number): string
@@ -49,7 +111,13 @@ RoundController:OnInit(function(self)
 
 		if payload.Status == "Intermission" and previous == "Match" then
 			WeaponSounds.Play2D(WeaponSounds.MATCH_END)
+		elseif payload.Status ~= "Intermission" and self.SummaryVisible() then
+			self:HideSummary()
 		end
+	end)
+
+	self.Libs.Net.Career.Summary:onClient(function(summary)
+		self:ShowSummary(summary :: MatchSummary.Summary)
 	end)
 
 	const localPlayer = Players.LocalPlayer
@@ -59,6 +127,10 @@ RoundController:OnInit(function(self)
 			task.delay(OUTCOME_DELAY, WeaponSounds.Play2D, outcome)
 		end
 	end)
+end)
+
+RoundController:OnStart(function(self)
+	self:MountSummary()
 end)
 
 return RoundController

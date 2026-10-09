@@ -22,6 +22,7 @@ export type Public = {
 	Begin: (self: Public, player: Player) -> (),
 	Get: (self: Public, player: Player) -> Profile?,
 	Update: (self: Public, player: Player, patch: Struct.Partial<Data>) -> (),
+	Save: (self: Public, player: Player) -> (),
 	Replicate: (self: Public, player: Player) -> (),
 	Bind: (self: Public, player: Player, session: any) -> Profile,
 	Load: (self: Public, player: Player) -> (),

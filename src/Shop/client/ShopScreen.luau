@@ -26,10 +26,20 @@ export type Props = {
 	Items: (() -> { Item })?,
 	OnBuyRobux: ((id: string) -> ())?,
 	OnBuyCoins: ((id: string) -> ())?,
+	Owned: (() -> { [string]: boolean })?,
 	OnClose: (() -> ())?,
 }
 
-local function priceButton(name: string, y: number, price: number, color: Color3, icon: string, iconPosition: UDim2, iconSize: UDim2, onActivated: () -> ()): Frame
+local function priceButton(
+	name: string,
+	y: number,
+	price: ScreenKit.Text,
+	color: Color3,
+	icon: string,
+	iconPosition: UDim2,
+	iconSize: UDim2,
+	onActivated: () -> ()
+): Frame
 	return ScreenKit.pressable({
 		Name = name,
 		Position = inside(14, y, CARD_WIDTH, CARD_HEIGHT),
@@ -43,7 +53,7 @@ local function priceButton(name: string, y: number, price: number, color: Color3
 				Size = inside(89, BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT),
 				BackgroundTransparency = 1,
 
-				label(tostring(price), 31, BUTTON_HEIGHT),
+				label(price, 31, BUTTON_HEIGHT),
 			}),
 
 			create("ImageLabel")({
@@ -59,6 +69,32 @@ local function priceButton(name: string, y: number, price: number, color: Color3
 end
 
 local function itemCard(props: Props, item: Item, index: () -> number): Frame
+	const owned = function(): boolean
+		return item.Kind == "Pass" and props.Owned ~= nil and props.Owned()[item.Id] == true
+	end
+
+	const coinButton: { Instance } = {}
+	const coinPrice = item.CoinPrice
+	if coinPrice then
+		table.insert(
+			coinButton,
+			priceButton(
+				"BuyCoins",
+				259,
+				tostring(coinPrice),
+				ScreenKit.Colors.Orange,
+				ScreenKit.Images.Coin,
+				inside(120, 4, BUTTON_WIDTH, BUTTON_HEIGHT),
+				inside(25, 24, BUTTON_WIDTH, BUTTON_HEIGHT),
+				function()
+					if props.OnBuyCoins then
+						props.OnBuyCoins(item.Id)
+					end
+				end
+			)
+		)
+	end
+
 	return create("Frame")({
 		Name = item.Id,
 		Size = UDim2.fromScale(CARD_WIDTH / ROW_WIDTH, 1),
@@ -74,42 +110,41 @@ local function itemCard(props: Props, item: Item, index: () -> number): Frame
 
 			create("ImageLabel")({
 				Name = "Image",
-				Size = UDim2.fromScale(1, 1),
+				Position = inside(14, 10, 148, 193),
+				Size = inside(120, 134, 148, 193),
 				BackgroundTransparency = 1,
 				ScaleType = Enum.ScaleType.Fit,
 				Image = item.Image or "",
+			}),
+
+			ScreenKit.text({
+				Name = "Title",
+				Text = item.Name,
+				Position = inside(0, 150, 148, 193),
+				Size = inside(148, 36, 148, 193),
+				FontSize = 26,
+				BoxHeight = 36,
 			}),
 		}),
 
 		priceButton(
 			"BuyRobux",
-			219,
-			item.RobuxPrice,
+			if coinPrice then 219 else 239,
+			function()
+				return if owned() then "OWNED" else tostring(item.RobuxPrice)
+			end,
 			ScreenKit.Colors.Green,
 			ScreenKit.Images.Robux,
 			inside(121, 3, BUTTON_WIDTH, BUTTON_HEIGHT),
 			inside(23, 25, BUTTON_WIDTH, BUTTON_HEIGHT),
 			function()
-				if props.OnBuyRobux then
+				if props.OnBuyRobux and not owned() then
 					props.OnBuyRobux(item.Id)
 				end
 			end
 		),
 
-		priceButton(
-			"BuyCoins",
-			259,
-			item.CoinPrice,
-			ScreenKit.Colors.Orange,
-			ScreenKit.Images.Coin,
-			inside(120, 4, BUTTON_WIDTH, BUTTON_HEIGHT),
-			inside(25, 24, BUTTON_WIDTH, BUTTON_HEIGHT),
-			function()
-				if props.OnBuyCoins then
-					props.OnBuyCoins(item.Id)
-				end
-			end
-		),
+		coinButton,
 	})
 end
 

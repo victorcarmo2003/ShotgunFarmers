@@ -65,6 +65,13 @@ function ProfileService:Update(player: Player, patch: Struct.Partial<Data>)
 	end)
 end
 
+function ProfileService:Save(player: Player)
+	const session = self.Sessions[player]
+	if session and session:IsActive() then
+		session:Save()
+	end
+end
+
 function ProfileService:Replicate(player: Player)
 	const profile = self.Profiles[player]
 	if not profile then

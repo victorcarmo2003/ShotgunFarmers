@@ -16,12 +16,23 @@ export type Delta = {
 	Headshots: number?,
 	Matches: number?,
 	Wins: number?,
+	Gems: number?,
 }
+
+export type Session = { Xp: number, Gems: number, StartLevel: number }
 
 const COUNT_MAX = 4294967295
 
 const CareerService = Modux.Service("CareerService", {
-	Require = { "MatchStatsService", "NetService", "PlayerService", "ProfileService", "ServerRoleService", "TeamService" },
+	Require = {
+		"MatchStatsService",
+		"NetService",
+		"PlayerService",
+		"ProfileService",
+		"ServerRoleService",
+		"ShopService",
+		"TeamService",
+	},
 	Priority = 640,
 })
 
@@ -29,6 +40,16 @@ function CareerService:Setup()
 	self.PendingDamage = {} :: { [Player]: number }
 	self.KillLog = {} :: { [Player]: { [Player]: { number } } }
 	self.Disposers = {} :: { [Player]: () -> () }
+	self.Sessions = {} :: { [Player]: Session }
+end
+
+function CareerService:SessionOf(player: Player, level: number): Session
+	local session = self.Sessions[player]
+	if not session then
+		session = { Xp = 0, Gems = 0, StartLevel = level }
+		self.Sessions[player] = session
+	end
+	return session
 end
 
 function CareerService:Counts(): boolean
@@ -110,6 +131,11 @@ function CareerService:Award(player: Player, delta: Delta)
 		Damage = math.min(current.Damage + damage, COUNT_MAX),
 	}
 
+	const gems = math.floor((delta.Gems or 0) * self.Dependencies.ShopService:GemMultiplier(player))
+	const session = self:SessionOf(player, profile.Level())
+	session.Xp += delta.Xp or 0
+	session.Gems += gems
+
 	const level, xp = Progression.Apply(profile.Level(), profile.Xp(), delta.Xp or 0)
 
 	profiles:Update(player, {
@@ -117,6 +143,7 @@ function CareerService:Award(player: Player, delta: Delta)
 		Xp = xp,
 		Career = career,
 		Wins = math.min(profile.Wins() + (delta.Wins or 0), COUNT_MAX),
+		Gems = math.min(profile.Gems() + gems, CareerSettings.GEMS_MAX),
 	})
 end
 
@@ -155,14 +182,20 @@ function CareerService:OnKilled(killer: Player, victim: Player, isHeadshot: bool
 
 	const rewarded = self:RegisterKill(killer, victim)
 	local killerXp = 0
+	local killerGems = 0
 	if rewarded then
 		killerXp = CareerSettings.KILL_XP + (if isHeadshot then CareerSettings.HEADSHOT_XP else 0)
+		killerGems = CareerSettings.KILL_GEMS + (if isHeadshot then CareerSettings.HEADSHOT_GEMS else 0)
 	end
 
-	self:Award(killer, { Kills = 1, Headshots = if isHeadshot then 1 else 0, Xp = killerXp })
+	self:Award(killer, { Kills = 1, Headshots = if isHeadshot then 1 else 0, Xp = killerXp, Gems = killerGems })
 
 	for _, assister in assisters do
-		self:Award(assister, { Assists = 1, Xp = if rewarded then CareerSettings.ASSIST_XP else 0 })
+		self:Award(assister, {
+			Assists = 1,
+			Xp = if rewarded then CareerSettings.ASSIST_XP else 0,
+			Gems = if rewarded then CareerSettings.ASSIST_GEMS else 0,
+		})
 	end
 end
 
@@ -243,19 +276,88 @@ function CareerService:OnMatchEnded()
 		player:SetAttribute(WeaponSounds.OUTCOME_ATTRIBUTE, outcome)
 	end
 
-	if not self:Counts() then
+	const counted = self:Counts()
+	if counted then
+		for _, player in Players:GetPlayers() do
+			self:Award(player, {
+				Matches = 1,
+				Xp = CareerSettings.MATCH_XP,
+				Wins = if winners[player] then 1 else 0,
+				Gems = CareerSettings.MATCH_GEMS + (if winners[player] then CareerSettings.WIN_GEMS else 0),
+			})
+		end
+		table.clear(self.KillLog)
+	end
+
+	const placements = self:Placements()
+	for _, player in Players:GetPlayers() do
+		const outcome: WeaponSounds.Outcome = if draw then "Draw" elseif winners[player] then "Victory" else "Defeat"
+		self:SendSummary(player, outcome, placements, counted)
+	end
+	table.clear(self.Sessions)
+end
+
+function CareerService:Placements(): { [Player]: number }
+	const ordered: { Player } = {}
+	const stats = self.Dependencies.MatchStatsService.Stats
+	for player in stats do
+		if player:IsDescendantOf(Players) then
+			table.insert(ordered, player)
+		end
+	end
+
+	table.sort(ordered, function(first: Player, second: Player): boolean
+		const a = stats[first]
+		const b = stats[second]
+		if a.Score ~= b.Score then
+			return a.Score > b.Score
+		end
+		return a.Kills > b.Kills
+	end)
+
+	const placements: { [Player]: number } = {}
+	for index, player in ordered do
+		placements[player] = index
+	end
+	return placements
+end
+
+function CareerService:SendSummary(
+	player: Player,
+	outcome: WeaponSounds.Outcome,
+	placements: { [Player]: number },
+	counted: boolean
+)
+	const netService = self.Dependencies.NetService
+	const profile = self.Dependencies.ProfileService:Get(player)
+	if not profile or not netService:IsRunning() or not netService:IsReady(player) then
 		return
 	end
 
-	for _, player in Players:GetPlayers() do
-		self:Award(player, {
-			Matches = 1,
-			Xp = CareerSettings.MATCH_XP,
-			Wins = if winners[player] then 1 else 0,
-		})
+	const level = profile.Level()
+	const session = self:SessionOf(player, level)
+	const playerStats = self.Dependencies.MatchStatsService.Stats[player]
+	local total = 0
+	for _ in placements do
+		total += 1
 	end
 
-	table.clear(self.KillLog)
+	self.Libs.Net.Career.Summary:fireClient(player, {
+		Outcome = outcome,
+		Placement = math.clamp(placements[player] or 0, 0, 255),
+		Players = math.clamp(total, 0, 255),
+		Kills = math.clamp(if playerStats then playerStats.Kills else 0, 0, 65535),
+		Deaths = math.clamp(if playerStats then playerStats.Deaths else 0, 0, 65535),
+		Assists = math.clamp(if playerStats then playerStats.Assists else 0, 0, 65535),
+		Score = if playerStats then playerStats.Score else 0,
+		XpGained = math.clamp(session.Xp, 0, COUNT_MAX),
+		GemsGained = math.clamp(session.Gems, 0, COUNT_MAX),
+		Level = level,
+		LevelsGained = math.clamp(level - session.StartLevel, 0, 65535),
+		Xp = profile.Xp(),
+		XpMax = Progression.XpForLevel(level),
+		Counted = counted,
+	})
 end
 
 function CareerService:Forget(player: Player)
@@ -264,6 +366,7 @@ function CareerService:Forget(player: Player)
 	end
 
 	self:Unwatch(player)
+	self.Sessions[player] = nil
 	self.PendingDamage[player] = nil
 	self.KillLog[player] = nil
 	for _, victims in self.KillLog do
@@ -293,6 +396,7 @@ CareerService:OnInit(function(self)
 	end)
 
 	stats.MatchStarted:Connect(function()
+		table.clear(self.Sessions)
 		for _, player in Players:GetPlayers() do
 			player:SetAttribute(WeaponSounds.OUTCOME_ATTRIBUTE, nil)
 		end

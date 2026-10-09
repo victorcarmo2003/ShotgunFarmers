@@ -33,6 +33,7 @@ return {
 	ServerScriptService.server.Round.MapVoteService,
 	ServerScriptService.server.Round.RoundService,
 	ServerScriptService.server.Seed.Seed,
+	ServerScriptService.server.Shop.ShopService,
 	ServerScriptService.server.Snapshot.SnapshotService,
 	ServerScriptService.server.Stats.MatchStatsService,
 	ServerScriptService.server.Stats.TeamService,

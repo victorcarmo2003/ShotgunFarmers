@@ -3,6 +3,7 @@ return {
 	Gems = 0,
 
 	Gamepasses = {} :: { [string]: boolean },
+	PurchaseIds = {} :: { string },
 
 	Item = {} :: { [string]: number },
 	UnlockedItems = {} :: { [number]: boolean },

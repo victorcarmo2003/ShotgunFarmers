@@ -40,7 +40,7 @@ local function buildStats(totals: Totals): { CareerScreen.Stat }
 		{ Label = "ASSISTS", Value = totals.Assists },
 		{ Label = "HEADSHOTS", Value = totals.Headshots },
 		{ Label = "QUESTS", Value = totals.QuestsDone },
-		{ Label = "MATCHS", Value = totals.Matches },
+		{ Label = "MATCHES", Value = totals.Matches },
 		{ Label = "DEATHS", Value = totals.Deaths },
 		{ Label = "K/D", Value = string.format("%.2f", ratio) },
 		{ Label = "DAMAGE", Value = totals.Damage },

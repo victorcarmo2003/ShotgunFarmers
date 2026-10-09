@@ -14,6 +14,7 @@ const PRESS_SCALE = 0.9
 const SELECTED_COLOR = Color3.fromHex "#1F9F68"
 const SELECTED_TEXT_SCALE = 1.2
 const COIN_IMAGE = "rbxassetid://123768928279796"
+const HIDDEN_TABS: { [string]: boolean } = { Customize = true, Quests = true }
 
 export type Props = {
 	Visible: (() -> boolean)?,
@@ -40,6 +41,10 @@ type TopButtonProps = {
 	SelectedTextColor3: Color3?,
 }
 
+local function shown(name: string): boolean
+	return not HIDDEN_TABS[name]
+end
+
 local function createTopButton(props: TopButtonProps)
 	const size = props.Size or UDim2.fromScale(0.15, 1)
 	const barHeight = 1 / size.Y.Scale
@@ -54,6 +59,7 @@ local function createTopButton(props: TopButtonProps)
 		Size = size,
 		LayoutOrder = props.LayoutOrder,
 		BackgroundTransparency = 1,
+		Visible = shown(props.Name),
 
 		create "ImageButton" {
 			Name = "Button",
@@ -219,7 +225,7 @@ return function(props: Props): Frame
 					LayoutOrder = 4,
 					BackgroundTransparency = 1,
 					BackgroundColor3 = Color3.new(0, 0, 0),
-					Text = "CARRER",
+					Text = "CAREER",
 					Activated = function()
 						if props.OnNavigate then
 							props.OnNavigate("Carrer")

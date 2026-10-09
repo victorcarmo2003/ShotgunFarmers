@@ -40,7 +40,7 @@ const DEFAULT_STATS: { Stat } = {
 	{ Label = "ASSISTS", Value = 2 },
 	{ Label = "HEADSHOTS", Value = 2 },
 	{ Label = "QUESTS", Value = 2 },
-	{ Label = "MATCHS", Value = 2 },
+	{ Label = "MATCHES", Value = 2 },
 	{ Label = "DEATHS", Value = 2 },
 	{ Label = "K/D", Value = "2.00" },
 	{ Label = "DAMAGE", Value = 2 },
@@ -128,7 +128,7 @@ return function(props: Props): Frame
 		Visible = props.Visible,
 		Children = {
 			ScreenKit.panel(),
-			ScreenKit.header("CARRER"),
+			ScreenKit.header("CAREER"),
 
 			ScreenKit.text({
 				Name = "PlayerName",

@@ -26,3 +26,11 @@
 | Gun icon WatermeLMG | rbxassetid://139967229901680 | Open Cloud upload / Assets/GunsPics | src/Weapon/shared/GunsData.luau (GunsData.ImageID: KillFeed, WeaponSlot, Practice) |
 | Scope ring (luneta) | rbxassetid://126099400506445 | Studio MCP upload / Assets/ScopeRing.png (gerado em Python, aro interno em 0.88 do raio) | src/Weapon/client/Scope (overlay da luneta) |
 | Scope halo / carcaça (branco, tingido por arma) | rbxassetid://75927697174625 | Studio MCP upload / Assets/ScopeHalo.png (anel 0.9–1.3 em unidades de S/2, imagem cobre ±1.35) | src/Weapon/client/ScopeOverlay (modo mira) |
+
+## Shop / resumo (Rhos Vectors, 2026-10-08)
+- Coin Tiers coin-2 (pacote 100): rbxassetid://121901793473334
+- Coin Tiers coin-3 (pacote 500): rbxassetid://124810481167748
+- Coin Tiers coin-5 (pacote 1200): rbxassetid://139090093784000
+- Gamepass 256 (2X GEMS): rbxassetid://108490785575131
+- Trophy 256: rbxassetid://105467907115908
+- Skull 256: rbxassetid://76382981380066

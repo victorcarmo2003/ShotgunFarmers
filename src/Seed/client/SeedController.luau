@@ -21,6 +21,8 @@ export type SeedState = {
 
 const SeedController = Modux.Controller("SeedController", { Priority = 400 })
 
+const warnedTemplates: { [string]: boolean } = {}
+
 local function seedTemplate(name: string): Model?
 	const assets = ReplicatedStorage:FindFirstChild("Assets")
 	const seeds = assets and assets:FindFirstChild("Seeds")
@@ -57,7 +59,11 @@ function SeedController:Render(dirt: BasePart)
 
 	const template = seedTemplate(gunData.SeedModel)
 	if not template then
-		warn(`[SeedController] SeedModel "{gunData.SeedModel}" nao esta em ReplicatedStorage.Assets.Seeds`)
+		if not warnedTemplates[gunData.SeedModel] then
+			warnedTemplates[gunData.SeedModel] = true
+			warn(`[SeedController] SeedModel "{gunData.SeedModel}" nao esta em ReplicatedStorage.Assets.Seeds`)
+		end
+		self.Finished[dirt] = true
 		return
 	end
 

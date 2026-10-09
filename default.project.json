@@ -431,6 +431,11 @@
 							"optional": "src/ModuxTypes/server/Seed.luau"
 						}
 					},
+					"ShopService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/ShopService.luau"
+						}
+					},
 					"SnapshotService": {
 						"$path": {
 							"optional": "src/ModuxTypes/server/SnapshotService.luau"
@@ -543,6 +548,12 @@
 					"$ignoreUnknownInstances": false,
 					"$path": {
 						"optional": "src/Seed/server"
+					}
+				},
+				"Shop": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/Shop/server"
 					}
 				},
 				"Snapshot": {

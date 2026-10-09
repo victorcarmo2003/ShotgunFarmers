@@ -31,7 +31,7 @@ export type Public = {
 	JoinRoom: (self: Public) -> (),
 	CreateRoom: (self: Public) -> (),
 	BuyRobux: (self: Public, id: string) -> (),
-	BuyCoins: (self: Public, id: string) -> (),
+	BuyCoins: (self: Public, _id: string) -> (),
 	RedeemQuest: (self: Public, id: string) -> (),
 	Invite: (self: Public) -> (),
 	InviteFriend: (self: Public, userId: number) -> (),

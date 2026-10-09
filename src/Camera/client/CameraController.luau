@@ -1,8 +1,10 @@
 --!strict
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StarterPlayer = game:GetService("StarterPlayer")
 local UserInputService = game:GetService("UserInputService")
+local RecoilSettings = require(ReplicatedStorage.shared.Weapon.RecoilSettings)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
 const MAX_RANGE = 150
@@ -66,6 +68,23 @@ function CameraController:Setup()
 	self.Effects = {} :: { [string]: EffectState }
 	self.CurrentTilt = 0 :: number
 	self.FirstPerson = false :: boolean
+	self.RecoilPitch = 0 :: number
+	self.RecoilYaw = 0 :: number
+end
+
+function CameraController:AddRecoil(gunName: string, aiming: boolean)
+	const recoil = RecoilSettings.For(gunName)
+	const scale = if aiming then RecoilSettings.AimMultiplier else 1
+	const yaw = (math.random() * 2 - 1) * recoil.Yaw * scale
+	self.RecoilPitch = math.min(self.RecoilPitch + recoil.Pitch * scale, RecoilSettings.MaxPitch)
+	self.RecoilYaw = math.clamp(self.RecoilYaw + yaw, -RecoilSettings.MaxYaw, RecoilSettings.MaxYaw)
+end
+
+function CameraController:GetRecoilOffset(deltaTime: number): CFrame
+	const decay = math.exp(-RecoilSettings.RecoverRate * deltaTime)
+	self.RecoilPitch *= decay
+	self.RecoilYaw *= decay
+	return CFrame.Angles(math.rad(self.RecoilPitch), math.rad(self.RecoilYaw), 0)
 end
 
 local function playerFromPart(part: Instance): Player?
@@ -159,7 +178,7 @@ function CameraController:Step(deltaTime: number)
 		return
 	end
 
-	local offset = self:GetTiltOffset(camera, deltaTime)
+	local offset = self:GetTiltOffset(camera, deltaTime) * self:GetRecoilOffset(deltaTime)
 	for effectName, state in self.Effects do
 		offset *= EFFECT_HANDLERS[effectName].Update(state, deltaTime)
 	end

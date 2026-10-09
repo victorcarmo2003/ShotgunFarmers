@@ -295,17 +295,18 @@
     },
     {
       "id": "task-map-005",
-      "title": "\"A pá tá bugada\" -- esclarecer",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedback ambíguo junto com \"nao consigo passar da porta\". Perguntar ao Dots o que é a pá e qual o bug.",
+      "title": "Corrigir animação da pá",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedback ambíguo junto com \"nao consigo passar da porta\". Perguntar ao Dots o que é a pá e qual o bug.\n\n2026-10-08: esclarecido pelo usuário: \"a pá tá bugada\" = animação da pá (Shovel) com problema. Escopo: corrigir animação da pá.",
       "column": "todo",
       "tags": [
-        "map",
         "weapon",
-        "playtest"
+        "playtest",
+        "animation",
+        "client"
       ],
       "priority": "low",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-08"
     },
     {
       "id": "task-weapon-005",
@@ -456,7 +457,7 @@
       "id": "task-audio-001",
       "title": "Trocar músicas pelas feitas pro jogo",
       "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSubstituir IDs no MusicController/config pelas músicas próprias.\n\nAUDITORIA ModuxGames 2026-10-06: ASSET: Audio/client/MusicController toca tudo em ReplicatedStorage.Assets.Musics. Trocar Sounds no Studio.",
-      "column": "todo",
+      "column": "in-progress",
       "tags": [
         "audio",
         "client",
@@ -464,7 +465,7 @@
       ],
       "priority": "low",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-08"
     },
     {
       "id": "task-game-005",
@@ -513,7 +514,7 @@
     {
       "id": "task-security-001",
       "title": "Backdoor free model no WildWest (CoreSkyboxSystem)",
-      "description": "2026-10-07: ServerStorage.Maps.WildWest.Props.Model.CoreSkyboxSystem e backdoor: se destroi no Studio (game.JobId == \"\") e em servidor real faz require(128320524036560) (modulo remoto de terceiro, execucao arbitraria no server). DESATIVADO (Enabled=false) pelo Claude. Usuario deve DELETAR o Script (e o modelo se nao usar as luzes) e salvar/publicar. Varredura do place nao achou outros.\n\n2026-10-07: Script CoreSkyboxSystem DELETADO do place. Falta salvar e publicar.",
+      "description": "2026-10-07: ServerStorage.Maps.WildWest.Props.Model.CoreSkyboxSystem e backdoor: se destroi no Studio (game.JobId == \"\") e em servidor real faz require(128320524036560) (modulo remoto de terceiro, execucao arbitraria no server). DESATIVADO (Enabled=false) pelo Claude. Usuario deve DELETAR o Script (e o modelo se nao usar as luzes) e salvar/publicar. Varredura do place nao achou outros.\n\n2026-10-07: Script CoreSkyboxSystem DELETADO do place. Falta salvar e publicar.\n\n2026-10-08: backdoor reapareceu ao reabrir o Studio (place não tinha sido salvo depois da remoção). Removido de novo; varredura limpa. SALVAR o place.",
       "column": "awaiting-approval",
       "tags": [
         "security",
@@ -522,7 +523,7 @@
       ],
       "priority": "high",
       "createdAt": "2026-10-07",
-      "updatedAt": "2026-10-07"
+      "updatedAt": "2026-10-08"
     },
     {
       "id": "task-weapon-009",
@@ -536,6 +537,331 @@
       "priority": "medium",
       "createdAt": "2026-10-07",
       "updatedAt": "2026-10-07"
+    },
+    {
+      "id": "task-seed-001",
+      "title": "Modelos de semente faltando em Assets.Seeds",
+      "description": "2026-10-08: ReplicatedStorage.Assets.Seeds só tem Dirt, Peavolver e Shotgun. Faltam modelos para Sniperagus, Carrocket, Gromato Launcher, Chilli Thrower, M6Bean, WatermeLMG, Double Cob, Snipine, Uzichinni, Raygun, Strawborry (nome = GunsData.SeedModel). Sem modelo a terra aparece mas sem planta. SeedController agora avisa 1x por modelo.",
+      "column": "todo",
+      "tags": [
+        "seed",
+        "asset",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-003",
+      "title": "Shop (Etapa 11)",
+      "description": "2026-10-08: levantamento do que falta. Botões só fazem print (LobbyController BuyRobux/BuyCoins). Precisa: ShopCatalog real (itens, preços, DevProduct/Gamepass IDs), ShopService com ProcessReceipt idempotente, compra com Gems. Decisões pendentes em docs/IntegrationPlan.md Etapa 11. Alternativa p/ prazo: esconder aba.",
+      "column": "todo",
+      "tags": [
+        "shop",
+        "ui",
+        "server",
+        "client"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-004",
+      "title": "Quests (Etapa 9)",
+      "description": "2026-10-08: levantamento do que falta. RedeemQuest só faz print. Precisa: QuestCatalog, QuestService (progresso por eventos, Claim paga Gems, reset diário), Net State/Claim, tela real. Decisões em IntegrationPlan Etapa 9. Alternativa p/ prazo: esconder aba.",
+      "column": "todo",
+      "tags": [
+        "quests",
+        "ui",
+        "server",
+        "client"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-005",
+      "title": "Cosmetics (Etapa 10)",
+      "description": "2026-10-08: levantamento do que falta. CosmeticsScreen sem dados. Precisa: catálogo, Owned/Equipped no Profile, CosmeticService aplicando no personagem, resgate de código. Decisões em IntegrationPlan Etapa 10. Alternativa p/ prazo: esconder aba.",
+      "column": "todo",
+      "tags": [
+        "cosmetics",
+        "ui",
+        "server",
+        "client"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-anim-002",
+      "title": "Animações de reload e poses faltando",
+      "description": "2026-10-08: levantamento do que falta. Viewmodels Reload vazio em Shotgun, Peavolver, Sniperagus, Snipine, Carrocket, M6Bean, WatermeLMG, Uzichinni, Raygun, Strawborry; Shotgun Draw vazio. CharacterPoses (3a pessoa): Shotgun ShootHip/ShootAim, Onionnade Aim/Throw vazios. Hoe usa animações da pá; arremesso médio sem animação própria.",
+      "column": "todo",
+      "tags": [
+        "animation",
+        "weapon"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-weapon-010",
+      "title": "Modelos de arma faltando",
+      "description": "2026-10-08: levantamento do que falta. Assets.Weapons sem Gromato Launcher, Chilli Thrower, Double Cob (Disabled). ImageID vazio nessas 3 (barra de armas/practice mostram iniciais).",
+      "column": "todo",
+      "tags": [
+        "weapon",
+        "asset"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-killfeed-003",
+      "title": "Sons das medalhas de kill",
+      "description": "2026-10-08: levantamento do que falta. Criar em ReplicatedStorage.Assets.Sounds: KillSplat, HeadshotSplat, MultiKill (killfeed-002). Passar IDs.",
+      "column": "todo",
+      "tags": [
+        "killfeed",
+        "audio",
+        "asset"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-party-002",
+      "title": "UI de sair/expulsar do squad (L8)",
+      "description": "2026-10-08: levantamento do que falta. IntegrationPlan L8 pendente: sair do squad e líder expulsar membro precisam de UI.",
+      "column": "todo",
+      "tags": [
+        "party",
+        "ui"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-options-002",
+      "title": "Polimento da tela de Options",
+      "description": "2026-10-08: levantamento do que falta. IntegrationPlan Etapa 3: slider arrastável; Toggle Crouch como ON/OFF em vez de slider.",
+      "column": "todo",
+      "tags": [
+        "options",
+        "ui"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-publish-001",
+      "title": "Checklist de publicação",
+      "description": "2026-10-08: levantamento do que falta. docs/PublishChecklist.md: salvar place, Rojo sincronizado, AdminSettings com UserIds reais, Max Players >= 20 no site, API Services, teste publicado com 2 contas (matchmaking, salas, squad, teleporte).",
+      "column": "todo",
+      "tags": [
+        "publish"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-anim-003",
+      "title": "Animações de movimento faltando",
+      "description": "2026-10-08: levantamento do que falta. PlayerAnimations Core: Run, Jump, Fall, Land vazios (+ crouch de input-003).",
+      "column": "todo",
+      "tags": [
+        "animation",
+        "character"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-006",
+      "title": "Arte dos cards de modo (GameSelection)",
+      "description": "2026-10-08: auditoria profunda. GameSelectionScreen: os 4 cards (QUICK-PLAY/FFA/TDM/PRACTICE) têm 'Preview' preto vazio. Precisa imagem por modo (rbxassetid).",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "gameselection",
+        "asset"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-007",
+      "title": "Prévia dos mapas na votação",
+      "description": "2026-10-08: auditoria profunda. VoteMenu: card de mapa tem 'Preview' preto só com contagem de votos. Precisa imagem por mapa (campo novo em Maps.luau) e também nos botões de mapa do CREATE ROOM.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "round",
+        "asset"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-008",
+      "title": "Tela de fim de partida (Vitória/Derrota)",
+      "description": "2026-10-08: auditoria profunda. Hoje o fim só toca som MatchEnd/Victory/Defeat e abre o Leaderstats. Falta tela com resultado (VITÓRIA/DERROTA/EMPATE), placar final, MVP, XP/Gems ganhos e level up.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "round",
+        "career"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-009",
+      "title": "Tela de morte",
+      "description": "2026-10-08: auditoria profunda. DeathCameraController segue o atirador, mas não há UI: quem te matou, arma, distância, contagem de respawn.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "vital",
+        "camera"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-010",
+      "title": "Placar de times no HUD (TDM)",
+      "description": "2026-10-08: auditoria profunda. HUD só tem TimerLabel. Falta placar Vermelho x Azul no topo e indicação do seu time/aliados (nome/realce).",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "hud",
+        "team"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-011",
+      "title": "Tela de carregamento",
+      "description": "2026-10-08: auditoria profunda. ReplicatedFirst vazio; Preload leva 1-7s sem feedback. Falta loading screen com logo/progresso (remove o loading padrão do Roblox).",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "preload"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-012",
+      "title": "Feedback de dano recebido",
+      "description": "2026-10-08: auditoria profunda. Falta indicador de direção do dano, vinheta/tela vermelha com vida baixa e flash ao levar dano.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "hud",
+        "vital"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-013",
+      "title": "Sons de interface",
+      "description": "2026-10-08: auditoria profunda. Nenhum som de UI no projeto: hover/click dos botões (ScreenKit.pressable), abrir/fechar tela, erro (ErrorPopup), convite, voto, contagem regressiva, level up, compra. Implementar em ScreenKit + Assets.Sounds.UI*.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "audio"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-014",
+      "title": "Textos e idioma da UI",
+      "description": "2026-10-08: auditoria profunda. Typos: 'CARRER' (CareerScreen e botão do lobby), 'MATCHS', 'Conteiner'. Mistura de idioma: UI em inglês, botão 'CODIGO' e mensagens do servidor em português sem acento ('Sala nao encontrada', 'Aguarde...'). Definir idioma único (ou LocalizationTable).",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "text"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-ui-015",
+      "title": "Dados de exemplo nas telas",
+      "description": "2026-10-08: auditoria profunda. Defaults de exemplo ainda aparecem se a prop faltar: CareerScreen DEFAULT_STATS (valor 2), QuestsScreen DEFAULT_QUESTS, CosmeticsScreen DEFAULT_SECTIONS (slots vazios), ShopCatalog 'Sample 1..4'. Trocar por dados reais ou esconder.",
+      "column": "todo",
+      "tags": [
+        "ui"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-audio-004",
+      "title": "Sons faltando no Assets.Sounds",
+      "description": "2026-10-08: auditoria profunda. Código referencia e não existe: GrenadeExplosion, BananaExplosion, LemonadeExplosion, MolotovExplosion, OnionnadeExplosion, PinappleExplosion, KillSplat, HeadshotSplat, MultiKill. Sem som definido: Chilli Thrower, Double Cob, golpe de Hoe/Shovel, reload, equipar arma, plantar/colher semente, passos, pulo/aterrissagem/slide, dano recebido, morte, respawn. Só 1 música (Music1).",
+      "column": "todo",
+      "tags": [
+        "audio",
+        "asset"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-game-006",
+      "title": "Modo Chicken sem regra própria",
+      "description": "2026-10-08: auditoria profunda. GameModes.Chicken = TDM com ScoreLimit 10, sem nenhuma lógica (objetivo de galinha). Está no QuickPlay e no CREATE ROOM. Definir regra ou remover do jogo.",
+      "column": "todo",
+      "tags": [
+        "game",
+        "mode"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-input-004",
+      "title": "Suporte a mobile/console",
+      "description": "2026-10-08: auditoria profunda. Nenhum controle touch/gamepad (só teclado/mouse). Mobile é maioria no Roblox: botões de tiro/mira/pulo/agachar/troca de arma/granada, joystick, UI escalando. Decidir se entra no lançamento ou bloquear dispositivos.",
+      "column": "todo",
+      "tags": [
+        "input",
+        "ui",
+        "mobile"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
     }
   ]
 }

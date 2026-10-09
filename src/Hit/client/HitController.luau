@@ -34,6 +34,7 @@ raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 const HitController = Modux.Controller("HitController", {
 	Require = {
 		"ArmsController",
+		"CameraController",
 		"GameStateController",
 		"InputController",
 		"MovementController",
@@ -128,6 +129,8 @@ local function claimFor(result: RaycastResult): HitNet.Pellet?
 end
 
 function HitController:PlayShotSound(gunData: GetGun.GunData)
+	self.Dependencies.CameraController:AddRecoil(gunData.DisplayName, self.Dependencies.ArmsController.IsAiming())
+
 	const soundName = WeaponSounds.ShootName(gunData.DisplayName)
 	if soundName == "" then
 		return

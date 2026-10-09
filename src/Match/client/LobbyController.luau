@@ -16,6 +16,8 @@ local CareerScreen = require(StarterPlayer.StarterPlayerScripts.client.Career.Ca
 local QuestsScreen = require(StarterPlayer.StarterPlayerScripts.client.Quests.QuestsScreen)
 local FriendsScreen = require(StarterPlayer.StarterPlayerScripts.client.Party.FriendsScreen)
 local SocialService = game:GetService("SocialService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local ShopCatalog = require(ReplicatedStorage.shared.Shop.ShopCatalog)
 
 const create = Vide.create
 const source = Vide.source
@@ -43,6 +45,7 @@ type ScreenProps = {
 	OnJoinMatch: ((key: string) -> ())?,
 	OnBuyRobux: ((id: string) -> ())?,
 	OnBuyCoins: ((id: string) -> ())?,
+	Owned: (() -> { [string]: boolean })?,
 	PlayerName: (() -> string)?,
 	Level: (() -> number)?,
 	Xp: (() -> number)?,
@@ -66,6 +69,7 @@ const SCREENS: { [string]: { Component: ScreenComponent, Camera: string? } } = {
 				OnClose = props.OnClose,
 				OnBuyRobux = props.OnBuyRobux,
 				OnBuyCoins = props.OnBuyCoins,
+				Owned = props.Owned,
 			})
 		end,
 	},
@@ -281,11 +285,26 @@ function LobbyController:CreateRoom()
 end
 
 function LobbyController:BuyRobux(id: string)
-	print(`[LobbyController] comprar com robux: {id}`)
+	const item = ShopCatalog.ById(id)
+	if not item then
+		return
+	end
+
+	if item.AssetId == 0 then
+		self:ShowError("This item is not available yet", "SHOP")
+		return
+	end
+
+	const player = Players.LocalPlayer
+	if item.Kind == "Pass" then
+		MarketplaceService:PromptGamePassPurchase(player, item.AssetId)
+	else
+		MarketplaceService:PromptProductPurchase(player, item.AssetId)
+	end
 end
 
-function LobbyController:BuyCoins(id: string)
-	print(`[LobbyController] comprar com moedas: {id}`)
+function LobbyController:BuyCoins(_id: string)
+	self:ShowError("Coming soon", "SHOP")
 end
 
 function LobbyController:RedeemQuest(id: string)
@@ -389,6 +408,7 @@ function LobbyController:MountScreen()
 					OnBuyCoins = function(id)
 						self:BuyCoins(id)
 					end,
+					Owned = self.Dependencies.ProfileController.Gamepasses,
 					OnRedeem = function(id)
 						self:RedeemQuest(id)
 					end,
