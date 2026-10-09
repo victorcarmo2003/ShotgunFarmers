@@ -988,6 +988,20 @@
       "priority": "high",
       "createdAt": "2026-10-09",
       "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-seed-002",
+      "title": "Planta crescendo em estágios com pop",
+      "description": "2026-10-09: pedido do usuário. SeedController: crescimento em 3 estágios (SeedSettings.GROWTH_STAGES 20%/60%/100%) espaçados em SEED_GROW_TIME (2s); cada salto tem mola (freq 14, amortecimento 0.4 -> passa do tamanho e volta), pop de partículas verdes estilo bone meal (14 partículas, POP_COLOR) e som PlantGrow em 3D. Jogador que entra depois vê a planta já no estágio certo, sem pops. FALTA DO USUÁRIO: som 'PlantGrow' em ReplicatedStorage.Assets.Sounds (pedido ao Dots/Black; mesmo som nos 3 estágios).",
+      "column": "awaiting-approval",
+      "tags": [
+        "seed",
+        "vfx",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
     }
   ]
 }
