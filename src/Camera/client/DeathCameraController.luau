@@ -216,6 +216,10 @@ function DeathCameraController:Bind(step: (camera: Camera, deltaTime: number) ->
 	camera.CameraType = Enum.CameraType.Scriptable
 
 	RunService:BindToRenderStep(RENDER_BIND_NAME, Enum.RenderPriority.Camera.Value, function(deltaTime: number)
+		if not self.Dead() then
+			self:StopSpectating()
+			return
+		end
 		showCharacter(Players.LocalPlayer.Character)
 		step(camera, deltaTime)
 	end)
@@ -249,7 +253,7 @@ function DeathCameraController:FocusSelf()
 	end)
 end
 
-function DeathCameraController:StopSpectating()
+function DeathCameraController:StopSpectating(character: Model?)
 	if not self.Spectating then
 		return
 	end
@@ -264,9 +268,17 @@ function DeathCameraController:StopSpectating()
 
 	camera.CameraType = Enum.CameraType.Custom
 
-	const humanoid = self.Dependencies.MovementController.Humanoid
+	const current = character or Players.LocalPlayer.Character
+	const humanoid = if current then current:FindFirstChildOfClass("Humanoid") else nil
 	if humanoid then
 		camera.CameraSubject = humanoid
+	elseif current then
+		task.spawn(function()
+			const found = current:WaitForChild("Humanoid", 5)
+			if found and found:IsA("Humanoid") and Players.LocalPlayer.Character == current then
+				camera.CameraSubject = found
+			end
+		end)
 	end
 end
 
@@ -321,7 +333,7 @@ end)
 DeathCameraController:OnStart(function(self)
 	const localPlayer = Players.LocalPlayer
 	localPlayer.CharacterAdded:Connect(function(character: Model)
-		self:StopSpectating()
+		self:StopSpectating(character)
 		self:HideDeath()
 		self:BindHumanoid(character)
 	end)
