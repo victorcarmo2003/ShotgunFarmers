@@ -79,6 +79,7 @@ OptionsCatalog.Choices = {
 	{ Id = "Language", Label = "LANGUAGE", Options = { "ENGLISH", "PORTUGUÊS" }, Default = 1 },
 	{ Id = "ToggleCrouch", Label = "TOGGLE CROUCH", Options = { "OFF", "ON" }, Default = 2 },
 	{ Id = "InvertY", Label = "INVERT Y", Options = { "OFF", "ON" }, Default = 1 },
+	{ Id = "ReticleAmmo", Label = "AMMO AT CROSSHAIR", Options = { "OFF", "ON" }, Default = 2 },
 } :: { Choice }
 
 OptionsCatalog.Keybinds = {

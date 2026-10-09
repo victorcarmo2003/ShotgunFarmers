@@ -1065,7 +1065,7 @@
     {
       "id": "task-seed-003",
       "title": "Caixote de reestoque (RestockCrate) com plantas fixas",
-      "description": "RestockService (src/Seed/server) planta 1 arma Firearm aleatoria em cada parte/modelo com tag RestockCrate dentro do mapa ativo (EnvironmentService:GetRoot), so com Combat e fora do Practice. Semente usa GunRules.PlantAt + Seed (30s de vida, cresce no client); ao ser coletada/expirar, nova planta em RESTOCK_DELAY=2s. Ponto: Attachment PlantPoint > parte Soil > topo do bounding box. Modelo workspace.RestockCrate criado no Studio; copiar para os mapas e salvar o place.",
+      "description": "RestockService (src/Seed/server) planta 1 arma Firearm aleatoria em cada parte/modelo com tag RestockCrate dentro do mapa ativo (EnvironmentService:GetRoot), so com Combat e fora do Practice. Semente usa GunRules.PlantAt + Seed (30s de vida, cresce no client); ao ser coletada/expirar, nova planta em RESTOCK_DELAY=2s. Ponto: Attachment PlantPoint > parte Soil > topo do bounding box. Modelo workspace.RestockCrate criado no Studio; copiar para os mapas e salvar o place. Atualizado: 25% de chance de Throwable (RESTOCK_THROWABLE_CHANCE); server marca atributos RestockActive/RestockStocked; RestockController (client) destaca com Highlight AlwaysOnTop o caixote ativo mais proximo (prioriza com planta) quando slot 1 (Firearm) vazio ou sem municao, durante Combat.",
       "column": "awaiting-approval",
       "tags": [
         "seed",
@@ -1098,6 +1098,21 @@
       "tags": [
         "ui",
         "input",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-ui-019",
+      "title": "Munição ao lado da retícula (opção)",
+      "description": "2026-10-09: pedido do usuário, portado do ReticleAmmo do TaskForce e adaptado (sem reload/reserva): número da munição atual à direita da mira (FredokaOne branco + contorno preto, escala pela altura da tela/1080), vermelho e 'LOW' com <=25% do pente (GunsData.Amount), 'EMPTY' piscando 3 Hz em 0. Some em melee, sem arma e mirando com luneta. Opção 'AMMO AT CROSSHAIR' (OFF/ON, padrão ON) em Options > Choices (OptionsCatalog + OptionsController:ReticleAmmo). Componente src/Weapon/client/ReticleAmmo.luau + story, montado no CrosshairUI (InterfaceController).",
+      "column": "awaiting-approval",
+      "tags": [
+        "ui",
+        "hud",
+        "options",
         "client"
       ],
       "priority": "medium",

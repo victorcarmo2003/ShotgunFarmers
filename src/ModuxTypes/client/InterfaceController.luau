@@ -9,11 +9,14 @@ export type Public = {
 	Bloom: Vide.Source<number>,
 	PlayerImage: Vide.Source<string>,
 	Unmount: (() -> ())?,
+	ViewportScale: Vide.Source<number>,
 	Setup: (self: Public) -> (),
 	AddBloom: (self: Public) -> (),
 	StepBloom: (self: Public, deltaTime: number) -> (),
 	BuildGunSlots: (self: Public) -> { GunBar.SlotProps },
+	ShowReticleAmmo: (self: Public) -> boolean,
 	Mount: (self: Public, playerGui: Instance, panels: { [string]: Part }) -> (),
+	BindViewportScale: (self: Public) -> (),
 }
 
 return {}

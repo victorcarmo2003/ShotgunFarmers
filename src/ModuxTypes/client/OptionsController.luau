@@ -22,6 +22,7 @@ export type Public = {
 	Fraction: (self: Public, slider: OptionsCatalog.Slider) -> number,
 	ChoiceIndex: (self: Public, choice: OptionsCatalog.Choice) -> number,
 	ToggleCrouch: (self: Public) -> boolean,
+	ReticleAmmo: (self: Public) -> boolean,
 	KeyName: (self: Public, id: string) -> string,
 	SetLocal: (self: Public, id: string, value: number) -> (),
 	Flush: (self: Public, id: string) -> (),

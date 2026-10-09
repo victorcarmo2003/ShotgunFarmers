@@ -68,6 +68,10 @@ function OptionsController:ToggleCrouch(): boolean
 	return self:Get("ToggleCrouch") >= 2
 end
 
+function OptionsController:ReticleAmmo(): boolean
+	return self:Get("ReticleAmmo") >= 2
+end
+
 function OptionsController:KeyName(id: string): string
 	const keybind = OptionsCatalog.KeybindById[id]
 	return self.Keys()[id] or (if keybind then keybind.Default else "")

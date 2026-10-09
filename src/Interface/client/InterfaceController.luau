@@ -8,11 +8,13 @@ local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
 local Crosshair = require(StarterPlayer.StarterPlayerScripts.client.Weapon.Crosshair)
+local ReticleAmmo = require(StarterPlayer.StarterPlayerScripts.client.Weapon.ReticleAmmo)
+local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
 local GunBar = require(StarterPlayer.StarterPlayerScripts.client.Weapon.GunBar)
 local HitMarker = require(StarterPlayer.StarterPlayerScripts.client.Hit.HitMarker)
 local KillFeed = require(StarterPlayer.StarterPlayerScripts.client.KillFeed.KillFeed)
+local KillRanking = require(StarterPlayer.StarterPlayerScripts.client.Stats.KillRanking)
 local StatusBar = require(StarterPlayer.StarterPlayerScripts.client.Vital.StatusBar)
-local TimerLabel = require(StarterPlayer.StarterPlayerScripts.client.Round.TimerLabel)
 
 const create = Vide.create
 
@@ -23,6 +25,7 @@ const PIXELS_PER_STUD = 300
 const BLOOM_PER_SHOT = 0.35
 const BLOOM_RECOVERY = 2.5
 const MOVEMENT_SPRING = 0.12
+const REFERENCE_HEIGHT = 1080
 
 const InterfaceController = Modux.Controller("InterfaceController", {
 	Require = {
@@ -30,6 +33,7 @@ const InterfaceController = Modux.Controller("InterfaceController", {
 		"GameStateController",
 		"HitController",
 		"KillFeedController",
+		"LeaderstatsController",
 		"MovementController",
 		"OptionsController",
 		"RoundController",
@@ -43,6 +47,7 @@ const InterfaceController = Modux.Controller("InterfaceController", {
 function InterfaceController:Setup()
 	self.PlayerImage = Vide.source("") :: Vide.Source<string>
 	self.Bloom = Vide.source(0) :: Vide.Source<number>
+	self.ViewportScale = Vide.source(1) :: Vide.Source<number>
 	self.Unmount = nil :: (() -> ())?
 end
 
@@ -98,10 +103,25 @@ function InterfaceController:BuildGunSlots(): { GunBar.SlotProps }
 	return slots
 end
 
+function InterfaceController:ShowReticleAmmo(): boolean
+	if not self.Dependencies.OptionsController:ReticleAmmo() then
+		return false
+	end
+
+	const weapon = self.Dependencies.WeaponController
+	const gunData = weapon:GunData()
+	if not gunData or not GetGun.UsesAmmo(gunData) then
+		return false
+	end
+
+	return not (self.Dependencies.ArmsController.IsAiming() and gunData.Scope ~= nil)
+end
+
 function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part })
 	const vital = self.Dependencies.VitalController
 	const round = self.Dependencies.RoundController
 	const killFeed = self.Dependencies.KillFeedController
+	const leaderstats = self.Dependencies.LeaderstatsController
 	const hit = self.Dependencies.HitController
 	const arms = self.Dependencies.ArmsController
 	const movement = self.Dependencies.MovementController
@@ -111,12 +131,21 @@ function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part
 	self.Unmount = Vide.mount(function()
 		surface(
 			playerGui,
-			"MainUI",
+			"KillRankingUI",
 			panels.MainUI,
 			hud,
-			TimerLabel({
-				Text = function()
-					return round:Label()
+			KillRanking({
+				Visible = function()
+					return not leaderstats:IsShown()
+				end,
+				Entries = leaderstats.Ranking,
+				Title = function()
+					const mode = leaderstats.ModeName()
+					const clock = round:Clock()
+					if clock == "" then
+						return mode
+					end
+					return if mode == "" then clock else `{mode}  {clock}`
 				end,
 			})
 		)
@@ -176,6 +205,22 @@ function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part
 			HitMarker({
 				Trigger = hit.HitMarkerTrigger,
 			}),
+
+			ReticleAmmo({
+				Ammo = function()
+					return self.Dependencies.WeaponController:ActiveAmmo()
+				end,
+				MaxAmmo = function()
+					const gunData = self.Dependencies.WeaponController:GunData()
+					return if gunData then gunData.Amount else 0
+				end,
+				Visible = function()
+					return self:ShowReticleAmmo()
+				end,
+				Scale = function()
+					return self.ViewportScale()
+				end,
+			}),
 		})
 	end, playerGui)
 end
@@ -184,7 +229,22 @@ InterfaceController:OnInit(function(self)
 	self:Setup()
 end)
 
+function InterfaceController:BindViewportScale()
+	const update = function()
+		const camera = workspace.CurrentCamera
+		if camera then
+			self.ViewportScale(camera.ViewportSize.Y / REFERENCE_HEIGHT)
+		end
+	end
+	update()
+	const camera = workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(update)
+	end
+end
+
 InterfaceController:OnStart(function(self)
+	self:BindViewportScale()
 	self.Dependencies.HitController.Fired:Connect(function()
 		self:AddBloom()
 	end)
