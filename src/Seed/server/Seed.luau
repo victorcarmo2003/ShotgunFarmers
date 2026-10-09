@@ -31,7 +31,11 @@ function Seed:Collect(player: Player): boolean
 	end
 
 	if equipment:HasGun(self.GunName) then
-		equipment:AddAmmo(self.GunName, SeedSettings.AMMO_REWARD_AMOUNT)
+		const gunData = self.GunData
+		const amount = if gunData and gunData.PoseKind == "Throwable"
+			then gunData.Amount
+			else SeedSettings.AMMO_REWARD_AMOUNT
+		equipment:AddAmmo(self.GunName, amount)
 		return true
 	end
 
