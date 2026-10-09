@@ -937,7 +937,7 @@
     {
       "id": "task-weapon-013",
       "title": "Enxada (Hoe) invertida no viewmodel",
-      "description": "2026-10-09: causa: Hoe usa o AnimationSet da pá (Shovel), cujo mesh tem o cabo no eixo Z (punho +Z, lâmina -Z); o mesh da enxada tem cabo em Y (lâmina em -Y). Corrigido só no place (Assets.Weapons.Hoe.Cylinder.002.ArmWeld): C1 = rotação que mapeia Y->Z da pá com a lâmina virada pra frente; C0 = (2.94, 1.21, 2.03) leva o punho até a mão (fim do braço). Validado com prévia em primeira pessoa (rig R6 com braços 1x4x1 + 1o keyframe do Hold 123906193357003). Usuário precisa testar e SALVAR o place. BodyWeld (3a pessoa) não mexido.",
+      "description": "2026-10-09: causa: Hoe usa o AnimationSet da pá (Shovel), cujo mesh tem o cabo no eixo Z (punho +Z, lâmina -Z); o mesh da enxada tem cabo em Y (lâmina em -Y). Corrigido só no place (Assets.Weapons.Hoe.Cylinder.002.ArmWeld): C1 = rotação que mapeia Y->Z da pá com a lâmina virada pra frente; C0 = (2.94, 1.21, 2.03) leva o punho até a mão (fim do braço). Validado com prévia em primeira pessoa (rig R6 com braços 1x4x1 + 1o keyframe do Hold 123906193357003). Usuário precisa testar e SALVAR o place. BodyWeld (3a pessoa) não mexido.\n\n2026-10-09 (v2): primeira tentativa errada (li o tamanho do Model, que vem rotacionado). Pá e enxada têm cabo no eixo Y da peça; na pá o punho (D) é -Y e a lâmina +Y, na enxada a lâmina é -Y. Agora ArmWeld C0 = identidade, C1 = (CFrame.new(0, 0.69, 0) * Angles(0, 0, pi)):Inverse(): enxada no mesmo trilho do cabo da pá (base na mão de baixo/direita, cabeça pra frente na esquerda), pontas alinhadas (+0.69 = diferença de comprimento), placa da lâmina (-Z do mesh) apontando pra frente.",
       "column": "awaiting-approval",
       "tags": [
         "weapon",
