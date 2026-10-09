@@ -2,6 +2,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local MatchSettings = require(ReplicatedStorage.shared.Match.MatchSettings)
+local Ragdoll = require(ServerScriptService.server.Character.Ragdoll)
 local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
 local Modux = require(ServerScriptService.server.Modux)
 
@@ -62,6 +63,7 @@ function VitalService:Kill(player: Player)
 
 	const character = player.Character
 	if character then
+		Ragdoll.Apply(character)
 		const humanoid = character:FindFirstChildOfClass("Humanoid")
 		if humanoid then
 			humanoid.Health = 0
@@ -91,6 +93,7 @@ VitalService:OnInit(function(self)
 		if vital then
 			vital:Revive()
 		end
+		Ragdoll.Prepare(character)
 		self:Watch(player, character)
 	end)
 

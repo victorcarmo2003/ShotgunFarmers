@@ -15,6 +15,9 @@ const TWEEN_TIME = 0.6
 
 const THIRD_PERSON_OFFSET = Vector3.new(0, 3, 8)
 const LOOK_AT_HEIGHT = 1.5
+const SELF_FOCUS_TIME = 1
+const SELF_DISTANCE = 9
+const SELF_HEIGHT = 4
 
 const RENDER_BIND_NAME = "DeathCameraController_Spectate"
 const COUNTDOWN_STEP = 0.1
@@ -38,6 +41,8 @@ function DeathCameraController:Setup()
 	self.Remaining = Vide.source(0) :: Vide.Source<number>
 	self.DeathToken = 0 :: number
 	self.RevivalTokens = Vide.source(0) :: Vide.Source<number>
+	self.Killer = nil :: Player?
+	self.FocusDone = false :: boolean
 end
 
 function DeathCameraController:ReviveText(): string
@@ -96,6 +101,19 @@ function DeathCameraController:ShowDeath()
 	const diedAt = os.clock()
 	self.Remaining(MatchSettings.RespawnDelay)
 	self.Dead(true)
+	self.FocusDone = false
+	self:FocusSelf()
+
+	task.delay(SELF_FOCUS_TIME, function()
+		if self.DeathToken ~= token or not self.Dead() then
+			return
+		end
+		self.FocusDone = true
+		const killer = self.Killer
+		if killer then
+			self:StartSpectating(killer)
+		end
+	end)
 
 	task.spawn(function()
 		while self.DeathToken == token and self.Dead() do
@@ -107,6 +125,8 @@ end
 
 function DeathCameraController:HideDeath()
 	self.DeathToken += 1
+	self.Killer = nil
+	self.FocusDone = false
 	Vide.batch(function()
 		self.Dead(false)
 		self.DeathInfo(NO_INFO)
@@ -171,6 +191,64 @@ function DeathCameraController:GetSpectateCFrame(shooterRoot: BasePart): CFrame
 	return CFrame.lookAt(position, lookAt)
 end
 
+local function showCharacter(character: Model?)
+	if not character then
+		return
+	end
+	for _, descendant in character:GetDescendants() do
+		if descendant:IsA("BasePart") or descendant:IsA("Decal") then
+			descendant.LocalTransparencyModifier = 0
+		end
+	end
+end
+
+function DeathCameraController:Bind(step: (camera: Camera, deltaTime: number) -> ())
+	const camera = workspace.CurrentCamera
+	if not camera then
+		return
+	end
+
+	if self.Spectating then
+		RunService:UnbindFromRenderStep(RENDER_BIND_NAME)
+	end
+	self.Spectating = true
+	self.Dependencies.ArmsController:ClearRig()
+	camera.CameraType = Enum.CameraType.Scriptable
+
+	RunService:BindToRenderStep(RENDER_BIND_NAME, Enum.RenderPriority.Camera.Value, function(deltaTime: number)
+		showCharacter(Players.LocalPlayer.Character)
+		step(camera, deltaTime)
+	end)
+end
+
+function DeathCameraController:FocusSelf()
+	const camera = workspace.CurrentCamera
+	if not camera or not characterRoot(Players.LocalPlayer) then
+		self.Dependencies.ArmsController:ClearRig()
+		return
+	end
+
+	const startCFrame = camera.CFrame
+	local back = -startCFrame.LookVector * Vector3.new(1, 0, 1)
+	back = if back.Magnitude > 0.01 then back.Unit else Vector3.zAxis
+	const offset = back * SELF_DISTANCE + Vector3.yAxis * SELF_HEIGHT
+	local elapsed = 0
+
+	self:Bind(function(currentCamera: Camera, deltaTime: number)
+		const root = characterRoot(Players.LocalPlayer)
+		if not root then
+			return
+		end
+
+		const lookAt = root.Position + Vector3.new(0, LOOK_AT_HEIGHT, 0)
+		const target = CFrame.lookAt(lookAt + offset, lookAt)
+		elapsed += deltaTime
+		const alpha = math.clamp(elapsed / TWEEN_TIME, 0, 1)
+		currentCamera.CFrame = if alpha >= 1 then target else startCFrame:Lerp(target, alpha)
+		currentCamera.Focus = CFrame.new(lookAt)
+	end)
+end
+
 function DeathCameraController:StopSpectating()
 	if not self.Spectating then
 		return
@@ -198,28 +276,20 @@ function DeathCameraController:StartSpectating(shooter: Player)
 		return
 	end
 
-	self.Spectating = true
-	self.Dependencies.ArmsController:ClearRig()
-	camera.CameraType = Enum.CameraType.Scriptable
-
 	const startCFrame = camera.CFrame
 	local elapsed = 0
 
-	RunService:BindToRenderStep(RENDER_BIND_NAME, Enum.RenderPriority.Camera.Value, function(deltaTime: number)
+	self:Bind(function(currentCamera: Camera, deltaTime: number)
 		const root = characterRoot(shooter)
 		if not root then
-			self:StopSpectating()
 			return
 		end
 
 		const target = self:GetSpectateCFrame(root)
-		if elapsed >= TWEEN_TIME then
-			camera.CFrame = target
-			return
-		end
-
 		elapsed += deltaTime
-		camera.CFrame = startCFrame:Lerp(target, math.clamp(elapsed / TWEEN_TIME, 0, 1))
+		const alpha = math.clamp(elapsed / TWEEN_TIME, 0, 1)
+		currentCamera.CFrame = if alpha >= 1 then target else startCFrame:Lerp(target, alpha)
+		currentCamera.Focus = CFrame.new(root.Position)
 	end)
 end
 
@@ -238,13 +308,13 @@ DeathCameraController:OnInit(function(self)
 			Gun = data.GunName,
 			Headshot = data.IsHeadshot,
 		})
+		self.Killer = if shooter and shooter ~= Players.LocalPlayer then shooter else nil
 		self:ShowDeath()
 
-		if not shooter or shooter == Players.LocalPlayer then
-			return
+		const killer = self.Killer
+		if killer and self.FocusDone then
+			self:StartSpectating(killer)
 		end
-
-		self:StartSpectating(shooter)
 	end)
 end)
 

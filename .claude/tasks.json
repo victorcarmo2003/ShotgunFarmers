@@ -1118,6 +1118,22 @@
       "priority": "medium",
       "createdAt": "2026-10-09",
       "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-death-001",
+      "title": "Ragdoll + câmera de morte em 3a pessoa",
+      "description": "Ao morrer: viewmodel some, ragdoll no corpo (BallSocket server, src/Character/server/Ragdoll.luau via VitalService:Kill), câmera foca o próprio corpo em 3a pessoa por 1s e depois segue quem matou; reset fica no próprio corpo (DeathCameraController).",
+      "column": "awaiting-approval",
+      "tags": [
+        "death",
+        "camera",
+        "client",
+        "server",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
     }
   ]
 }
