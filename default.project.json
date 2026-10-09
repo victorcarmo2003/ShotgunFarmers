@@ -420,6 +420,11 @@
 							"optional": "src/ModuxTypes/server/ServerRoleService.luau"
 						}
 					},
+					"RoundFreezeService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/RoundFreezeService.luau"
+						}
+					},
 					"RoundService": {
 						"$path": {
 							"optional": "src/ModuxTypes/server/RoundService.luau"

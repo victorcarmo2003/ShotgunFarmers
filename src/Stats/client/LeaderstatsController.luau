@@ -43,6 +43,7 @@ function LeaderstatsController:Setup()
 	self.Held = Vide.source(false) :: Vide.Source<boolean>
 	self.LocalTeam = Vide.source("None" :: TeamScore.Team) :: Vide.Source<TeamScore.Team>
 	self.Ranking = Vide.source({}) :: Vide.Source<{ KillRanking.Entry }>
+	self.ModeName = Vide.source("") :: Vide.Source<string>
 	self.Unmount = nil :: (() -> ())?
 end
 
@@ -145,6 +146,7 @@ function LeaderstatsController:ApplyMode()
 	const value = workspace:GetAttribute("GameMode")
 	const mode = if typeof(value) == "string" then GameModes.Modes[value] else nil
 	self.Mode(if mode and mode.Teams then "TDM" else "FFA")
+	self.ModeName(if mode then mode.DisplayName else "")
 end
 
 function LeaderstatsController:IsShown(): boolean
@@ -216,9 +218,7 @@ function LeaderstatsController:Mount()
 					return not self:IsShown()
 				end,
 				Entries = self.Ranking,
-				Title = function()
-					return ""
-				end,
+				Title = self.ModeName,
 			}),
 
 			TeamScore({

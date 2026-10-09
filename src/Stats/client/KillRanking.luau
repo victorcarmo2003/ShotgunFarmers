@@ -30,7 +30,7 @@ export type Props = {
 
 const MAX_CARDS = 8
 const CARD_SIZE = 0.05
-const TOP = 0.155
+const TOP = 0.19
 const CROWN_IMAGE = "rbxassetid://113555755514104"
 const POP_SCALE = 1.3
 const POP_HOLD = 0.08

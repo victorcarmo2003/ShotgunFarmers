@@ -29,6 +29,7 @@ local PlayerService = require(ServerScriptService.server.ModuxTypes.PlayerServic
 local PracticeService = require(ServerScriptService.server.ModuxTypes.PracticeService)
 local ProfileService = require(ServerScriptService.server.ModuxTypes.ProfileService)
 local MapVoteService = require(ServerScriptService.server.ModuxTypes.MapVoteService)
+local RoundFreezeService = require(ServerScriptService.server.ModuxTypes.RoundFreezeService)
 local RoundService = require(ServerScriptService.server.ModuxTypes.RoundService)
 local Seed = require(ServerScriptService.server.ModuxTypes.Seed)
 local ShopService = require(ServerScriptService.server.ModuxTypes.ShopService)
@@ -73,6 +74,7 @@ export type AllServices = {
 	PracticeService: PracticeService.Public,
 	ProfileService: ProfileService.Public,
 	MapVoteService: MapVoteService.Public,
+	RoundFreezeService: RoundFreezeService.Public,
 	RoundService: RoundService.Public,
 	ShopService: ShopService.Public,
 	SnapshotService: SnapshotService.Public,

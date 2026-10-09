@@ -2,6 +2,7 @@
 
 export type Public = {
 	Button: TextButton,
+	Ending: boolean,
 	Forced: boolean,
 	Gui: ScreenGui,
 	Manual: boolean,

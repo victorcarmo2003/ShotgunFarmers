@@ -31,6 +31,7 @@ return {
 	ServerScriptService.server.Practice.PracticeService,
 	ServerScriptService.server.Profile.ProfileService,
 	ServerScriptService.server.Round.MapVoteService,
+	ServerScriptService.server.Round.RoundFreezeService,
 	ServerScriptService.server.Round.RoundService,
 	ServerScriptService.server.Seed.Seed,
 	ServerScriptService.server.Shop.ShopService,

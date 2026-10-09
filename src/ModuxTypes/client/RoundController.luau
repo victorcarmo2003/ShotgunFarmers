@@ -9,6 +9,7 @@ local MatchSummary = require(StarterPlayer.StarterPlayerScripts.client.Round.Mat
 export type Status = RoundNet.Status
 
 export type Public = {
+	Gray: number,
 	Seconds: Vide.Source<number>,
 	Status: Vide.Source<Status>,
 	Summary: Vide.Source<MatchSummary.Summary>,
@@ -19,6 +20,8 @@ export type Public = {
 	HideSummary: (self: Public) -> (),
 	MountSummary: (self: Public) -> (),
 	Label: (self: Public) -> string,
+	TargetGray: (self: Public) -> number,
+	StepGray: (self: Public, deltaTime: number) -> (),
 }
 
 return {}

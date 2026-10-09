@@ -1035,13 +1035,28 @@
     {
       "id": "task-ui-017",
       "title": "Ranking dinâmico de kills no topo",
-      "description": "2026-10-09: pedido do usuário (referência: barra de cards com foto e kills). KillRanking (Stats/client), montado no LeaderstatsUI abaixo do timer (y 0.155): até 8 cards ordenados por kills (desempate por UserId), foto (thumbnail do placar), número de kills no canto (FredokaOne + contorno), coroa (Rhos Crown rbxassetid://113555755514104) em quem lidera (empate = todos), fundo/borda vermelho/azul no TDM e azul-escuro no FFA, borda amarela no jogador local. Ao subir a kill do mesmo jogador, o card faz pop com mola (1.3x, spring 0.22/0.35). Some quando o placar (Tab) está aberto. Story KillRanking.story (simula kills).",
+      "description": "2026-10-09: pedido do usuário (referência: barra de cards com foto e kills). KillRanking (Stats/client), montado no LeaderstatsUI abaixo do timer (y 0.155): até 8 cards ordenados por kills (desempate por UserId), foto (thumbnail do placar), número de kills no canto (FredokaOne + contorno), coroa (Rhos Crown rbxassetid://113555755514104) em quem lidera (empate = todos), fundo/borda vermelho/azul no TDM e azul-escuro no FFA, borda amarela no jogador local. Ao subir a kill do mesmo jogador, o card faz pop com mola (1.3x, spring 0.22/0.35). Some quando o placar (Tab) está aberto. Story KillRanking.story (simula kills).\n\n2026-10-09: aba com o nome do modo (GameModes DisplayName, ex.: 'Free For All') em cima dos cards; ranking descido pra y 0.19 pra não bater no timer.",
       "column": "awaiting-approval",
       "tags": [
         "ui",
         "hud",
         "stats",
         "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-game-007",
+      "title": "Fase 'preparando': mapa cinza e jogadores congelados",
+      "description": "2026-10-09: pedido do usuário. Servidor: RoundFreezeService ancora o HumanoidRootPart de todos durante o status Starting do round (só em servidor de partida, fora do Practice), inclusive quem nasce nessa fase; solta ao entrar em Match. Cliente: ColorCorrectionController ganhou SetGray (mistura a saturação atual até -1); RoundController deixa tudo cinza no Starting e devolve a cor nos últimos 3s da contagem (COLOR_RETURN_SECONDS), com suavização. Precisa reiniciar o rojo serve (arquivo novo em ModuxTypes não sincronizou: servidor não sobe sem ele).",
+      "column": "awaiting-approval",
+      "tags": [
+        "round",
+        "server",
+        "client",
+        "playtest"
       ],
       "priority": "medium",
       "createdAt": "2026-10-09",

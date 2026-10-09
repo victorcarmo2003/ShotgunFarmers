@@ -24,6 +24,7 @@ export type Public = {
 	Loading: { [number]: boolean },
 	LocalTeam: Vide.Source<TeamScore.Team>,
 	Mode: Vide.Source<LeaderstatsScreen.Mode>,
+	ModeName: Vide.Source<string>,
 	Ranking: Vide.Source<{ KillRanking.Entry }>,
 	Records: { [number]: Record },
 	Red: Vide.Source<{ LeaderstatsScreen.Row }>,

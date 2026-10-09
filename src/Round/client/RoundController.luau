@@ -40,7 +40,14 @@ const EMPTY_SUMMARY: MatchSummary.Summary = {
 	Counted = false,
 }
 
-const RoundController = Modux.Controller("RoundController", { Priority = 800 })
+const COLOR_RETURN_SECONDS = 3
+const GRAY_SMOOTHING = 6
+const GRAY_TICK_RATE = 30
+
+const RoundController = Modux.Controller("RoundController", {
+	Require = { "ColorCorrectionController", "GameStateController" },
+	Priority = 800,
+})
 
 function RoundController:Setup()
 	self.Status = Vide.source("Starting") :: Vide.Source<Status>
@@ -48,6 +55,7 @@ function RoundController:Setup()
 	self.Summary = Vide.source(EMPTY_SUMMARY) :: Vide.Source<MatchSummary.Summary>
 	self.SummaryVisible = Vide.source(false) :: Vide.Source<boolean>
 	self.SummaryToken = 0 :: number
+	self.Gray = 0 :: number
 end
 
 function RoundController:ShowSummary(summary: MatchSummary.Summary)
@@ -128,6 +136,30 @@ RoundController:OnInit(function(self)
 		end
 	end)
 end)
+
+function RoundController:TargetGray(): number
+	if self.Dependencies.GameStateController.State() ~= "Starting" then
+		return 0
+	end
+	if workspace:GetAttribute("GameMode") == PRACTICE_MODE then
+		return 0
+	end
+	return math.clamp(self.Seconds() / COLOR_RETURN_SECONDS, 0, 1)
+end
+
+function RoundController:StepGray(deltaTime: number)
+	const target = self:TargetGray()
+	const alpha = 1 - math.exp(-GRAY_SMOOTHING * deltaTime)
+	self.Gray += (target - self.Gray) * alpha
+	if math.abs(target - self.Gray) < 0.001 then
+		self.Gray = target
+	end
+	self.Dependencies.ColorCorrectionController:SetGray(self.Gray)
+end
+
+RoundController:OnTick(function(self)
+	self:StepGray(1 / GRAY_TICK_RATE)
+end, GRAY_TICK_RATE)
 
 RoundController:OnStart(function(self)
 	self:MountSummary()
