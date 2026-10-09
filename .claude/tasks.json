@@ -1061,6 +1061,48 @@
       "priority": "medium",
       "createdAt": "2026-10-09",
       "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-seed-003",
+      "title": "Caixote de reestoque (RestockCrate) com plantas fixas",
+      "description": "RestockService (src/Seed/server) planta 1 arma Firearm aleatoria em cada parte/modelo com tag RestockCrate dentro do mapa ativo (EnvironmentService:GetRoot), so com Combat e fora do Practice. Semente usa GunRules.PlantAt + Seed (30s de vida, cresce no client); ao ser coletada/expirar, nova planta em RESTOCK_DELAY=2s. Ponto: Attachment PlantPoint > parte Soil > topo do bounding box. Modelo workspace.RestockCrate criado no Studio; copiar para os mapas e salvar o place.",
+      "column": "awaiting-approval",
+      "tags": [
+        "seed",
+        "server",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-anim-005",
+      "title": "Andar sem animação (reporte do chefe) + preload",
+      "description": "2026-10-09: reporte: 'sem animação para o player andar'. Verificado: as 298 animações do PlayerAnimations carregam (KeyframeSequenceProvider, 0 falhas) e o PreloadController já pré-carrega todas (Core, CharacterPoses, Viewmodels, RigMovement). Nenhuma pose de arma em 3a pessoa mexe nas pernas (não bloqueia o Walk). Ajustes: (1) viewmodel ganhou balanço de caminhada (ArmsController:StepBob: lateral/vertical/roll, freq 9, 25% mirando, 0 com luneta, some parado/slide/pulo) - em 1a pessoa os braços ficavam parados ao andar; (2) AnimateController: Run cai pra Walk quando não há RunForward/Core.Run (Core.Run vazio), RunBackward cai pra WalkBackward.",
+      "column": "awaiting-approval",
+      "tags": [
+        "animation",
+        "client",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-ui-018",
+      "title": "Q to return no lugar de Esc",
+      "description": "2026-10-09: Esc é do Roblox. Ícone do botão de voltar trocado pela tecla Q (Assets/Keyboard Keys/Outline q_4x, rbxassetid://118599692819422) em ScreenKit.returnButton; LobbyController:BindReturnKey fecha a tela atual do lobby com Q (ignora quando digitando). Antes nenhuma tecla fechava, só o clique.",
+      "column": "awaiting-approval",
+      "tags": [
+        "ui",
+        "input",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
     }
   ]
 }

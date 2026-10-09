@@ -16,6 +16,7 @@ local CareerScreen = require(StarterPlayer.StarterPlayerScripts.client.Career.Ca
 local QuestsScreen = require(StarterPlayer.StarterPlayerScripts.client.Quests.QuestsScreen)
 local FriendsScreen = require(StarterPlayer.StarterPlayerScripts.client.Party.FriendsScreen)
 local SocialService = game:GetService("SocialService")
+local UserInputService = game:GetService("UserInputService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local ShopCatalog = require(ReplicatedStorage.shared.Shop.ShopCatalog)
 local UISounds = require(StarterPlayer.StarterPlayerScripts.client.Interface.UISounds)
@@ -28,6 +29,7 @@ const CAMERA_PART_WAIT = 10
 const CONTROLS_WAIT = 10
 
 const DEFAULT_CAMERA = "CameraPosition1"
+const RETURN_KEY = Enum.KeyCode.Q
 
 const ROOM_SCREENS: { [string]: boolean } = { CreateRoom = true, JoinRoom = true }
 const SEARCH_SCREENS: { [string]: boolean } = { Play = true, CreateRoom = true, JoinRoom = true }
@@ -714,7 +716,19 @@ LobbyController:OnInit(function(self)
 	self:Setup()
 end)
 
+function LobbyController:BindReturnKey()
+	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+		if processed or input.KeyCode ~= RETURN_KEY then
+			return
+		end
+		if self.Dependencies.GameStateController.State() == "Lobby" and self.CurrentScreen() ~= "" then
+			self:Close()
+		end
+	end)
+end
+
 LobbyController:OnStart(function(self)
+	self:BindReturnKey()
 	self.Dependencies.MatchmakingController.Failed:Connect(function(reason)
 		self:ShowError(reason)
 	end)

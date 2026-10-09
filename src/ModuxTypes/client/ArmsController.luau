@@ -10,6 +10,8 @@ local PoseMachine = require(StarterPlayer.StarterPlayerScripts.client.Weapon.Pos
 export type Public = {
 	AimHeld: boolean,
 	Animator: Animator?,
+	BobPhase: number,
+	BobWeight: number,
 	CharacterAnimator: Animator?,
 	CharacterGuiConnection: RBXScriptConnection?,
 	CharacterTracks: AnimationSetLoader.TrackSet?,
@@ -67,6 +69,7 @@ export type Public = {
 	OnPumpMarker: (self: Public) -> (),
 	StepCharacter: (self: Public) -> (),
 	StepLoadout: (self: Public) -> (),
+	StepBob: (self: Public, deltaTime: number) -> CFrame,
 	FollowCamera: (self: Public, deltaTime: number) -> (),
 	BindKeys: (self: Public) -> (),
 }

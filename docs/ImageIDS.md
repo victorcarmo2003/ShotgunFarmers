@@ -39,3 +39,4 @@
 - Boost Yellow 256 (2X XP 1H): rbxassetid://131378468365288
 - Rebirth 256 (Revival Token): rbxassetid://111089067896192
 - Crown 256 (ranking de kills): rbxassetid://113555755514104
+- Q key Outline 4x (botão voltar): rbxassetid://118599692819422

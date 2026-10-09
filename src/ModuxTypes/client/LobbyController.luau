@@ -49,6 +49,7 @@ export type Public = {
 	ExitLobby: (self: Public) -> (),
 	OnState: (self: Public, state: string) -> (),
 	ShowError: (self: Public, message: string, title: string?) -> (),
+	BindReturnKey: (self: Public) -> (),
 }
 
 return {}

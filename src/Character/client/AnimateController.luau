@@ -65,12 +65,14 @@ end
 local function animationIds(gunName: string?): { [CoreAnimState]: string }
 	const core = GetAnimations.Core()
 	const movement: GetAnimations.MovementSet = (if gunName then GetAnimations.Movement(gunName) else nil) or {}
+	const walk = pick(movement.Walk, core.Walk)
+	const walkBackward = pick(movement.WalkBackward, "")
 	return {
 		Idle = pick(movement.Idle, core.Idle),
-		Walk = pick(movement.Walk, core.Walk),
-		WalkBackward = pick(movement.WalkBackward, ""),
-		Run = pick(movement.RunForward, core.Run),
-		RunBackward = pick(movement.RunBackward, ""),
+		Walk = walk,
+		WalkBackward = walkBackward,
+		Run = pick(movement.RunForward, pick(core.Run, walk)),
+		RunBackward = pick(movement.RunBackward, walkBackward),
 		CrouchIdle = pick(movement.CrouchIdle, core.CrouchIdle),
 		CrouchWalk = pick(movement.CrouchWalk, core.CrouchWalk),
 		CrouchWalkForward = pick(movement.CrouchWalkForward, ""),

@@ -1,5 +1,5 @@
 --!strict
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local Theme = require(ReplicatedStorage.shared.Interface.Theme)
 local CreateRaw = require(ReplicatedStorage.shared.Interface.CreateRaw)
@@ -18,7 +18,7 @@ const PRESS_SCALE = 0.95
 const SPRING_PERIOD = 0.15
 const SPRING_DAMPING = 1
 
-const ESCAPE_IMAGE = "rbxassetid://139855203093399"
+const RETURN_KEY_IMAGE = "rbxassetid://118599692819422"
 
 local function escape(value: string): string
 	return (value:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
@@ -30,8 +30,8 @@ ScreenKit.REF_WIDTH = REF_WIDTH
 ScreenKit.REF_HEIGHT = REF_HEIGHT
 
 ScreenKit.Colors = {
-	Green = Color3.fromHex("#1F9F68"),
-	Orange = Color3.fromHex("#FF9D00"),
+	Green = Color3.fromHex "#1F9F68",
+	Orange = Color3.fromHex "#FF9D00",
 	Black = Color3.new(0, 0, 0),
 	White = Color3.new(1, 1, 1),
 }
@@ -41,7 +41,7 @@ ScreenKit.DARK_TRANSPARENCY = 0.3
 ScreenKit.Font = Theme.Typography.Title
 
 ScreenKit.Images = {
-	Escape = ESCAPE_IMAGE,
+	ReturnKey = RETURN_KEY_IMAGE,
 	Coin = "rbxassetid://123768928279796",
 	Robux = "rbxassetid://119941510682170",
 }
@@ -72,7 +72,7 @@ function ScreenKit.inside(x: number, y: number, width: number, height: number): 
 end
 
 function ScreenKit.label(text: Text, fontSize: number, boxHeight: number): TextLabel
-	return create("TextLabel")({
+	return create "TextLabel" {
 		Name = "Label",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
@@ -88,10 +88,10 @@ function ScreenKit.label(text: Text, fontSize: number, boxHeight: number): TextL
 		TextColor3 = ScreenKit.Colors.White,
 		TextScaled = true,
 
-		CreateRaw("UITextSizeConstraint")({
+		CreateRaw "UITextSizeConstraint" {
 			MaxTextSize = math.round(fontSize * MAX_TEXT_RATIO),
-		}),
-	})
+		},
+	}
 end
 
 function ScreenKit.pressable(props: PressableProps): Frame
@@ -101,13 +101,13 @@ function ScreenKit.pressable(props: PressableProps): Frame
 		return if pressed() then PRESS_SCALE elseif hovered() then HOVER_SCALE else 1
 	end, SPRING_PERIOD, SPRING_DAMPING)
 
-	return create("Frame")({
+	return create "Frame" {
 		Name = props.Name,
 		Position = props.Position,
 		Size = props.Size,
 		BackgroundTransparency = 1,
 
-		create("ImageButton")({
+		create "ImageButton" {
 			Name = "Button",
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			Position = UDim2.fromScale(0.5, 0.5),
@@ -116,14 +116,14 @@ function ScreenKit.pressable(props: PressableProps): Frame
 			AutoButtonColor = false,
 
 			Activated = function()
-				UISounds.Play("Click")
+				UISounds.Play "Click"
 				if props.OnActivated then
 					props.OnActivated()
 				end
 			end,
 			MouseEnter = function()
 				hovered(true)
-				UISounds.Play("Hover")
+				UISounds.Play "Hover"
 			end,
 			MouseLeave = function()
 				hovered(false)
@@ -136,13 +136,13 @@ function ScreenKit.pressable(props: PressableProps): Frame
 				pressed(false)
 			end,
 
-			CreateRaw("UIScale")({
+			CreateRaw "UIScale" {
 				Scale = scale,
-			}),
+			},
 
 			props.Children or {},
-		}),
-	})
+		},
+	}
 end
 
 export type TextProps = {
@@ -158,13 +158,13 @@ export type TextProps = {
 
 function ScreenKit.text(props: TextProps): Frame
 	const text = props.Text
-	return create("Frame")({
+	return create "Frame" {
 		Name = props.Name,
 		Position = props.Position,
 		Size = props.Size,
 		BackgroundTransparency = 1,
 
-		create("TextLabel")({
+		create "TextLabel" {
 			Name = "Label",
 			AnchorPoint = Vector2.new(0, 0.5),
 			Position = UDim2.fromScale(0, 0.5),
@@ -181,96 +181,96 @@ function ScreenKit.text(props: TextProps): Frame
 			TextScaled = true,
 			TextXAlignment = props.XAlignment or Enum.TextXAlignment.Center,
 
-			CreateRaw("UITextSizeConstraint")({
+			CreateRaw "UITextSizeConstraint" {
 				MaxTextSize = math.round(props.FontSize * MAX_TEXT_RATIO),
-			}),
-		}),
-	})
+			},
+		},
+	}
 end
 
 function ScreenKit.stroke(color: Color3, thickness: number): UIStroke
-	return CreateRaw("UIStroke")({
+	return CreateRaw "UIStroke" {
 		Color = color,
 		Thickness = thickness,
 		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-	})
+	}
 end
 
 function ScreenKit.panel(): Frame
-	return create("Frame")({
+	return create "Frame" {
 		Name = "Panel",
 		Position = ScreenKit.at(98, 102),
 		Size = ScreenKit.at(926, 427),
 		BackgroundColor3 = ScreenKit.Colors.Black,
 		BackgroundTransparency = ScreenKit.DARK_TRANSPARENCY,
-	})
+	}
 end
 
 function ScreenKit.header(text: Text): Frame
-	return create("Frame")({
+	return create "Frame" {
 		Name = "Header",
 		Position = ScreenKit.at(466, 80),
 		Size = ScreenKit.at(190, 43),
 		BackgroundColor3 = ScreenKit.Colors.Green,
 
 		ScreenKit.label(text, 36, 43),
-	})
+	}
 end
 
 function ScreenKit.returnButton(y: number, onClose: (() -> ())?): ImageButton
-	return create("ImageButton")({
+	return create "ImageButton" {
 		Name = "Return",
 		Position = ScreenKit.at(115, y),
 		Size = ScreenKit.at(154, 33),
 		BackgroundTransparency = 1,
 
 		Activated = function()
-			UISounds.Play("Click")
+			UISounds.Play "Click"
 			if onClose then
 				onClose()
 			end
 		end,
 
-		create("ImageLabel")({
+		create "ImageLabel" {
 			Name = "Key",
 			Size = UDim2.fromScale(50 / 154, 1),
 			BackgroundTransparency = 1,
 			ScaleType = Enum.ScaleType.Fit,
-			Image = ESCAPE_IMAGE,
-		}),
+			Image = RETURN_KEY_IMAGE,
+		},
 
-		create("Frame")({
+		create "Frame" {
 			Name = "Hint",
 			Position = UDim2.fromScale(56 / 154, 3 / 33),
 			Size = UDim2.fromScale(98 / 154, 28 / 33),
 			BackgroundTransparency = 1,
 
-			ScreenKit.label("TO RETURN", 24, 28),
-		}),
-	})
+			ScreenKit.label("RETURN", 24, 28),
+		},
+	}
 end
 
 function ScreenKit.screen(props: ScreenProps): Frame
-	return create("Frame")({
+	return create "Frame" {
 		Name = props.Name,
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
 		Visible = props.Visible or false,
 
-		create("Frame")({
+		create "Frame" {
 			Name = "Canvas",
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			Position = UDim2.fromScale(0.5, 0.5),
 			Size = UDim2.fromScale(1, 1),
 			BackgroundTransparency = 1,
 
-			create("UIAspectRatioConstraint")({
+			create "UIAspectRatioConstraint" {
 				AspectRatio = REF_WIDTH / REF_HEIGHT,
-			}),
+			},
 
 			props.Children,
-		}),
-	})
+		},
+	}
 end
 
 return ScreenKit

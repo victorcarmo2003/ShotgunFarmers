@@ -17,6 +17,12 @@ local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 const HIP_OFFSET = CFrame.new(0, -2, -0.796)
 
 const AIM_OFFSET = HIP_OFFSET
+const BOB_FREQUENCY = 9
+const BOB_SIDE = 0.045
+const BOB_UP = 0.035
+const BOB_ROLL = 1.2
+const BOB_AIM_SCALE = 0.25
+const BOB_BLEND_RATE = 10
 const OFFSET_TRANSITION_RATE = 12
 
 const RENDER_BIND_NAME = "ArmsController_Follow"
@@ -149,6 +155,8 @@ function ArmsController:Setup()
 	self.DiscardStarted = false :: boolean
 	self.AimHeld = false :: boolean
 	self.CurrentOffset = HIP_OFFSET :: CFrame
+	self.BobPhase = 0 :: number
+	self.BobWeight = 0 :: number
 	self.ViewmodelHidden = false :: boolean
 	self.DrawSoundToken = 0 :: number
 	self.LastDrawSound = 0 :: number
@@ -764,6 +772,27 @@ function ArmsController:StepLoadout()
 	self:EquipCurrentGun()
 end
 
+function ArmsController:StepBob(deltaTime: number): CFrame
+	const movement = self.Dependencies.MovementController
+	const state = movement.MovementState()
+	const walking = movement.IsMoving() and state ~= "Sliding" and state ~= "Jumping"
+	const gunData = self.Dependencies.WeaponController:GunData()
+	const scoped = self.IsAiming() and gunData ~= nil and gunData.Scope ~= nil
+	const target = if not walking or scoped then 0 elseif self.IsAiming() then BOB_AIM_SCALE else 1
+	self.BobWeight += (target - self.BobWeight) * (1 - math.exp(-BOB_BLEND_RATE * deltaTime))
+	if self.BobWeight < 0.001 then
+		self.BobPhase = 0
+		return CFrame.identity
+	end
+
+	self.BobPhase += deltaTime * BOB_FREQUENCY
+	const weight = self.BobWeight
+	const side = math.sin(self.BobPhase) * BOB_SIDE * weight
+	const up = -math.abs(math.cos(self.BobPhase)) * BOB_UP * weight
+	const roll = math.rad(math.sin(self.BobPhase) * BOB_ROLL * weight)
+	return CFrame.new(side, up, 0) * CFrame.Angles(0, 0, roll)
+end
+
 function ArmsController:FollowCamera(deltaTime: number)
 	const camera = workspace.CurrentCamera
 	const rig = self.Rig
@@ -774,7 +803,7 @@ function ArmsController:FollowCamera(deltaTime: number)
 	const targetOffset = if self.IsAiming() then AIM_OFFSET else HIP_OFFSET
 	const alpha = 1 - math.exp(-OFFSET_TRANSITION_RATE * deltaTime)
 	self.CurrentOffset = self.CurrentOffset:Lerp(targetOffset, alpha)
-	rig:PivotTo(camera.CFrame * self.CurrentOffset)
+	rig:PivotTo(camera.CFrame * self.CurrentOffset * self:StepBob(deltaTime))
 end
 
 function ArmsController:BindKeys()
