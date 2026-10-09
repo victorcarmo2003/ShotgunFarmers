@@ -733,8 +733,8 @@
     {
       "id": "task-ui-009",
       "title": "Tela de morte",
-      "description": "2026-10-08: auditoria profunda. DeathCameraController segue o atirador, mas não há UI: quem te matou, arma, distância, contagem de respawn.",
-      "column": "todo",
+      "description": "2026-10-08: auditoria profunda. DeathCameraController segue o atirador, mas não há UI: quem te matou, arma, distância, contagem de respawn.\n\n2026-10-08: FEITO: DeathScreen (Vital/client) montada pelo DeathCameraController: ELIMINATED BY <nome> / YOU DIED, arma, HEADSHOT, contagem RESPAWNING IN N (MatchSettings.RespawnDelay, agora compartilhado com VitalService), vinheta vermelha.",
+      "column": "awaiting-approval",
       "tags": [
         "ui",
         "vital",
@@ -747,8 +747,8 @@
     {
       "id": "task-ui-010",
       "title": "Placar de times no HUD (TDM)",
-      "description": "2026-10-08: auditoria profunda. HUD só tem TimerLabel. Falta placar Vermelho x Azul no topo e indicação do seu time/aliados (nome/realce).",
-      "column": "todo",
+      "description": "2026-10-08: auditoria profunda. HUD só tem TimerLabel. Falta placar Vermelho x Azul no topo e indicação do seu time/aliados (nome/realce).\n\n2026-10-08: FEITO: TeamScore (Stats/client) no LeaderstatsUI: caixas Vermelho x Azul ao lado do timer em modos de time, contorno branco no seu time; some quando o placar (Tab) abre.",
+      "column": "awaiting-approval",
       "tags": [
         "ui",
         "hud",
@@ -788,8 +788,8 @@
     {
       "id": "task-ui-013",
       "title": "Sons de interface",
-      "description": "2026-10-08: auditoria profunda. Nenhum som de UI no projeto: hover/click dos botões (ScreenKit.pressable), abrir/fechar tela, erro (ErrorPopup), convite, voto, contagem regressiva, level up, compra. Implementar em ScreenKit + Assets.Sounds.UI*.",
-      "column": "todo",
+      "description": "2026-10-08: auditoria profunda. Nenhum som de UI no projeto: hover/click dos botões (ScreenKit.pressable), abrir/fechar tela, erro (ErrorPopup), convite, voto, contagem regressiva, level up, compra. Implementar em ScreenKit + Assets.Sounds.UI*.\n\n2026-10-08: FEITO (código): UISounds (Interface/client) com Hover/Click/Open/Error em ScreenKit.pressable, returnButton, abas do lobby, convite, abrir tela e ErrorPopup. FALTA DO USUÁRIO: criar em ReplicatedStorage.Assets.Sounds: UIHover, UIClick, UIOpen, UIError (sem eles avisa 1x no Output e fica mudo).",
+      "column": "awaiting-approval",
       "tags": [
         "ui",
         "audio"
@@ -801,8 +801,8 @@
     {
       "id": "task-ui-014",
       "title": "Textos e idioma da UI",
-      "description": "2026-10-08: auditoria profunda. Typos: 'CARRER' (CareerScreen e botão do lobby), 'MATCHS', 'Conteiner'. Mistura de idioma: UI em inglês, botão 'CODIGO' e mensagens do servidor em português sem acento ('Sala nao encontrada', 'Aguarde...'). Definir idioma único (ou LocalizationTable).\n\n2026-10-08: corrigido CARRER->CAREER e MATCHS->MATCHES. Falta: idioma único (HUD do round em português: Preparando/Partida/Intervalo/Votacao/Treino; mensagens do servidor).",
-      "column": "todo",
+      "description": "2026-10-08: auditoria profunda. Typos: 'CARRER' (CareerScreen e botão do lobby), 'MATCHS', 'Conteiner'. Mistura de idioma: UI em inglês, botão 'CODIGO' e mensagens do servidor em português sem acento ('Sala nao encontrada', 'Aguarde...'). Definir idioma único (ou LocalizationTable).\n\n2026-10-08: corrigido CARRER->CAREER e MATCHS->MATCHES. Falta: idioma único (HUD do round em português: Preparando/Partida/Intervalo/Votacao/Treino; mensagens do servidor).\n\n2026-10-08: FEITO: mensagens do servidor (matchmaking/salas/teleporte), labels do round (Starting/Match/Intermission/Vote/Practice) e CODIGO->CODE em inglês. Logs de dev (warn/admin) continuam em português.",
+      "column": "awaiting-approval",
       "tags": [
         "ui",
         "text"
