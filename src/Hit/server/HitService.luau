@@ -105,7 +105,24 @@ function HitService:DealDamage(shooter: Player, target: Player, damage: number):
 	const dealt = math.min(damage, vital.Health + vital.Armor)
 	const killed = not vital:TakeDamage(damage)
 	self.Dependencies.MatchStatsService:RecordDamage(shooter, target, dealt)
+	self:NotifyDamaged(shooter, target, dealt)
 	return true, killed
+end
+
+function HitService:NotifyDamaged(shooter: Player, target: Player, amount: number)
+	const netService = self.Dependencies.NetService
+	const shooterRoot = rootPart(shooter.Character)
+	if shooter == target or amount <= 0 or not shooterRoot then
+		return
+	end
+	if not netService:IsRunning() or not netService:IsReady(target) then
+		return
+	end
+
+	self.Libs.Net.Vital.Damaged:fireClient(target, {
+		From = shooterRoot.Position,
+		Amount = math.clamp(math.round(amount), 0, 255),
+	})
 end
 
 function HitService:ApplyKnockback(root: BasePart, direction: Vector3, force: number)

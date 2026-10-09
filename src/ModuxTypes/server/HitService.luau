@@ -28,6 +28,7 @@ export type Public = {
 	Setup: (self: Public) -> (),
 	SpendFireToken: (self: Public, player: Player) -> boolean,
 	DealDamage: (self: Public, shooter: Player, target: Player, damage: number) -> (boolean, boolean),
+	NotifyDamaged: (self: Public, shooter: Player, target: Player, amount: number) -> (),
 	ApplyKnockback: (self: Public, root: BasePart, direction: Vector3, force: number) -> (),
 	Announce: (self: Public, shooter: Player, victim: Player, gunName: string, isHeadshot: boolean) -> (),
 	BroadcastShot: (self: Public, shooter: Player, gunData: GetGun.GunData, origin: Vector3, direction: Vector3) -> (),

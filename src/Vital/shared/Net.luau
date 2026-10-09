@@ -10,4 +10,9 @@ return Lync.define("Vital", {
 	})),
 
 	RequestReset = Lync.packet(Lync.empty()),
+
+	Damaged = Lync.packet(Lync.struct({
+		From = Lync.vec3(),
+		Amount = Lync.int(0, 255),
+	})),
 })

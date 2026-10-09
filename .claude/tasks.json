@@ -774,8 +774,8 @@
     {
       "id": "task-ui-012",
       "title": "Feedback de dano recebido",
-      "description": "2026-10-08: auditoria profunda. Falta indicador de direção do dano, vinheta/tela vermelha com vida baixa e flash ao levar dano.",
-      "column": "todo",
+      "description": "2026-10-08: auditoria profunda. Falta indicador de direção do dano, vinheta/tela vermelha com vida baixa e flash ao levar dano.\n\n2026-10-08: FEITO: Vital.Damaged (servidor manda posição do atacante e dano a cada DealDamage). DamageIndicator (Vital/client): arco vermelho em volta do centro apontando de onde veio (1.2s, até 6), flash vermelho nas bordas proporcional ao dano, vinheta pulsando abaixo de 35% de vida. Boot testado no Play.",
+      "column": "awaiting-approval",
       "tags": [
         "ui",
         "hud",
