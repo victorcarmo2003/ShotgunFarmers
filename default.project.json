@@ -6,11 +6,7 @@
 	"tree": {
 		"$className": "DataModel",
 		"Lighting": {},
-		"ReplicatedFirst": {
-			"LoadingScreen": {
-				"$path": "boot/LoadingScreen.client.luau"
-			}
-		},
+		"ReplicatedFirst": {},
 		"ReplicatedStorage": {
 			"Assets": {
 				"$className": "Folder",

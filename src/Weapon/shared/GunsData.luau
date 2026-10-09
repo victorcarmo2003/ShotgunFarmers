@@ -11,7 +11,7 @@ return {
 		Knockback = 80,
 		ImageID = "rbxassetid://88074204422856",
 		AnimationSet = "Shotgun",
-t	WeldTo = "Torso",
+		WeldTo = "Torso",
 		PoseKind = "Firearm",
 		AimType = "Spread",
 		HeadshotMultiplier = 1.5,
