@@ -965,8 +965,8 @@
     {
       "id": "task-input-005",
       "title": "HipHeight no crouch (personagem flutua pra outros players)",
-      "description": "2026-10-09: reportado pelo usuário. Durante o crouch, na visão dos outros jogadores o rig fica flutuando na animação de agachar: HipHeight não é reduzido. Ajustar Humanoid.HipHeight ao agachar/levantar (replicado pelo servidor ou pelo dono), sincronizado com a animação CrouchIdle/CrouchWalk.",
-      "column": "todo",
+      "description": "2026-10-09: reportado pelo usuário. Durante o crouch, na visão dos outros jogadores o rig fica flutuando na animação de agachar: HipHeight não é reduzido. Ajustar Humanoid.HipHeight ao agachar/levantar (replicado pelo servidor ou pelo dono), sincronizado com a animação CrouchIdle/CrouchWalk.\n\n2026-10-09: CAUSA: animações de crouch abaixam o Torso 0.7 (pose Torso z=-0.70 no RootJoint), mas as poses de arma em 3a pessoa (Hold, prioridade Action) também têm pose de Torso (0,0,0) e sobrescrevem; pernas ficam dobradas e o corpo na altura de pé = flutua. FIX: MovementController:ApplyHipHeight tween de Humanoid.HipHeight para -0.7 em Crouch e Sliding (0 caso contrário); dono simula, outros veem o HRP mais baixo. CameraOffset do crouch compensado (-1.5 - (-0.7) = -0.8) pra câmera continuar na mesma altura.",
+      "column": "awaiting-approval",
       "tags": [
         "input",
         "character",

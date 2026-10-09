@@ -25,7 +25,8 @@ const SLIDE_END_SPEED = 6
 const SLIDE_TURN_RATE = 4
 const SLIDE_FRICTION = 1.4
 
-const CROUCH_CAMERA_OFFSET = Vector3.new(0, -1.5, 0)
+const CROUCH_HIP_HEIGHT = -0.7
+const CROUCH_CAMERA_OFFSET = Vector3.new(0, -1.5 - CROUCH_HIP_HEIGHT, 0)
 const CROUCH_CAMERA_TWEEN = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 const MovementController = Modux.Controller("MovementController", {
@@ -44,6 +45,7 @@ function MovementController:Setup()
 
 	self.WalkSpeed = nil :: number?
 	self.CameraTween = nil :: Tween?
+	self.HipTween = nil :: Tween?
 
 	self.IsSliding = false :: boolean
 	self.SlideDirection = Vector3.zero :: Vector3
@@ -62,6 +64,34 @@ function MovementController:CancelCameraTween()
 		tween:Destroy()
 		self.CameraTween = nil
 	end
+end
+
+local function isLowered(state: string): boolean
+	return state == "Crouch" or state == "Sliding"
+end
+
+function MovementController:ApplyHipHeight(instant: boolean)
+	const humanoid = self.Humanoid
+	if not humanoid then
+		return
+	end
+
+	const previous = self.HipTween
+	if previous then
+		previous:Cancel()
+		previous:Destroy()
+		self.HipTween = nil
+	end
+
+	const target = if isLowered(self.MovementState()) then CROUCH_HIP_HEIGHT else 0
+	if instant or humanoid.HipHeight == target then
+		humanoid.HipHeight = target
+		return
+	end
+
+	const tween = TweenService:Create(humanoid, CROUCH_CAMERA_TWEEN, { HipHeight = target })
+	self.HipTween = tween
+	tween:Play()
 end
 
 function MovementController:ApplyCameraOffset(instant: boolean)
@@ -91,6 +121,7 @@ function MovementController:SetHumanoid(humanoid: Humanoid)
 	self.Humanoid = humanoid
 	self:ApplyWalkSpeed()
 	self:ApplyCameraOffset(true)
+	self:ApplyHipHeight(true)
 end
 
 function MovementController:BindCharacter(character: Model?)
@@ -101,6 +132,10 @@ function MovementController:BindCharacter(character: Model?)
 
 	self:EndSlide()
 	self:CancelCameraTween()
+	if self.HipTween then
+		self.HipTween:Cancel()
+		self.HipTween = nil
+	end
 	self.Character = character
 	self.Humanoid = nil
 	self.PreviousHumanoidState = nil
@@ -163,6 +198,10 @@ function MovementController:Apply(record: MovementRecord)
 
 	if (previousState == "Crouch") ~= (record.State == "Crouch") then
 		self:ApplyCameraOffset(false)
+	end
+
+	if isLowered(previousState) ~= isLowered(record.State) then
+		self:ApplyHipHeight(false)
 	end
 
 	if record.State ~= "Sliding" then
