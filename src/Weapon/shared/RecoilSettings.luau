@@ -24,7 +24,7 @@ const UI_SHAKE_MIN = 0.12
 const UI_SHAKE_MAX = 0.6
 
 return {
-	Scale = 0.25,
+	Scale = 0.125,
 	AimMultiplier = 0.6,
 	RecoverRate = 10,
 	MaxPitch = 12,

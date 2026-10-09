@@ -866,7 +866,7 @@
     {
       "id": "task-weapon-011",
       "title": "Recoil de câmera por arma",
-      "description": "FEITO 2026-10-08: RecoilSettings.luau (Pitch/Yaw por arma, 0.6x mirando, recuperação exponencial 10/s, teto 12°/4°). CameraController:AddRecoil chamado em cada tiro local (HitController:PlayShotSound).\n\n2026-10-08: recoil reduzido 50% (RecoilSettings.Scale = 0.5).",
+      "description": "FEITO 2026-10-08: RecoilSettings.luau (Pitch/Yaw por arma, 0.6x mirando, recuperação exponencial 10/s, teto 12°/4°). CameraController:AddRecoil chamado em cada tiro local (HitController:PlayShotSound).\n\n2026-10-08: recoil reduzido 50% (RecoilSettings.Scale = 0.5).\n\n2026-10-09: recoil reduzido de novo: Scale 0.25 -> 0.125.",
       "column": "awaiting-approval",
       "tags": [
         "weapon",
@@ -875,7 +875,7 @@
       ],
       "priority": "high",
       "createdAt": "2026-10-08",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-career-002",
@@ -1107,8 +1107,8 @@
     {
       "id": "task-ui-019",
       "title": "Munição ao lado da retícula (opção)",
-      "description": "2026-10-09: pedido do usuário, portado do ReticleAmmo do TaskForce e adaptado (sem reload/reserva): número da munição atual à direita da mira (FredokaOne branco + contorno preto, escala pela altura da tela/1080), vermelho e 'LOW' com <=25% do pente (GunsData.Amount), 'EMPTY' piscando 3 Hz em 0. Some em melee, sem arma e mirando com luneta. Opção 'AMMO AT CROSSHAIR' (OFF/ON, padrão ON) em Options > Choices (OptionsCatalog + OptionsController:ReticleAmmo). Componente src/Weapon/client/ReticleAmmo.luau + story, montado no CrosshairUI (InterfaceController).",
-      "column": "awaiting-approval",
+      "description": "2026-10-09: pedido do usuário, portado do ReticleAmmo do TaskForce e adaptado (sem reload/reserva): número da munição atual à direita da mira (FredokaOne branco + contorno preto, escala pela altura da tela/1080), vermelho e 'LOW' com <=25% do pente (GunsData.Amount), 'EMPTY' piscando 3 Hz em 0. Some em melee, sem arma e mirando com luneta. Opção 'AMMO AT CROSSHAIR' (OFF/ON, padrão ON) em Options > Choices (OptionsCatalog + OptionsController:ReticleAmmo). Componente src/Weapon/client/ReticleAmmo.luau + story, montado no CrosshairUI (InterfaceController).\n\n2026-10-09: APROVADO pelo usuário (posição abaixo/direita da mira).",
+      "column": "done",
       "tags": [
         "ui",
         "hud",
