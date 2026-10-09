@@ -12,6 +12,7 @@ export type Public = {
 	Setup: (self: Public) -> (),
 	Reset: (self: Public, player: Player) -> (),
 	Watch: (self: Public, player: Player, character: Model) -> (),
+	IsDead: (self: Public, player: Player) -> boolean,
 	Kill: (self: Public, player: Player) -> (),
 }
 

@@ -34,6 +34,7 @@ return {
 	StarterPlayer.StarterPlayerScripts.client.Round.RoundController,
 	StarterPlayer.StarterPlayerScripts.client.Round.VoteController,
 	StarterPlayer.StarterPlayerScripts.client.Seed.SeedController,
+	StarterPlayer.StarterPlayerScripts.client.Shop.ShopController,
 	StarterPlayer.StarterPlayerScripts.client.Snapshot.SnapshotController,
 	StarterPlayer.StarterPlayerScripts.client.Stats.LeaderstatsController,
 	StarterPlayer.StarterPlayerScripts.client.Vital.VitalController,

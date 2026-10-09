@@ -19,12 +19,17 @@ export type Props = {
 	Visible: () -> boolean,
 	Info: () -> Info,
 	Remaining: () -> number,
+	ReviveText: (() -> string)?,
+	OnRevive: (() -> ())?,
 }
 
 const BAR_X = 361
 const BAR_Y = 430
 const BAR_WIDTH = 400
 const BAR_HEIGHT = 110
+const REVIVE_Y = 552
+const REVIVE_WIDTH = 260
+const REVIVE_HEIGHT = 40
 const RED = Color3.fromHex("#C62F2F")
 
 return function(props: Props): Frame
@@ -91,6 +96,29 @@ return function(props: Props): Frame
 					FontSize = 26,
 					BoxHeight = 30,
 					Color = ScreenKit.Colors.Orange,
+				}),
+			}),
+
+			create("Frame")({
+				Name = "ReviveSlot",
+				Position = at(BAR_X + (BAR_WIDTH - REVIVE_WIDTH) / 2, REVIVE_Y),
+				Size = at(REVIVE_WIDTH, REVIVE_HEIGHT),
+				BackgroundTransparency = 1,
+				Visible = function()
+					return props.ReviveText ~= nil and props.ReviveText() ~= ""
+				end,
+
+				ScreenKit.pressable({
+					Name = "Revive",
+					Position = UDim2.fromScale(0, 0),
+					Size = UDim2.fromScale(1, 1),
+					Color = ScreenKit.Colors.Green,
+					OnActivated = props.OnRevive,
+					Children = {
+						ScreenKit.label(function()
+							return if props.ReviveText then props.ReviveText() else ""
+						end, 24, REVIVE_HEIGHT),
+					},
 				}),
 			}),
 		},

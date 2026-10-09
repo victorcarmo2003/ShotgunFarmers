@@ -32,6 +32,7 @@ local ProfileController = require(StarterPlayer.StarterPlayerScripts.client.Modu
 local RoundController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.RoundController)
 local VoteController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.VoteController)
 local SeedController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.SeedController)
+local ShopController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.ShopController)
 local SnapshotController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.SnapshotController)
 local LeaderstatsController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.LeaderstatsController)
 local VitalController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.VitalController)
@@ -74,6 +75,7 @@ export type AllControllers = {
 	RoundController: RoundController.Public,
 	VoteController: VoteController.Public,
 	SeedController: SeedController.Public,
+	ShopController: ShopController.Public,
 	SnapshotController: SnapshotController.Public,
 	LeaderstatsController: LeaderstatsController.Public,
 	VitalController: VitalController.Public,

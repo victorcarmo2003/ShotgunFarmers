@@ -1,9 +1,12 @@
 --!strict
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MarketplaceService = game:GetService("MarketplaceService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local StarterPlayer = game:GetService("StarterPlayer")
 local MatchSettings = require(ReplicatedStorage.shared.Match.MatchSettings)
+local ShopCatalog = require(ReplicatedStorage.shared.Shop.ShopCatalog)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 local DeathScreen = require(StarterPlayer.StarterPlayerScripts.client.Vital.DeathScreen)
@@ -16,6 +19,10 @@ const LOOK_AT_HEIGHT = 1.5
 const RENDER_BIND_NAME = "DeathCameraController_Spectate"
 const COUNTDOWN_STEP = 0.1
 const DEATH_SCREEN_ORDER = 8
+
+const REVIVE_KEY = Enum.KeyCode.F
+const REVIVAL_ITEM = "Revival"
+const PRACTICE_MODE = "Practice"
 
 const NO_INFO: DeathScreen.Info = { Killer = "", Gun = "", Headshot = false }
 
@@ -30,6 +37,53 @@ function DeathCameraController:Setup()
 	self.DeathInfo = Vide.source(NO_INFO) :: Vide.Source<DeathScreen.Info>
 	self.Remaining = Vide.source(0) :: Vide.Source<number>
 	self.DeathToken = 0 :: number
+	self.RevivalTokens = Vide.source(0) :: Vide.Source<number>
+end
+
+function DeathCameraController:ReviveText(): string
+	if workspace:GetAttribute("GameMode") == PRACTICE_MODE then
+		return ""
+	end
+
+	const tokens = self.RevivalTokens()
+	if tokens > 0 then
+		return `[F] REVIVE NOW ({tokens})`
+	end
+
+	const item = ShopCatalog.ById(REVIVAL_ITEM)
+	return if item then `[F] REVIVE NOW - R$ {item.RobuxPrice}` else ""
+end
+
+function DeathCameraController:TryRevive()
+	if not self.Dead() then
+		return
+	end
+
+	if self.RevivalTokens() > 0 then
+		self.Libs.Net.Shop.Revive:fireServer()
+		return
+	end
+
+	const item = ShopCatalog.ById(REVIVAL_ITEM)
+	if item then
+		MarketplaceService:PromptProductPurchase(Players.LocalPlayer, item.ProductId)
+	end
+end
+
+function DeathCameraController:BindRevive()
+	const localPlayer = Players.LocalPlayer
+	const sync = function()
+		const value = localPlayer:GetAttribute(ShopCatalog.REVIVAL_ATTRIBUTE)
+		self.RevivalTokens(if typeof(value) == "number" then value else 0)
+	end
+	sync()
+	localPlayer:GetAttributeChangedSignal(ShopCatalog.REVIVAL_ATTRIBUTE):Connect(sync)
+
+	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+		if not processed and input.KeyCode == REVIVE_KEY then
+			self:TryRevive()
+		end
+	end)
 end
 
 function DeathCameraController:ShowDeath()
@@ -84,6 +138,12 @@ function DeathCameraController:MountDeathScreen()
 				Visible = self.Dead,
 				Info = self.DeathInfo,
 				Remaining = self.Remaining,
+				ReviveText = function()
+					return self:ReviveText()
+				end,
+				OnRevive = function()
+					self:TryRevive()
+				end,
 			}),
 		})
 	end, Players.LocalPlayer:WaitForChild("PlayerGui"))
@@ -202,6 +262,7 @@ DeathCameraController:OnStart(function(self)
 		end)
 	end
 
+	self:BindRevive()
 	self:MountDeathScreen()
 end)
 

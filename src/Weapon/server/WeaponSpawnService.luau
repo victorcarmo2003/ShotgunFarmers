@@ -107,6 +107,47 @@ function WeaponSpawnService:SpawnOne(): boolean
 	return false
 end
 
+function WeaponSpawnService:IsActive(): boolean
+	return self.Enabled
+end
+
+function WeaponSpawnService:SpawnExtra(): BasePart?
+	const candidates = self:Candidates()
+	if #candidates == 0 or #self.Pool == 0 then
+		return nil
+	end
+
+	for _ = 1, POINT_RETRIES do
+		const point = surfacePoint(candidates[math.random(1, #candidates)])
+		if self:FarFromOthers(point) then
+			const seed = GunRules.PlantAt(point, self.Pool[math.random(1, #self.Pool)])
+			if seed then
+				table.insert(self.Spawned, seed)
+			end
+			return seed
+		end
+	end
+	return nil
+end
+
+function WeaponSpawnService:CropDrop(duration: number, interval: number, maxSeeds: number): boolean
+	if not self.Enabled then
+		return false
+	end
+
+	task.spawn(function()
+		const endsAt = os.clock() + duration
+		local spawned = 0
+		while self.Enabled and os.clock() < endsAt and spawned < maxSeeds do
+			if self:SpawnExtra() then
+				spawned += 1
+			end
+			task.wait(interval)
+		end
+	end)
+	return true
+end
+
 function WeaponSpawnService:Fill(limit: number)
 	self:Prune()
 	local budget = limit

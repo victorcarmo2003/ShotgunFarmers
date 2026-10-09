@@ -46,7 +46,6 @@ type ScreenProps = {
 	OnJoinMatch: ((key: string) -> ())?,
 	OnBuyRobux: ((id: string) -> ())?,
 	OnBuyCoins: ((id: string) -> ())?,
-	Owned: (() -> { [string]: boolean })?,
 	PlayerName: (() -> string)?,
 	Level: (() -> number)?,
 	Xp: (() -> number)?,
@@ -75,7 +74,6 @@ const SCREENS: { [string]: { Component: ScreenComponent, Camera: string? } } = {
 				OnClose = props.OnClose,
 				OnBuyRobux = props.OnBuyRobux,
 				OnBuyCoins = props.OnBuyCoins,
-				Owned = props.Owned,
 			})
 		end,
 	},
@@ -304,17 +302,7 @@ function LobbyController:BuyRobux(id: string)
 		return
 	end
 
-	if item.AssetId == 0 then
-		self:ShowError("This item is not available yet", "SHOP")
-		return
-	end
-
-	const player = Players.LocalPlayer
-	if item.Kind == "Pass" then
-		MarketplaceService:PromptGamePassPurchase(player, item.AssetId)
-	else
-		MarketplaceService:PromptProductPurchase(player, item.AssetId)
-	end
+	MarketplaceService:PromptProductPurchase(Players.LocalPlayer, item.ProductId)
 end
 
 function LobbyController:BuyCoins(_id: string)
@@ -433,7 +421,6 @@ function LobbyController:MountScreen()
 					OnBuyCoins = function(id)
 						self:BuyCoins(id)
 					end,
-					Owned = self.Dependencies.ProfileController.Gamepasses,
 					OnRedeem = function(id)
 						self:RedeemQuest(id)
 					end,

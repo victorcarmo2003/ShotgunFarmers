@@ -50,6 +50,10 @@ function VitalService:Watch(player: Player, character: Model)
 	end)
 end
 
+function VitalService:IsDead(player: Player): boolean
+	return self.Dead[player] == true
+end
+
 function VitalService:Kill(player: Player)
 	if self.Dead[player] then
 		return

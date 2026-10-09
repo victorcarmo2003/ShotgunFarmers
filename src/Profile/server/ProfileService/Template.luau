@@ -4,6 +4,9 @@ return {
 
 	Gamepasses = {} :: { [string]: boolean },
 	PurchaseIds = {} :: { string },
+	RevivalTokens = 0,
+	XpBoostEnds = 0,
+	CropDrops = 0,
 
 	Item = {} :: { [string]: number },
 	UnlockedItems = {} :: { [number]: boolean },

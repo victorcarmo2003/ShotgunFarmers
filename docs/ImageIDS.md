@@ -35,3 +35,6 @@
 - Trophy 256: rbxassetid://105467907115908
 - Skull 256: rbxassetid://76382981380066
 - Loading Wheel White 256: rbxassetid://128841160920937
+- Seed Bag 256 (Crop Drop): rbxassetid://104434605047747
+- Boost Yellow 256 (2X XP 1H): rbxassetid://131378468365288
+- Rebirth 256 (Revival Token): rbxassetid://111089067896192

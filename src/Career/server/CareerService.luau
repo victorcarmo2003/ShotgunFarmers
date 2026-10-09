@@ -131,12 +131,13 @@ function CareerService:Award(player: Player, delta: Delta)
 		Damage = math.min(current.Damage + damage, COUNT_MAX),
 	}
 
-	const gems = math.floor((delta.Gems or 0) * self.Dependencies.ShopService:GemMultiplier(player))
+	const gems = delta.Gems or 0
+	const xpGained = math.floor((delta.Xp or 0) * self.Dependencies.ShopService:XpMultiplier(player))
 	const session = self:SessionOf(player, profile.Level())
-	session.Xp += delta.Xp or 0
+	session.Xp += xpGained
 	session.Gems += gems
 
-	const level, xp = Progression.Apply(profile.Level(), profile.Xp(), delta.Xp or 0)
+	const level, xp = Progression.Apply(profile.Level(), profile.Xp(), xpGained)
 
 	profiles:Update(player, {
 		Level = level,

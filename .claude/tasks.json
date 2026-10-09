@@ -555,7 +555,7 @@
     {
       "id": "task-ui-003",
       "title": "Shop (Etapa 11)",
-      "description": "2026-10-08: levantamento do que falta. Botões só fazem print (LobbyController BuyRobux/BuyCoins). Precisa: ShopCatalog real (itens, preços, DevProduct/Gamepass IDs), ShopService com ProcessReceipt idempotente, compra com Gems. Decisões pendentes em docs/IntegrationPlan.md Etapa 11. Alternativa p/ prazo: esconder aba.\n\n2026-10-08: FEITO (escopo contrato): ShopCatalog com 3 pacotes de gems (DevProduct) + gamepass 2X GEMS; ShopService com ProcessReceipt idempotente (PurchaseIds no Profile + Save), sync de gamepass no login e na compra; ShopScreen com nome, ícone (Rhos Vectors), OWNED. FALTA DO USUÁRIO: criar os 3 DevProducts e 1 Gamepass no Creator Hub e colocar os IDs em AssetId (ShopCatalog.luau); preços exibidos devem bater com o site.",
+      "description": "2026-10-08: levantamento do que falta. Botões só fazem print (LobbyController BuyRobux/BuyCoins). Precisa: ShopCatalog real (itens, preços, DevProduct/Gamepass IDs), ShopService com ProcessReceipt idempotente, compra com Gems. Decisões pendentes em docs/IntegrationPlan.md Etapa 11. Alternativa p/ prazo: esconder aba.\n\n2026-10-08: FEITO (escopo contrato): ShopCatalog com 3 pacotes de gems (DevProduct) + gamepass 2X GEMS; ShopService com ProcessReceipt idempotente (PurchaseIds no Profile + Save), sync de gamepass no login e na compra; ShopScreen com nome, ícone (Rhos Vectors), OWNED. FALTA DO USUÁRIO: criar os 3 DevProducts e 1 Gamepass no Creator Hub e colocar os IDs em AssetId (ShopCatalog.luau); preços exibidos devem bater com o site.\n\n2026-10-09 (v2): catálogo trocado pelos produtos reais do Creator Hub: Crop Drop 3717365879 (R$19), Double XP 1h 3717365826 (R$25), Revival Token 3717365732 (R$9). Pacotes de gems e gamepass 2X GEMS removidos (gems só jogando). Gamepasses offsale (Emotes, Weapon Skins, Farmers Skins, VIP) e Private Servers fora por enquanto. Concessões (ShopService): DoubleXp soma 1h em XpBoostEnds (CareerService multiplica XP x2); Revival soma token (se morto, revive na hora); CropDrop guarda e ativa na partida (WeaponSpawnService:CropDrop 30s, até 25 sementes extras, aviso pra todos via Shop.Announce + ShopController). Tela de morte: '[F] REVIVE NOW (N)' ou '- R$ 9' (abre compra), oculto no Practice. Profile: RevivalTokens, XpBoostEnds, CropDrops (atributos no Player).",
       "column": "awaiting-approval",
       "tags": [
         "shop",
@@ -565,7 +565,7 @@
       ],
       "priority": "high",
       "createdAt": "2026-10-08",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-ui-004",
@@ -959,6 +959,33 @@
         "shared"
       ],
       "priority": "medium",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-input-005",
+      "title": "HipHeight no crouch (personagem flutua pra outros players)",
+      "description": "2026-10-09: reportado pelo usuário. Durante o crouch, na visão dos outros jogadores o rig fica flutuando na animação de agachar: HipHeight não é reduzido. Ajustar Humanoid.HipHeight ao agachar/levantar (replicado pelo servidor ou pelo dono), sincronizado com a animação CrouchIdle/CrouchWalk.",
+      "column": "todo",
+      "tags": [
+        "input",
+        "character",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-anim-004",
+      "title": "Animações da Shotgun (usuário)",
+      "description": "2026-10-09: usuário vai fazer as animações da Shotgun. Hoje em PlayerAnimations: Viewmodels.Shotgun Draw e Reload vazios; CharacterPoses.Shotgun ShootHip/ShootAim vazios. Quando tiver os IDs, preencher em src/Character/shared/PlayerAnimations.luau (e o marker de pump se houver).",
+      "column": "in-progress",
+      "tags": [
+        "animation",
+        "weapon"
+      ],
+      "priority": "high",
       "createdAt": "2026-10-09",
       "updatedAt": "2026-10-09"
     }

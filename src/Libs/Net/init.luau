@@ -22,6 +22,7 @@ return {
 	Party = require(ReplicatedStorage.shared.Party.Net),
 	Profile = require(ReplicatedStorage.shared.Profile.Net),
 	Round = require(ReplicatedStorage.shared.Round.Net),
+	Shop = require(ReplicatedStorage.shared.Shop.Net),
 	Snapshot = require(ReplicatedStorage.shared.Snapshot.Net),
 	Stats = require(ReplicatedStorage.shared.Stats.Net),
 	Vital = require(ReplicatedStorage.shared.Vital.Net),

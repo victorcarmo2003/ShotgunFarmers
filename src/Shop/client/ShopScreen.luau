@@ -26,7 +26,6 @@ export type Props = {
 	Items: (() -> { Item })?,
 	OnBuyRobux: ((id: string) -> ())?,
 	OnBuyCoins: ((id: string) -> ())?,
-	Owned: (() -> { [string]: boolean })?,
 	OnClose: (() -> ())?,
 }
 
@@ -69,10 +68,6 @@ local function priceButton(
 end
 
 local function itemCard(props: Props, item: Item, index: () -> number): Frame
-	const owned = function(): boolean
-		return item.Kind == "Pass" and props.Owned ~= nil and props.Owned()[item.Id] == true
-	end
-
 	const coinButton: { Instance } = {}
 	const coinPrice = item.CoinPrice
 	if coinPrice then
@@ -130,15 +125,13 @@ local function itemCard(props: Props, item: Item, index: () -> number): Frame
 		priceButton(
 			"BuyRobux",
 			if coinPrice then 219 else 239,
-			function()
-				return if owned() then "OWNED" else tostring(item.RobuxPrice)
-			end,
+			tostring(item.RobuxPrice),
 			ScreenKit.Colors.Green,
 			ScreenKit.Images.Robux,
 			inside(121, 3, BUTTON_WIDTH, BUTTON_HEIGHT),
 			inside(23, 25, BUTTON_WIDTH, BUTTON_HEIGHT),
 			function()
-				if props.OnBuyRobux and not owned() then
+				if props.OnBuyRobux then
 					props.OnBuyRobux(item.Id)
 				end
 			end
