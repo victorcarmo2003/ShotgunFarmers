@@ -19,14 +19,19 @@ const BY_GUN: { [string]: Recoil } = {
 
 const DEFAULT: Recoil = { Pitch = 1, Yaw = 0.4 }
 
+const UI_SHAKE_PER_SECOND = 0.5
+const UI_SHAKE_MIN = 0.12
+const UI_SHAKE_MAX = 0.6
+
 return {
+	Scale = 0.5,
 	AimMultiplier = 0.6,
 	RecoverRate = 10,
 	MaxPitch = 12,
 	MaxYaw = 4,
-	UIShakePerSecond = 0.5,
-	UIShakeMin = 0.12,
-	UIShakeMax = 0.6,
+	UIShakeFor = function(fireRate: number): number
+		return math.clamp(fireRate * UI_SHAKE_PER_SECOND, UI_SHAKE_MIN, UI_SHAKE_MAX)
+	end,
 	For = function(gunName: string): Recoil
 		return BY_GUN[gunName] or DEFAULT
 	end,

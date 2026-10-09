@@ -132,11 +132,7 @@ end
 
 function HitController:PlayShotSound(gunData: GetGun.GunData)
 	self.Dependencies.CameraController:AddRecoil(gunData.DisplayName, self.Dependencies.ArmsController.IsAiming())
-	self.Dependencies.SurfaceUIController:ShakeAll(math.clamp(
-		gunData.FireRate * RecoilSettings.UIShakePerSecond,
-		RecoilSettings.UIShakeMin,
-		RecoilSettings.UIShakeMax
-	))
+	self.Dependencies.SurfaceUIController:ShakeAll(RecoilSettings.UIShakeFor(gunData.FireRate))
 
 	const soundName = WeaponSounds.ShootName(gunData.DisplayName)
 	if soundName == "" then

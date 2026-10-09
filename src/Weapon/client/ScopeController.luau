@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StarterPlayer = game:GetService("StarterPlayer")
+local RecoilSettings = require(ReplicatedStorage.shared.Weapon.RecoilSettings)
 local ScopeSettings = require(ReplicatedStorage.shared.Weapon.ScopeSettings)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
@@ -88,6 +89,8 @@ function ScopeController:Setup()
 	self.Kicking = false :: boolean
 	self.KickApplied = false :: boolean
 	self.OverlayRotation = Vide.source(0) :: Vide.Source<number>
+	self.ShakeTrauma = 0 :: number
+	self.ShakeSeed = (math.random() * 1000) :: number
 end
 
 function ScopeController:Kick(strength: number?)
@@ -107,6 +110,23 @@ function ScopeController:Kick(strength: number?)
 	self.KickX = math.clamp(self.KickX + side * ScopeSettings.KickSide * scale, -ScopeSettings.KickSide * limit, ScopeSettings.KickSide * limit)
 	self.KickRoll = math.clamp(self.KickRoll + side * ScopeSettings.KickRoll * scale, -ScopeSettings.KickRoll * limit, ScopeSettings.KickRoll * limit)
 	self.Kicking = true
+end
+
+function ScopeController:AddShake(intensity: number)
+	self.ShakeTrauma = math.clamp(self.ShakeTrauma + intensity, 0, 1)
+end
+
+function ScopeController:StepShake(deltaTime: number): (Vector2, number)
+	self.ShakeTrauma = math.max(0, self.ShakeTrauma - ScopeSettings.ShakeDecay * deltaTime)
+	if self.ShakeTrauma <= 0 then
+		return Vector2.zero, 0
+	end
+
+	const strength = self.ShakeTrauma ^ 2
+	const now = os.clock() * ScopeSettings.ShakeFrequency
+	const seed = self.ShakeSeed
+	const offset = Vector2.new(math.noise(seed, now), math.noise(seed + 100, now)) * ScopeSettings.ShakePosition * strength
+	return offset, math.noise(seed + 200, now) * ScopeSettings.ShakeRotation * strength
 end
 
 function ScopeController:ResetKick()
@@ -303,6 +323,8 @@ function ScopeController:Frame(deltaTime: number)
 		const viewportSize = camera.ViewportSize
 		kickOffset = Vector2.new(self.KickX * viewportSize.Y / viewportSize.X, self.KickY)
 	end
+	const shakeOffset, shakeRoll = self:StepShake(deltaTime)
+	kickOffset += shakeOffset
 
 	if self.LensAttached then
 		if self.Kicking or self.KickApplied then
@@ -331,7 +353,7 @@ function ScopeController:Frame(deltaTime: number)
 		self.OverlayFraction(fraction)
 		self.OverlayCenter(center)
 		self.OverlayAlpha(alpha)
-		self.OverlayRotation(self.KickRoll * alpha)
+		self.OverlayRotation((self.KickRoll + shakeRoll) * alpha)
 		view.Render(alpha, fraction, center)
 
 		for _, characters in self.Characters do
@@ -512,6 +534,9 @@ ScopeController:OnStart(function(self)
 	self.Dependencies.HitController.Fired:Connect(function(gunData)
 		if gunData.Scope then
 			self:Kick()
+		end
+		if self.Active() then
+			self:AddShake(RecoilSettings.UIShakeFor(gunData.FireRate))
 		end
 	end)
 

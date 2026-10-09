@@ -866,7 +866,7 @@
     {
       "id": "task-weapon-011",
       "title": "Recoil de câmera por arma",
-      "description": "FEITO 2026-10-08: RecoilSettings.luau (Pitch/Yaw por arma, 0.6x mirando, recuperação exponencial 10/s, teto 12°/4°). CameraController:AddRecoil chamado em cada tiro local (HitController:PlayShotSound).",
+      "description": "FEITO 2026-10-08: RecoilSettings.luau (Pitch/Yaw por arma, 0.6x mirando, recuperação exponencial 10/s, teto 12°/4°). CameraController:AddRecoil chamado em cada tiro local (HitController:PlayShotSound).\n\n2026-10-08: recoil reduzido 50% (RecoilSettings.Scale = 0.5).",
       "column": "awaiting-approval",
       "tags": [
         "weapon",
@@ -894,7 +894,7 @@
     {
       "id": "task-ui-016",
       "title": "Shake do HUD nos disparos",
-      "description": "2026-10-08: pedido do usuário. Todo tiro (HitController:PlayShotSound) chama SurfaceUIController:ShakeAll com intensidade = clamp(FireRate * 0.5, 0.12, 0.6): Sniperagus/Carrocket/Gromato 0.6, Strawborry 0.45, Snipine 0.3, Shotgun 0.25, Peavolver 0.125, automáticas 0.12 (tremida leve contínua). Constantes UIShake* em RecoilSettings.luau. Chilli Thrower (cone) não treme.",
+      "description": "2026-10-08: pedido do usuário. Todo tiro (HitController:PlayShotSound) chama SurfaceUIController:ShakeAll com intensidade = clamp(FireRate * 0.5, 0.12, 0.6): Sniperagus/Carrocket/Gromato 0.6, Strawborry 0.45, Snipine 0.3, Shotgun 0.25, Peavolver 0.125, automáticas 0.12 (tremida leve contínua). Constantes UIShake* em RecoilSettings.luau. Chilli Thrower (cone) não treme.\n\n2026-10-08: luneta também treme: ScopeController:AddShake no HitController.Fired (com a luneta ativa), mesma intensidade (RecoilSettings.UIShakeFor); desloca centro e gira overlay/strips. Amplitude em ScopeSettings.Shake*.",
       "column": "awaiting-approval",
       "tags": [
         "ui",

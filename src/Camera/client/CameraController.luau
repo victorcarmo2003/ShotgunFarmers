@@ -74,7 +74,7 @@ end
 
 function CameraController:AddRecoil(gunName: string, aiming: boolean)
 	const recoil = RecoilSettings.For(gunName)
-	const scale = if aiming then RecoilSettings.AimMultiplier else 1
+	const scale = RecoilSettings.Scale * (if aiming then RecoilSettings.AimMultiplier else 1)
 	const yaw = (math.random() * 2 - 1) * recoil.Yaw * scale
 	self.RecoilPitch = math.min(self.RecoilPitch + recoil.Pitch * scale, RecoilSettings.MaxPitch)
 	self.RecoilYaw = math.clamp(self.RecoilYaw + yaw, -RecoilSettings.MaxYaw, RecoilSettings.MaxYaw)
