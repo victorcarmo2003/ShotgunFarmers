@@ -814,8 +814,8 @@
     {
       "id": "task-ui-015",
       "title": "Dados de exemplo nas telas",
-      "description": "2026-10-08: auditoria profunda. Defaults de exemplo ainda aparecem se a prop faltar: CareerScreen DEFAULT_STATS (valor 2), QuestsScreen DEFAULT_QUESTS, CosmeticsScreen DEFAULT_SECTIONS (slots vazios), ShopCatalog 'Sample 1..4'. Trocar por dados reais ou esconder.",
-      "column": "todo",
+      "description": "2026-10-08: auditoria profunda. Defaults de exemplo ainda aparecem se a prop faltar: CareerScreen DEFAULT_STATS (valor 2), QuestsScreen DEFAULT_QUESTS, CosmeticsScreen DEFAULT_SECTIONS (slots vazios), ShopCatalog 'Sample 1..4'. Trocar por dados reais ou esconder.\n\n2026-10-08: resolvido pelo escopo: Shop usa catálogo real; Quests/Cosmetics escondidas; Career recebe stats reais do CareerController (DEFAULT_STATS só aparece na story do UI Labs).",
+      "column": "awaiting-approval",
       "tags": [
         "ui"
       ],
@@ -909,8 +909,8 @@
     {
       "id": "task-audio-005",
       "title": "Sons de hit sobrepostos sumindo",
-      "description": "2026-10-08: usuário: 2 hits em sequência curta, só um tocava. Ajustes: (1) som de acerto confirmado agora é 2D no pool da câmera (antes era 3D no ponto do impacto: rolloff Inverse com volume 0.5 deixava hits distantes quase inaudíveis); (2) POOL_SIZE 3->8 (cadência alta reiniciava o mesmo Sound e cortava o anterior, afetava tiros e hits); (3) MAX_POSITIONAL 16->48 (sons 3D de parede eram descartados ao passar do limite). WeaponSounds.luau / HitController:Send. Obs: espingarda toca 1 som por disparo mesmo com vários chumbos acertando (intencional).\n\n2026-10-08: um som por chumbo: acerto toca reply.Hits sons (chumbos confirmados pelo servidor), parede toca 1 por chumbo; máx 8, defasados 0.015s, variantes aleatórias (HitController MAX_PELLET_SOUNDS / PELLET_SOUND_STAGGER).",
-      "column": "awaiting-approval",
+      "description": "2026-10-08: usuário: 2 hits em sequência curta, só um tocava. Ajustes: (1) som de acerto confirmado agora é 2D no pool da câmera (antes era 3D no ponto do impacto: rolloff Inverse com volume 0.5 deixava hits distantes quase inaudíveis); (2) POOL_SIZE 3->8 (cadência alta reiniciava o mesmo Sound e cortava o anterior, afetava tiros e hits); (3) MAX_POSITIONAL 16->48 (sons 3D de parede eram descartados ao passar do limite). WeaponSounds.luau / HitController:Send. Obs: espingarda toca 1 som por disparo mesmo com vários chumbos acertando (intencional).\n\n2026-10-08: um som por chumbo: acerto toca reply.Hits sons (chumbos confirmados pelo servidor), parede toca 1 por chumbo; máx 8, defasados 0.015s, variantes aleatórias (HitController MAX_PELLET_SOUNDS / PELLET_SOUND_STAGGER).\n\n2026-10-08: APROVADO pelo usuário.",
+      "column": "done",
       "tags": [
         "audio",
         "hit",
