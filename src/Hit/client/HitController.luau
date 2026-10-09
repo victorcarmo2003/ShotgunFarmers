@@ -8,6 +8,7 @@ local Body = require(ReplicatedStorage.shared.Hit.Body)
 local GameSettings = require(ReplicatedStorage.shared.Settings.GameSettings)
 local GetBodyPart = require(ReplicatedStorage.shared.Hit.GetBodyPart)
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local RecoilSettings = require(ReplicatedStorage.shared.Weapon.RecoilSettings)
 local HitNet = require(ReplicatedStorage.shared.Hit.Net)
 local Throwables = require(ReplicatedStorage.shared.Weapon.Throwables)
 local Vide = require(ReplicatedStorage.Packages.Vide)
@@ -38,6 +39,7 @@ const HitController = Modux.Controller("HitController", {
 		"GameStateController",
 		"InputController",
 		"MovementController",
+		"SurfaceUIController",
 		"ThrowableController",
 		"VFXController",
 		"WeaponController",
@@ -130,6 +132,11 @@ end
 
 function HitController:PlayShotSound(gunData: GetGun.GunData)
 	self.Dependencies.CameraController:AddRecoil(gunData.DisplayName, self.Dependencies.ArmsController.IsAiming())
+	self.Dependencies.SurfaceUIController:ShakeAll(math.clamp(
+		gunData.FireRate * RecoilSettings.UIShakePerSecond,
+		RecoilSettings.UIShakeMin,
+		RecoilSettings.UIShakeMax
+	))
 
 	const soundName = WeaponSounds.ShootName(gunData.DisplayName)
 	if soundName == "" then

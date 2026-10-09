@@ -24,6 +24,9 @@ return {
 	RecoverRate = 10,
 	MaxPitch = 12,
 	MaxYaw = 4,
+	UIShakePerSecond = 0.5,
+	UIShakeMin = 0.12,
+	UIShakeMax = 0.6,
 	For = function(gunName: string): Recoil
 		return BY_GUN[gunName] or DEFAULT
 	end,
