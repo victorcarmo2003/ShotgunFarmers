@@ -174,7 +174,12 @@ function HitController:Send(request: FireRequest, hitPosition: Vector3?, consume
 
 	self.HitMarkerTrigger(self.HitMarkerTrigger() + 1)
 	if hitPosition then
-		WeaponSounds.PlayAt(WeaponSounds.RandomHit(), hitPosition)
+		const camera = workspace.CurrentCamera
+		if camera then
+			WeaponSounds.PlayPooled(WeaponSounds.RandomHit(), camera)
+		else
+			WeaponSounds.PlayAt(WeaponSounds.RandomHit(), hitPosition)
+		end
 	end
 end
 

@@ -38,8 +38,8 @@ const TRIM: { [string]: number } = {
 const HIT_PREFIX = "Hit"
 const WALL_PREFIX = "HitWall"
 const HIT_VARIANTS = 9
-const POOL_SIZE = 3
-const MAX_POSITIONAL = 16
+const POOL_SIZE = 8
+const MAX_POSITIONAL = 48
 const MIN_LIFETIME = 1
 
 const warned: { [string]: boolean } = {}

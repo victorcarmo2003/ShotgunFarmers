@@ -905,6 +905,20 @@
       "priority": "low",
       "createdAt": "2026-10-08",
       "updatedAt": "2026-10-08"
+    },
+    {
+      "id": "task-audio-005",
+      "title": "Sons de hit sobrepostos sumindo",
+      "description": "2026-10-08: usuário: 2 hits em sequência curta, só um tocava. Ajustes: (1) som de acerto confirmado agora é 2D no pool da câmera (antes era 3D no ponto do impacto: rolloff Inverse com volume 0.5 deixava hits distantes quase inaudíveis); (2) POOL_SIZE 3->8 (cadência alta reiniciava o mesmo Sound e cortava o anterior, afetava tiros e hits); (3) MAX_POSITIONAL 16->48 (sons 3D de parede eram descartados ao passar do limite). WeaponSounds.luau / HitController:Send. Obs: espingarda toca 1 som por disparo mesmo com vários chumbos acertando (intencional).",
+      "column": "awaiting-approval",
+      "tags": [
+        "audio",
+        "hit",
+        "client"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-08",
+      "updatedAt": "2026-10-08"
     }
   ]
 }
