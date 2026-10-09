@@ -923,8 +923,8 @@
     {
       "id": "task-weapon-012",
       "title": "Acelerar animação melee",
-      "description": "2026-10-08: pedido do usuário. GameSettings.MeleeAttackSpeed = 1.5: PoseMachine._playRole toca o papel Attack (viewmodel e 3a pessoa) com speed 1.5; HitController:FireMelee divide HitDelay pela mesma velocidade (dano continua sincronizado com o golpe). Cadência (FireRate 0.6 Hoe / 0.8 Shovel) não mudou.\n\n2026-10-08 (v2): animação Attack da pá (77809076943291) medida: 1.40s, sobe 0-0.30, golpe 0.38-0.55, impacto ~0.50 (36%), volta lenta 0.55-1.40. Agora a animação dura exatamente o FireRate da arma (speed = Length/FireRate: Hoe 0.6s = 2.33x, Shovel 0.8s = 1.75x) e o dano sai em FireRate * GameSettings.MeleeImpactFraction (0.36): Hoe 0.22s, Shovel 0.29s. Removido HitDelay fixo (0.25) do GunsData.",
-      "column": "awaiting-approval",
+      "description": "2026-10-08: pedido do usuário. GameSettings.MeleeAttackSpeed = 1.5: PoseMachine._playRole toca o papel Attack (viewmodel e 3a pessoa) com speed 1.5; HitController:FireMelee divide HitDelay pela mesma velocidade (dano continua sincronizado com o golpe). Cadência (FireRate 0.6 Hoe / 0.8 Shovel) não mudou.\n\n2026-10-08 (v2): animação Attack da pá (77809076943291) medida: 1.40s, sobe 0-0.30, golpe 0.38-0.55, impacto ~0.50 (36%), volta lenta 0.55-1.40. Agora a animação dura exatamente o FireRate da arma (speed = Length/FireRate: Hoe 0.6s = 2.33x, Shovel 0.8s = 1.75x) e o dano sai em FireRate * GameSettings.MeleeImpactFraction (0.36): Hoe 0.22s, Shovel 0.29s. Removido HitDelay fixo (0.25) do GunsData.\n\n2026-10-09: APROVADO pelo usuário.",
+      "column": "done",
       "tags": [
         "weapon",
         "animation",
@@ -932,7 +932,21 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-08",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-weapon-013",
+      "title": "Enxada (Hoe) invertida no viewmodel",
+      "description": "2026-10-09: causa: Hoe usa o AnimationSet da pá (Shovel), cujo mesh tem o cabo no eixo Z (punho +Z, lâmina -Z); o mesh da enxada tem cabo em Y (lâmina em -Y). Corrigido só no place (Assets.Weapons.Hoe.Cylinder.002.ArmWeld): C1 = rotação que mapeia Y->Z da pá com a lâmina virada pra frente; C0 = (2.94, 1.21, 2.03) leva o punho até a mão (fim do braço). Validado com prévia em primeira pessoa (rig R6 com braços 1x4x1 + 1o keyframe do Hold 123906193357003). Usuário precisa testar e SALVAR o place. BodyWeld (3a pessoa) não mexido.",
+      "column": "awaiting-approval",
+      "tags": [
+        "weapon",
+        "viewmodel",
+        "asset"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
     }
   ]
 }
