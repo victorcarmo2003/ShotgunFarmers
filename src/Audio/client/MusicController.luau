@@ -5,11 +5,15 @@ local StarterPlayer = game:GetService("StarterPlayer")
 local TweenService = game:GetService("TweenService")
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
+const CONTEXT_ATTRIBUTE = "Context"
+const LOBBY_CONTEXT = "Lobby"
+const MATCH_CONTEXT = "Match"
+
 const FADE_TIME = 2
 const CROSSFADE_TWEEN = TweenInfo.new(FADE_TIME, Enum.EasingStyle.Linear)
 
 const MusicController = Modux.Controller("MusicController", {
-	Require = { "OptionsController", "ProfileController" },
+	Require = { "GameStateController", "OptionsController", "ProfileController" },
 	Priority = 300,
 })
 
@@ -25,15 +29,23 @@ local function musicFolder(): Folder
 	return folder
 end
 
-local function musicTemplates(): { Sound }
-	const list: { Sound } = {}
+local function musicTemplates(context: string): { Sound }
+	const tagged: { Sound } = {}
+	const untagged: { Sound } = {}
 	for _, child in ReplicatedStorage.Assets.Musics:GetChildren() do
-		if child:IsA("Sound") then
-			table.insert(list, child)
+		if not child:IsA("Sound") then
+			continue
+		end
+
+		const value = child:GetAttribute(CONTEXT_ATTRIBUTE)
+		if value == context then
+			table.insert(tagged, child)
+		elseif value == nil then
+			table.insert(untagged, child)
 		end
 	end
 
-	return list
+	return if #tagged > 0 then tagged else untagged
 end
 
 local function shuffle(list: { Sound })
@@ -52,6 +64,30 @@ function MusicController:Setup()
 	self.FadeTween = nil :: Tween?
 	self.BaseVolume = 0 :: number
 	self.Multiplier = 1 :: number
+	self.Context = "" :: string
+end
+
+function MusicController:DesiredContext(): string
+	const state = self.Dependencies.GameStateController.State()
+	return if state == "Lobby" or state == "Loading" then LOBBY_CONTEXT else MATCH_CONTEXT
+end
+
+function MusicController:SyncContext()
+	const context = self:DesiredContext()
+	if context == self.Context then
+		return
+	end
+
+	const playlist = musicTemplates(context)
+	if #playlist == 0 then
+		return
+	end
+
+	self.Context = context
+	shuffle(playlist)
+	self.Playlist = playlist
+	self.PlaylistIndex = 0
+	self:PlayNext()
 end
 
 function MusicController:CurrentMultiplier(): number
@@ -128,6 +164,7 @@ function MusicController:PlayNext()
 end
 
 MusicController:OnTick(function(self)
+	self:SyncContext()
 	self:ApplyVolume()
 end, 10)
 
@@ -136,14 +173,10 @@ MusicController:OnInit(function(self)
 end)
 
 MusicController:OnStart(function(self)
-	self.Playlist = musicTemplates()
-	if #self.Playlist == 0 then
+	if #ReplicatedStorage.Assets.Musics:GetChildren() == 0 then
 		warn("[MusicController] nenhuma Sound em ReplicatedStorage.Assets.Musics")
-		return
 	end
-
-	shuffle(self.Playlist)
-	self:PlayNext()
+	self:SyncContext()
 end)
 
 return MusicController

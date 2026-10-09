@@ -456,8 +456,8 @@
     {
       "id": "task-audio-001",
       "title": "Trocar músicas pelas feitas pro jogo",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSubstituir IDs no MusicController/config pelas músicas próprias.\n\nAUDITORIA ModuxGames 2026-10-06: ASSET: Audio/client/MusicController toca tudo em ReplicatedStorage.Assets.Musics. Trocar Sounds no Studio.",
-      "column": "in-progress",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nSubstituir IDs no MusicController/config pelas músicas próprias.\n\nAUDITORIA ModuxGames 2026-10-06: ASSET: Audio/client/MusicController toca tudo em ReplicatedStorage.Assets.Musics. Trocar Sounds no Studio.\n\n2026-10-09: Assets.Musics no place: MenuTheme 104045510730413 (Context=Lobby), CountrysideTheme 111263688992262 (Context=Match), EventTheme 140335513253019 (Context=Event, sem uso ainda). MusicController escolhe a playlist pelo estado (Lobby/Loading -> Lobby, resto -> Match) com crossfade; Music1 sem Context só toca se não houver faixa do contexto. SALVAR o place.",
+      "column": "awaiting-approval",
       "tags": [
         "audio",
         "client",
@@ -465,7 +465,7 @@
       ],
       "priority": "low",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-game-005",
@@ -826,7 +826,7 @@
     {
       "id": "task-audio-004",
       "title": "Sons faltando no Assets.Sounds",
-      "description": "2026-10-08: auditoria profunda. Código referencia e não existe: GrenadeExplosion, BananaExplosion, LemonadeExplosion, MolotovExplosion, OnionnadeExplosion, PinappleExplosion, KillSplat, HeadshotSplat, MultiKill. Sem som definido: Chilli Thrower, Double Cob, golpe de Hoe/Shovel, reload, equipar arma, plantar/colher semente, passos, pulo/aterrissagem/slide, dano recebido, morte, respawn. Só 1 música (Music1).",
+      "description": "2026-10-08: auditoria profunda. Código referencia e não existe: GrenadeExplosion, BananaExplosion, LemonadeExplosion, MolotovExplosion, OnionnadeExplosion, PinappleExplosion, KillSplat, HeadshotSplat, MultiKill. Sem som definido: Chilli Thrower, Double Cob, golpe de Hoe/Shovel, reload, equipar arma, plantar/colher semente, passos, pulo/aterrissagem/slide, dano recebido, morte, respawn. Só 1 música (Music1).\n\n2026-10-09: criadas no place: PinappleExplosion=explosion1 92672064958181, GrenadeExplosion (Gromato/Carrocket)=explosion2 137170710336445, MolotovExplosion=explosion3 77659492821798, BananaExplosion=explosion1, LemonadeExplosion=potion explosion 78926518316635, OnionnadeExplosion=smoke granade 132096741187313, PotionBrewing=potion preparando 117951553324762 (sem uso ainda). 3D InverseTapered 15-400 studs. Faltam: KillSplat/HeadshotSplat/MultiKill e sons sem definição.",
       "column": "todo",
       "tags": [
         "audio",
@@ -834,7 +834,7 @@
       ],
       "priority": "high",
       "createdAt": "2026-10-08",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-game-006",
