@@ -1,0 +1,40 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "sourcemap watch",
+            "type": "shell",
+            "command": "rojo sourcemap --watch default.project.json --output sourcemap.json",
+            "isBackground": true,
+            "presentation": {
+                "panel": "dedicated",
+                "group": "dev"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "rojo serve",
+            "type": "shell",
+            "command": "rojo serve",
+            "isBackground": true,
+            "presentation": {
+                "panel": "dedicated",
+                "group": "dev"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "dev",
+            "dependsOn": [
+                "rojo serve",
+                "sourcemap watch"
+            ],
+            "dependsOrder": "parallel",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}
