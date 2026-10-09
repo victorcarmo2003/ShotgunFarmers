@@ -640,8 +640,8 @@
     {
       "id": "task-party-002",
       "title": "UI de sair/expulsar do squad (L8)",
-      "description": "2026-10-08: levantamento do que falta. IntegrationPlan L8 pendente: sair do squad e líder expulsar membro precisam de UI.",
-      "column": "todo",
+      "description": "2026-10-08: levantamento do que falta. IntegrationPlan L8 pendente: sair do squad e líder expulsar membro precisam de UI.\n\n2026-10-08: FEITO: Party.Leave/Kick (Net) + SquadService:Leave/Kick (remove do registro e realoca para lobby próprio). Tela FRIENDS: faixa SQUAD com até 4 membros (foto, nome, KICK se você é líder) e botão LEAVE SQUAD (se não é líder). Só testável publicado (realocação usa teleporte; no Studio é ignorado).",
+      "column": "awaiting-approval",
       "tags": [
         "party",
         "ui"
@@ -653,8 +653,8 @@
     {
       "id": "task-options-002",
       "title": "Polimento da tela de Options",
-      "description": "2026-10-08: levantamento do que falta. IntegrationPlan Etapa 3: slider arrastável; Toggle Crouch como ON/OFF em vez de slider.",
-      "column": "todo",
+      "description": "2026-10-08: levantamento do que falta. IntegrationPlan Etapa 3: slider arrastável; Toggle Crouch como ON/OFF em vez de slider.\n\n2026-10-08: já estava implementado: slider arrastável (InputChanged/InputEnded, mouse e touch) e TOGGLE CROUCH como escolha OFF/ON. Nota do IntegrationPlan estava desatualizada.",
+      "column": "awaiting-approval",
       "tags": [
         "options",
         "ui"

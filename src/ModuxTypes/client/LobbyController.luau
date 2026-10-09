@@ -5,6 +5,7 @@ local StarterPlayer = game:GetService("StarterPlayer")
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local GameSelectionScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.GameSelectionScreen)
 local CreateRoomScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.CreateRoomScreen)
+local FriendsScreen = require(StarterPlayer.StarterPlayerScripts.client.Party.FriendsScreen)
 
 export type Public = {
 	Active: boolean,
@@ -34,6 +35,7 @@ export type Public = {
 	BuyCoins: (self: Public, _id: string) -> (),
 	RedeemQuest: (self: Public, id: string) -> (),
 	Invite: (self: Public) -> (),
+	SquadOthers: (self: Public) -> { FriendsScreen.SquadMember },
 	InviteFriend: (self: Public, userId: number) -> (),
 	PromptRobloxInvite: (self: Public) -> (),
 	MountScreen: (self: Public) -> (),

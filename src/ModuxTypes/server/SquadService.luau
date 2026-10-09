@@ -47,6 +47,8 @@ export type Public = {
 	Publish: (self: Public, target: Player?) -> (),
 	Arrange: (self: Public) -> (),
 	Relocate: (self: Public, player: Player, message: string) -> (),
+	Leave: (self: Public, player: Player) -> (),
+	Kick: (self: Public, leader: Player, userId: number) -> (),
 	Renew: (self: Public) -> (),
 	ActivateLobby: (self: Public) -> (),
 	ActivateMatch: (self: Public) -> (),

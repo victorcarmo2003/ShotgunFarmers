@@ -28,6 +28,8 @@ export type Public = {
 	Setup: (self: Public) -> (),
 	MemberAt: (self: Public, slot: number) -> PartyNet.Member?,
 	IsLeader: (self: Public) -> boolean,
+	LeaveSquad: (self: Public) -> (),
+	KickMember: (self: Public, userId: number) -> (),
 	Candidates: (self: Public) -> { number },
 	LoadFriends: (self: Public) -> { PartyNet.Friend },
 	MarkSent: (self: Public, userId: number, sent: boolean) -> (),

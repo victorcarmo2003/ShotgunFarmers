@@ -60,6 +60,14 @@ function PartyController:IsLeader(): boolean
 	return self.Leader() == Players.LocalPlayer.UserId
 end
 
+function PartyController:LeaveSquad()
+	self.Libs.Net.Party.Leave:fireServer()
+end
+
+function PartyController:KickMember(userId: number)
+	self.Libs.Net.Party.Kick:fireServer({ UserId = userId })
+end
+
 function PartyController:Candidates(): { number }
 	const candidates: { number } = {}
 	const ok, online = pcall(function(): any

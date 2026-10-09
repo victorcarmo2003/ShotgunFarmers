@@ -58,6 +58,11 @@ type ScreenProps = {
 	Sent: (() -> { [number]: boolean })?,
 	Loading: (() -> boolean)?,
 	OnInviteFriend: ((userId: number) -> ())?,
+	Squad: (() -> { FriendsScreen.SquadMember })?,
+	CanKick: (() -> boolean)?,
+	CanLeave: (() -> boolean)?,
+	OnKick: ((userId: number) -> ())?,
+	OnLeave: (() -> ())?,
 }
 
 type ScreenComponent = (props: ScreenProps) -> Frame
@@ -141,6 +146,11 @@ const SCREENS: { [string]: { Component: ScreenComponent, Camera: string? } } = {
 				Sent = props.Sent,
 				Loading = props.Loading,
 				OnInvite = props.OnInviteFriend,
+				Squad = props.Squad,
+				CanKick = props.CanKick,
+				CanLeave = props.CanLeave,
+				OnKick = props.OnKick,
+				OnLeave = props.OnLeave,
 			})
 		end,
 	},
@@ -332,6 +342,17 @@ function LobbyController:Invite()
 	self:PromptRobloxInvite()
 end
 
+function LobbyController:SquadOthers(): { FriendsScreen.SquadMember }
+	const others: { FriendsScreen.SquadMember } = {}
+	const localId = Players.LocalPlayer.UserId
+	for _, member in self.Dependencies.PartyController.Members() do
+		if member.UserId ~= localId then
+			table.insert(others, { UserId = member.UserId, Name = member.Name })
+		end
+	end
+	return others
+end
+
 function LobbyController:InviteFriend(userId: number)
 	task.spawn(function()
 		const sent, reason = self.Dependencies.PartyController:Invite(userId)
@@ -430,6 +451,23 @@ function LobbyController:MountScreen()
 					end,
 					OnInviteFriend = function(userId)
 						self:InviteFriend(userId)
+					end,
+					Squad = function()
+						return self:SquadOthers()
+					end,
+					CanKick = function()
+						return self.Dependencies.PartyController:IsLeader()
+					end,
+					CanLeave = function()
+						const party = self.Dependencies.PartyController
+						return not party:IsLeader() and #party.Members() > 1
+					end,
+					OnKick = function(userId)
+						self.Dependencies.PartyController:KickMember(userId)
+					end,
+					OnLeave = function()
+						self.Dependencies.PartyController:LeaveSquad()
+						self:Close()
 					end,
 					PlayerName = function()
 						return Players.LocalPlayer.DisplayName

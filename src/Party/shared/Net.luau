@@ -81,4 +81,10 @@ return Lync.define("Party", {
 	Notice = Lync.packet(Lync.struct({
 		Message = Lync.str(0, 200),
 	})),
+
+	Leave = Lync.packet(Lync.empty()),
+
+	Kick = Lync.packet(Lync.struct({
+		UserId = Lync.f64(),
+	})),
 })

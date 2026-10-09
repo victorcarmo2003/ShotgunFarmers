@@ -487,6 +487,27 @@ function SquadService:Relocate(player: Player, message: string)
 	end)
 end
 
+function SquadService:Leave(player: Player)
+	if not self.LobbyActive or self:GetLeader() == player or not self:IsMember(player.UserId) then
+		return
+	end
+
+	self:Remove(self.Key, player.UserId)
+	self:Relocate(player, "You left the squad")
+end
+
+function SquadService:Kick(leader: Player, userId: number)
+	if not self.LobbyActive or self:GetLeader() ~= leader or userId == leader.UserId or not self:IsMember(userId) then
+		return
+	end
+
+	self:Remove(self.Key, userId)
+	const target = Players:GetPlayerByUserId(userId)
+	if target then
+		self:Relocate(target, "You were removed from the squad")
+	end
+end
+
 function SquadService:Renew()
 	const keys: { string } = {}
 	for _, key in self.ReturnKeys do
@@ -615,6 +636,15 @@ end
 
 SquadService:OnInit(function(self)
 	self:Setup()
+
+	const net = self.Libs.Net.Party
+	net.Leave:onServer(function(_, player)
+		self:Leave(player)
+	end)
+
+	net.Kick:onServer(function(data, player)
+		self:Kick(player, data.UserId)
+	end)
 end)
 
 SquadService:OnStart(function(self)

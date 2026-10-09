@@ -13,9 +13,16 @@ const inside = ScreenKit.inside
 const PANEL_X = 311
 const PANEL_WIDTH = 500
 const LIST_X = 326
-const LIST_Y = 140
+const LIST_Y = 196
 const LIST_WIDTH = 470
-const LIST_HEIGHT = 322
+const LIST_HEIGHT = 266
+
+const SQUAD_Y = 136
+const CHIP_WIDTH = 112
+const CHIP_HEIGHT = 50
+const CHIP_GAP = 7
+const MAX_CHIPS = 4
+const KICK_COLOR = Color3.fromHex("#C62F2F")
 
 const CARD_WIDTH = 456
 const CARD_HEIGHT = 64
@@ -35,8 +42,18 @@ export type Friend = {
 	InSquad: boolean,
 }
 
+export type SquadMember = {
+	UserId: number,
+	Name: string,
+}
+
 export type Props = {
 	Visible: (() -> boolean)?,
+	Squad: (() -> { SquadMember })?,
+	CanKick: (() -> boolean)?,
+	CanLeave: (() -> boolean)?,
+	OnKick: ((userId: number) -> ())?,
+	OnLeave: (() -> ())?,
 	Friends: (() -> { Friend })?,
 	Sent: (() -> { [number]: boolean })?,
 	Loading: (() -> boolean)?,
@@ -58,6 +75,76 @@ end
 
 local function headshot(userId: number): string
 	return `rbxthumb://type=AvatarHeadShot&id={userId}&w=150&h=150`
+end
+
+local function chip(squad: () -> { SquadMember }, index: number, props: Props): Frame
+	const member = function(): SquadMember?
+		return squad()[index]
+	end
+	const canKick = function(): boolean
+		return props.CanKick ~= nil and props.CanKick()
+	end
+
+	return create("Frame")({
+		Name = `Member{index}`,
+		Position = at(LIST_X + (index - 1) * (CHIP_WIDTH + CHIP_GAP), SQUAD_Y),
+		Size = at(CHIP_WIDTH, CHIP_HEIGHT),
+		BackgroundColor3 = ScreenKit.Colors.Black,
+		BackgroundTransparency = CARD_TRANSPARENCY,
+		Visible = function()
+			return member() ~= nil
+		end,
+
+		create("ImageLabel")({
+			Name = "Photo",
+			Position = inside(6, 7, CHIP_WIDTH, CHIP_HEIGHT),
+			Size = inside(36, 36, CHIP_WIDTH, CHIP_HEIGHT),
+			BackgroundTransparency = 1,
+			Image = function()
+				const current = member()
+				return if current then headshot(current.UserId) else ""
+			end,
+
+			create("UICorner")({
+				CornerRadius = UDim.new(1, 0),
+			}),
+		}),
+
+		ScreenKit.text({
+			Name = "Name",
+			Text = function()
+				const current = member()
+				return if current then current.Name else ""
+			end,
+			Position = inside(46, 4, CHIP_WIDTH, CHIP_HEIGHT),
+			Size = inside(62, 20, CHIP_WIDTH, CHIP_HEIGHT),
+			FontSize = 16,
+			BoxHeight = 20,
+			XAlignment = Enum.TextXAlignment.Left,
+		}),
+
+		create("Frame")({
+			Name = "KickSlot",
+			Position = inside(46, 26, CHIP_WIDTH, CHIP_HEIGHT),
+			Size = inside(60, 20, CHIP_WIDTH, CHIP_HEIGHT),
+			BackgroundTransparency = 1,
+			Visible = canKick,
+
+			ScreenKit.pressable({
+				Name = "Kick",
+				Position = UDim2.fromScale(0, 0),
+				Size = UDim2.fromScale(1, 1),
+				Color = KICK_COLOR,
+				OnActivated = function()
+					const current = member()
+					if current and props.OnKick then
+						props.OnKick(current.UserId)
+					end
+				end,
+				Children = { ScreenKit.label("KICK", 16, 20) },
+			}),
+		}),
+	})
 end
 
 local function card(friend: () -> Friend, index: number, total: () -> number, props: Props): Frame
@@ -152,6 +239,11 @@ end
 
 return function(props: Props): Frame
 	const friends = props.Friends or constant(SAMPLE_FRIENDS)
+	const squad = props.Squad or constant({} :: { SquadMember })
+	const chips: { Instance } = {}
+	for index = 1, MAX_CHIPS do
+		table.insert(chips, chip(squad, index, props))
+	end
 	const loading = props.Loading or constant(false)
 
 	const total = function(): number
@@ -171,6 +263,20 @@ return function(props: Props): Frame
 			}),
 
 			ScreenKit.header("FRIENDS"),
+
+			ScreenKit.text({
+				Name = "SquadEmpty",
+				Text = function()
+					return if #squad() == 0 then "NO ONE ELSE IN YOUR SQUAD" else ""
+				end,
+				Position = at(LIST_X, SQUAD_Y + 12),
+				Size = at(LIST_WIDTH, 26),
+				FontSize = 20,
+				BoxHeight = 26,
+				Color = Color3.fromRGB(180, 180, 180),
+			}),
+
+			chips,
 
 			create("ScrollingFrame")({
 				Name = "List",
@@ -206,6 +312,29 @@ return function(props: Props): Frame
 					Size = at(LIST_WIDTH, 30),
 					FontSize = 26,
 					BoxHeight = 30,
+				}),
+			}),
+
+			create("Frame")({
+				Name = "LeaveSlot",
+				Position = at(646, 474),
+				Size = at(150, 40),
+				BackgroundTransparency = 1,
+				Visible = function()
+					return props.CanLeave ~= nil and props.CanLeave()
+				end,
+
+				ScreenKit.pressable({
+					Name = "Leave",
+					Position = UDim2.fromScale(0, 0),
+					Size = UDim2.fromScale(1, 1),
+					Color = KICK_COLOR,
+					OnActivated = function()
+						if props.OnLeave then
+							props.OnLeave()
+						end
+					end,
+					Children = { ScreenKit.label("LEAVE SQUAD", 24, 40) },
 				}),
 			}),
 
