@@ -1002,6 +1002,21 @@
       "priority": "medium",
       "createdAt": "2026-10-09",
       "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-farming-005",
+      "title": "Chance de semente por bala (shotgun plantava em todos os chumbos)",
+      "description": "2026-10-09: reportado pelo usuário: a chance de semente era sorteada uma vez por disparo; se passava, todos os chumbos da shotgun plantavam. Agora Gun:Fire sorteia GunRules.RollSeed por chumbo (SeedChance por bala). Cooldown CanPlant (PLANT_INTERVAL) continua por disparo. Obs: Shotgun 6 chumbos x 30% = ~1.8 sementes por tiro no chão de fazenda; se ficar muito, baixar SeedChance da Shotgun (ex.: 0.06 ~ mesma média de antes).",
+      "column": "awaiting-approval",
+      "tags": [
+        "farming",
+        "weapon",
+        "server",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
     }
   ]
 }

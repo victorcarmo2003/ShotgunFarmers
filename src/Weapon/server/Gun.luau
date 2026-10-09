@@ -92,7 +92,7 @@ function Gun:Shoot(
 	const spread = GunRules.EffectiveSpread(shooter, stats.Spread, isAiming)
 
 	const claimed = math.min(#pellets, stats.Bullets)
-	const plants = self:CanPlant() and GunRules.RollSeed(self.GunName)
+	const canPlant = self:CanPlant()
 
 	for index = 1, stats.Bullets do
 		const pelletDirection = GunRules.RandomSpread(direction, spread)
@@ -118,7 +118,7 @@ function Gun:Shoot(
 			end
 		end
 
-		if plants then
+		if canPlant and GunRules.RollSeed(self.GunName) then
 			GunRules.TryPlant(shooter, origin, pelletDirection, self.GunName, stats.Range)
 		end
 	end
