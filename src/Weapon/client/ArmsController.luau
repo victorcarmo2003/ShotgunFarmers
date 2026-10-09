@@ -31,6 +31,7 @@ const WELD_PART_NAMES: { [GetGun.WeldPart]: string } = {
 }
 
 const PUMP_MARKER_ROLES: { AnimationSetLoader.Role } = { "ShootHip", "ShootAim" }
+const PUMP_MARKER = "Pump"
 
 const DRAW_SOUND_DEBOUNCE = 0.25
 const SHOT_AMMO_GRACE = 1.5
@@ -242,14 +243,22 @@ function ArmsController:EquipViewmodel(gunData: GetGun.GunData?)
 		end
 	end
 
-	if gunData.DiscardWhenEmpty then
+	const pumpTiming = WeaponSounds.PumpTiming(gunData.DisplayName)
+	const pumpSoundMarker = pumpTiming ~= nil and pumpTiming.Marker == PUMP_MARKER
+	if gunData.DiscardWhenEmpty or pumpSoundMarker then
 		for _, role in PUMP_MARKER_ROLES do
 			const track = tracks[role]
 			if track then
 				table.insert(
 					self.PumpMarkerConnections,
-					track:GetMarkerReachedSignal("Pump"):Connect(function()
-						self:OnPumpMarker()
+					track:GetMarkerReachedSignal(PUMP_MARKER):Connect(function(parameter: string?)
+						const phase = if parameter then string.lower(parameter) else ""
+						if pumpSoundMarker and phase == "start" and self:HasArrow() then
+							self:PlayPumpSound()
+						end
+						if gunData.DiscardWhenEmpty and phase ~= "start" then
+							self:OnPumpMarker()
+						end
 					end)
 				)
 			end
@@ -468,7 +477,8 @@ end
 function ArmsController:ScheduleDrawSound(gunData: GetGun.GunData)
 	const declaredDraw = WeaponSounds.DrawTiming(gunData.DisplayName)
 	const drawTiming = if declaredDraw and declaredDraw.Marker == nil then declaredDraw else nil
-	const pumpTiming = WeaponSounds.PumpTiming(gunData.DisplayName)
+	const declaredPump = WeaponSounds.PumpTiming(gunData.DisplayName)
+	const pumpTiming = if declaredPump and declaredPump.Marker == nil then declaredPump else nil
 	if not drawTiming and not pumpTiming then
 		return
 	end

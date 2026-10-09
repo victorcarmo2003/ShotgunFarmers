@@ -28,7 +28,7 @@ const DRAW: { [string]: CycleSound } = {
 }
 
 const PUMP: { [string]: CycleSound } = {
-	Shotgun = { Sound = "ShotgunPump", AfterShot = 0.25 },
+	Shotgun = { Sound = "ShotgunPump", AfterShot = 0.25, Marker = "Pump" },
 }
 
 const TRIM: { [string]: number } = {
