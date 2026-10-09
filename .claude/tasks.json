@@ -296,8 +296,8 @@
     {
       "id": "task-map-005",
       "title": "Corrigir animação da pá",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedback ambíguo junto com \"nao consigo passar da porta\". Perguntar ao Dots o que é a pá e qual o bug.\n\n2026-10-08: esclarecido pelo usuário: \"a pá tá bugada\" = animação da pá (Shovel) com problema. Escopo: corrigir animação da pá.\n\n2026-10-09: Velocidade/impacto do golpe sincronizados (weapon-012, done) e encaixe da pá/enxada (weapon-013). Se ainda houver problema na animação da pá em si, descrever o que falta.",
-      "column": "todo",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedback ambíguo junto com \"nao consigo passar da porta\". Perguntar ao Dots o que é a pá e qual o bug.\n\n2026-10-08: esclarecido pelo usuário: \"a pá tá bugada\" = animação da pá (Shovel) com problema. Escopo: corrigir animação da pá.\n\n2026-10-09: Velocidade/impacto do golpe sincronizados (weapon-012, done) e encaixe da pá/enxada (weapon-013). Se ainda houver problema na animação da pá em si, descrever o que falta.\n\n2026-10-09: APROVADO pelo usuário (velocidade/impacto do golpe + encaixe da pá).",
+      "column": "done",
       "tags": [
         "weapon",
         "playtest",
@@ -555,8 +555,8 @@
     {
       "id": "task-ui-003",
       "title": "Shop (Etapa 11)",
-      "description": "2026-10-08: levantamento do que falta. Botões só fazem print (LobbyController BuyRobux/BuyCoins). Precisa: ShopCatalog real (itens, preços, DevProduct/Gamepass IDs), ShopService com ProcessReceipt idempotente, compra com Gems. Decisões pendentes em docs/IntegrationPlan.md Etapa 11. Alternativa p/ prazo: esconder aba.\n\n2026-10-08: FEITO (escopo contrato): ShopCatalog com 3 pacotes de gems (DevProduct) + gamepass 2X GEMS; ShopService com ProcessReceipt idempotente (PurchaseIds no Profile + Save), sync de gamepass no login e na compra; ShopScreen com nome, ícone (Rhos Vectors), OWNED. FALTA DO USUÁRIO: criar os 3 DevProducts e 1 Gamepass no Creator Hub e colocar os IDs em AssetId (ShopCatalog.luau); preços exibidos devem bater com o site.\n\n2026-10-09 (v2): catálogo trocado pelos produtos reais do Creator Hub: Crop Drop 3717365879 (R$19), Double XP 1h 3717365826 (R$25), Revival Token 3717365732 (R$9). Pacotes de gems e gamepass 2X GEMS removidos (gems só jogando). Gamepasses offsale (Emotes, Weapon Skins, Farmers Skins, VIP) e Private Servers fora por enquanto. Concessões (ShopService): DoubleXp soma 1h em XpBoostEnds (CareerService multiplica XP x2); Revival soma token (se morto, revive na hora); CropDrop guarda e ativa na partida (WeaponSpawnService:CropDrop 30s, até 25 sementes extras, aviso pra todos via Shop.Announce + ShopController). Tela de morte: '[F] REVIVE NOW (N)' ou '- R$ 9' (abre compra), oculto no Practice. Profile: RevivalTokens, XpBoostEnds, CropDrops (atributos no Player).",
-      "column": "awaiting-approval",
+      "description": "2026-10-08: levantamento do que falta. Botões só fazem print (LobbyController BuyRobux/BuyCoins). Precisa: ShopCatalog real (itens, preços, DevProduct/Gamepass IDs), ShopService com ProcessReceipt idempotente, compra com Gems. Decisões pendentes em docs/IntegrationPlan.md Etapa 11. Alternativa p/ prazo: esconder aba.\n\n2026-10-08: FEITO (escopo contrato): ShopCatalog com 3 pacotes de gems (DevProduct) + gamepass 2X GEMS; ShopService com ProcessReceipt idempotente (PurchaseIds no Profile + Save), sync de gamepass no login e na compra; ShopScreen com nome, ícone (Rhos Vectors), OWNED. FALTA DO USUÁRIO: criar os 3 DevProducts e 1 Gamepass no Creator Hub e colocar os IDs em AssetId (ShopCatalog.luau); preços exibidos devem bater com o site.\n\n2026-10-09 (v2): catálogo trocado pelos produtos reais do Creator Hub: Crop Drop 3717365879 (R$19), Double XP 1h 3717365826 (R$25), Revival Token 3717365732 (R$9). Pacotes de gems e gamepass 2X GEMS removidos (gems só jogando). Gamepasses offsale (Emotes, Weapon Skins, Farmers Skins, VIP) e Private Servers fora por enquanto. Concessões (ShopService): DoubleXp soma 1h em XpBoostEnds (CareerService multiplica XP x2); Revival soma token (se morto, revive na hora); CropDrop guarda e ativa na partida (WeaponSpawnService:CropDrop 30s, até 25 sementes extras, aviso pra todos via Shop.Announce + ShopController). Tela de morte: '[F] REVIVE NOW (N)' ou '- R$ 9' (abre compra), oculto no Practice. Profile: RevivalTokens, XpBoostEnds, CropDrops (atributos no Player).\n\n2026-10-09: Dev products integrados no código (Crop Drop, Double XP 1h, Revival Token), aguardando confirmação do cliente sobre os produtos.",
+      "column": "in-progress",
       "tags": [
         "shop",
         "ui",
@@ -600,8 +600,8 @@
     {
       "id": "task-anim-002",
       "title": "Animações de reload e poses faltando",
-      "description": "2026-10-08: levantamento do que falta. Viewmodels Reload vazio em Shotgun, Peavolver, Sniperagus, Snipine, Carrocket, M6Bean, WatermeLMG, Uzichinni, Raygun, Strawborry; Shotgun Draw vazio. CharacterPoses (3a pessoa): Shotgun ShootHip/ShootAim, Onionnade Aim/Throw vazios. Hoe usa animações da pá; arremesso médio sem animação própria.\n\n2026-10-09: Shotgun resolvida (ver anim-004): 3a pessoa ShootHip/ShootAim e 1a pessoa Draw preenchidos. FALTA: Reload (viewmodel) de Peavolver, Sniperagus, Snipine, Carrocket, M6Bean, WatermeLMG, Uzichinni, Raygun, Strawborry; CharacterPoses Onionnade Aim/Throw; Hoe com animação própria (usa a da pá); arremesso médio sem animação própria.",
-      "column": "todo",
+      "description": "2026-10-08: levantamento do que falta. Viewmodels Reload vazio em Shotgun, Peavolver, Sniperagus, Snipine, Carrocket, M6Bean, WatermeLMG, Uzichinni, Raygun, Strawborry; Shotgun Draw vazio. CharacterPoses (3a pessoa): Shotgun ShootHip/ShootAim, Onionnade Aim/Throw vazios. Hoe usa animações da pá; arremesso médio sem animação própria.\n\n2026-10-09: Shotgun resolvida (ver anim-004): 3a pessoa ShootHip/ShootAim e 1a pessoa Draw preenchidos. FALTA: Reload (viewmodel) de Peavolver, Sniperagus, Snipine, Carrocket, M6Bean, WatermeLMG, Uzichinni, Raygun, Strawborry; CharacterPoses Onionnade Aim/Throw; Hoe com animação própria (usa a da pá); arremesso médio sem animação própria.\n\n2026-10-09: Concluído pelo usuário: reload não é mecânica do jogo; poses restantes não serão usadas por enquanto.",
+      "column": "done",
       "tags": [
         "animation",
         "weapon"
@@ -613,13 +613,13 @@
     {
       "id": "task-weapon-010",
       "title": "Modelos de arma faltando",
-      "description": "2026-10-08: levantamento do que falta. Assets.Weapons sem Gromato Launcher, Chilli Thrower, Double Cob (Disabled). ImageID vazio nessas 3 (barra de armas/practice mostram iniciais).\n\n2026-10-09: Gromato Launcher e Chilli Thrower marcados Disabled = true (Double Cob já estava): saem do spawn de sementes, do Practice e do sorteio de arma; não atiram se alguém tiver. Reativar tirando o Disabled quando o modelo existir.\n\n2026-10-09: Gromato Launcher e Chilli Thrower desativados até ter modelo (Double Cob já estava). Fica em todo só pelos modelos/ícones.",
+      "description": "2026-10-08: levantamento do que falta. Assets.Weapons sem Gromato Launcher, Chilli Thrower, Double Cob (Disabled). ImageID vazio nessas 3 (barra de armas/practice mostram iniciais).\n\n2026-10-09: Gromato Launcher e Chilli Thrower marcados Disabled = true (Double Cob já estava): saem do spawn de sementes, do Practice e do sorteio de arma; não atiram se alguém tiver. Reativar tirando o Disabled quando o modelo existir.\n\n2026-10-09: Gromato Launcher e Chilli Thrower desativados até ter modelo (Double Cob já estava). Fica em todo só pelos modelos/ícones.\n\n2026-10-09: Prioridade baixa: depende de novos modelos (usuário).",
       "column": "todo",
       "tags": [
         "weapon",
         "asset"
       ],
-      "priority": "medium",
+      "priority": "low",
       "createdAt": "2026-10-08",
       "updatedAt": "2026-10-09"
     },
@@ -678,8 +678,8 @@
     {
       "id": "task-anim-003",
       "title": "Animações de movimento faltando",
-      "description": "2026-10-08: levantamento do que falta. PlayerAnimations Core: Run, Jump, Fall, Land vazios (+ crouch de input-003).\n\n2026-10-09: Correr agora usa RunForward/RunBackward da arma equipada (RigMovement ligado no AnimateController); Core.Run só vale sem arma. FALTA: Jump, Fall, Land (Core).",
-      "column": "todo",
+      "description": "2026-10-08: levantamento do que falta. PlayerAnimations Core: Run, Jump, Fall, Land vazios (+ crouch de input-003).\n\n2026-10-09: Correr agora usa RunForward/RunBackward da arma equipada (RigMovement ligado no AnimateController); Core.Run só vale sem arma. FALTA: Jump, Fall, Land (Core).\n\n2026-10-09: APROVADO pelo usuário (locomoção por arma via RigMovement).",
+      "column": "done",
       "tags": [
         "animation",
         "character"
@@ -826,8 +826,8 @@
     {
       "id": "task-audio-004",
       "title": "Sons faltando no Assets.Sounds",
-      "description": "2026-10-08: auditoria profunda. Código referencia e não existe: GrenadeExplosion, BananaExplosion, LemonadeExplosion, MolotovExplosion, OnionnadeExplosion, PinappleExplosion, KillSplat, HeadshotSplat, MultiKill. Sem som definido: Chilli Thrower, Double Cob, golpe de Hoe/Shovel, reload, equipar arma, plantar/colher semente, passos, pulo/aterrissagem/slide, dano recebido, morte, respawn. Só 1 música (Music1).\n\n2026-10-09: criadas no place: PinappleExplosion=explosion1 92672064958181, GrenadeExplosion (Gromato/Carrocket)=explosion2 137170710336445, MolotovExplosion=explosion3 77659492821798, BananaExplosion=explosion1, LemonadeExplosion=potion explosion 78926518316635, OnionnadeExplosion=smoke granade 132096741187313, PotionBrewing=potion preparando 117951553324762 (sem uso ainda). 3D InverseTapered 15-400 studs. Faltam: KillSplat/HeadshotSplat/MultiKill e sons sem definição.\n\n2026-10-09: Explosões criadas (Pinapple, Grenade, Molotov, Banana, Lemonade, Onionnade + PotionBrewing sem uso). FALTA: KillSplat, HeadshotSplat, MultiKill (killfeed-003) e sons ainda sem definição (Chilli Thrower, golpe melee, reload, equipar, plantar/colher, passos, dano, morte, respawn).\n\n2026-10-09: Usuário adicionou Grow (crescimento da planta, usado em seed-002) e AmmoPickup (colheita). FALTA: KillSplat, HeadshotSplat, MultiKill e sons sem definição (golpe melee, reload, equipar, passos, dano, morte, respawn).",
-      "column": "todo",
+      "description": "2026-10-08: auditoria profunda. Código referencia e não existe: GrenadeExplosion, BananaExplosion, LemonadeExplosion, MolotovExplosion, OnionnadeExplosion, PinappleExplosion, KillSplat, HeadshotSplat, MultiKill. Sem som definido: Chilli Thrower, Double Cob, golpe de Hoe/Shovel, reload, equipar arma, plantar/colher semente, passos, pulo/aterrissagem/slide, dano recebido, morte, respawn. Só 1 música (Music1).\n\n2026-10-09: criadas no place: PinappleExplosion=explosion1 92672064958181, GrenadeExplosion (Gromato/Carrocket)=explosion2 137170710336445, MolotovExplosion=explosion3 77659492821798, BananaExplosion=explosion1, LemonadeExplosion=potion explosion 78926518316635, OnionnadeExplosion=smoke granade 132096741187313, PotionBrewing=potion preparando 117951553324762 (sem uso ainda). 3D InverseTapered 15-400 studs. Faltam: KillSplat/HeadshotSplat/MultiKill e sons sem definição.\n\n2026-10-09: Explosões criadas (Pinapple, Grenade, Molotov, Banana, Lemonade, Onionnade + PotionBrewing sem uso). FALTA: KillSplat, HeadshotSplat, MultiKill (killfeed-003) e sons ainda sem definição (Chilli Thrower, golpe melee, reload, equipar, plantar/colher, passos, dano, morte, respawn).\n\n2026-10-09: Usuário adicionou Grow (crescimento da planta, usado em seed-002) e AmmoPickup (colheita). FALTA: KillSplat, HeadshotSplat, MultiKill e sons sem definição (golpe melee, reload, equipar, passos, dano, morte, respawn).\n\n2026-10-09: Revisado: todas as granadas têm som de explosão tocado na detonação (ThrowableController playBurst, contato ou pavio): Pinapple/Bananarang=explosion1, Gromato/Carrocket=explosion2, Moolotov=explosion3, Lemonade=potion explosion, Onionnade=smoke granade; Strawborry=HitWall1. Grow e AmmoPickup adicionados. Sons de medalha seguem em killfeed-003. APROVADO pelo usuário.",
+      "column": "done",
       "tags": [
         "audio",
         "asset"
