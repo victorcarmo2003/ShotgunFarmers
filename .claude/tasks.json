@@ -1017,6 +1017,20 @@
       "priority": "high",
       "createdAt": "2026-10-09",
       "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-farming-006",
+      "title": "Sementes de arma flutuando no mapa",
+      "description": "2026-10-09: reportado pelo usuário (print com bambu/cenoura no ar). CAUSA: sem partes com tag WeaponSpawn, o WeaponSpawnService usa as Farmland, incluindo MAIN_FLOOR (Union 384x8x405 com relevo); o ponto era o topo da caixa da peça (Y fixo), não a superfície real -> flutuava onde o chão é mais baixo (estrada); em peças rotacionadas o 'topo' podia cair na lateral. FIX: surfacePoint sorteia X/Z na caixa em mundo da peça e faz raycast de cima pra baixo; só aceita se acertar parte WeaponSpawn/Farmland com normal pra cima (>0.6), ignorando personagens e a pasta Seeds; senão tenta outro ponto. Sementes de tiro já usavam raycast (não afetadas).",
+      "column": "awaiting-approval",
+      "tags": [
+        "farming",
+        "server",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
     }
   ]
 }

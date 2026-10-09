@@ -1,5 +1,6 @@
 --!strict
 local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
@@ -15,6 +16,11 @@ const INITIAL_BURST = 5
 const EDGE_MARGIN = 0.15
 const POINT_RETRIES = 6
 const MIN_SEPARATION = 6
+const PROBE_CLEARANCE = 20
+const MIN_SURFACE_NORMAL = 0.6
+
+const probeParams = RaycastParams.new()
+probeParams.FilterType = Enum.RaycastFilterType.Exclude
 
 const WeaponSpawnService = Modux.Service("WeaponSpawnService", {
 	Require = { "GameStateService", "ServerRoleService" },
@@ -59,11 +65,45 @@ function WeaponSpawnService:Candidates(): { BasePart }
 	return {}
 end
 
-local function surfacePoint(part: BasePart): Vector3
-	const size = part.Size
-	const x = (math.random() - 0.5) * size.X * (1 - EDGE_MARGIN * 2)
-	const z = (math.random() - 0.5) * size.Z * (1 - EDGE_MARGIN * 2)
-	return (part.CFrame * CFrame.new(x, size.Y / 2, z)).Position
+local function worldExtents(part: BasePart): Vector3
+	const half = part.Size / 2
+	const cf = part.CFrame
+	const right, up, back = cf.RightVector, cf.UpVector, -cf.LookVector
+	return Vector3.new(
+		math.abs(right.X) * half.X + math.abs(up.X) * half.Y + math.abs(back.X) * half.Z,
+		math.abs(right.Y) * half.X + math.abs(up.Y) * half.Y + math.abs(back.Y) * half.Z,
+		math.abs(right.Z) * half.X + math.abs(up.Z) * half.Y + math.abs(back.Z) * half.Z
+	)
+end
+
+local function isSpawnSurface(instance: Instance): boolean
+	return CollectionService:HasTag(instance, SPAWN_TAG) or CollectionService:HasTag(instance, FALLBACK_TAG)
+end
+
+local function surfacePoint(part: BasePart): Vector3?
+	const extents = worldExtents(part)
+	const center = part.Position
+	const x = center.X + (math.random() * 2 - 1) * extents.X * (1 - EDGE_MARGIN * 2)
+	const z = center.Z + (math.random() * 2 - 1) * extents.Z * (1 - EDGE_MARGIN * 2)
+	const top = center.Y + extents.Y + PROBE_CLEARANCE
+
+	const ignore: { Instance } = {}
+	for _, player in Players:GetPlayers() do
+		if player.Character then
+			table.insert(ignore, player.Character)
+		end
+	end
+	const seeds = workspace:FindFirstChild("Seeds")
+	if seeds then
+		table.insert(ignore, seeds)
+	end
+	probeParams.FilterDescendantsInstances = ignore
+
+	const result = workspace:Raycast(Vector3.new(x, top, z), Vector3.new(0, -(extents.Y * 2 + PROBE_CLEARANCE * 2), 0), probeParams)
+	if not result or not isSpawnSurface(result.Instance) or result.Normal.Y < MIN_SURFACE_NORMAL then
+		return nil
+	end
+	return result.Position
 end
 
 function WeaponSpawnService:Prune()
@@ -95,7 +135,7 @@ function WeaponSpawnService:SpawnOne(): boolean
 
 	for _ = 1, POINT_RETRIES do
 		const point = surfacePoint(candidates[math.random(1, #candidates)])
-		if self:FarFromOthers(point) then
+		if point and self:FarFromOthers(point) then
 			const seed = GunRules.PlantAt(point, self.Pool[math.random(1, #self.Pool)])
 			if seed then
 				table.insert(self.Spawned, seed)
@@ -119,7 +159,7 @@ function WeaponSpawnService:SpawnExtra(): BasePart?
 
 	for _ = 1, POINT_RETRIES do
 		const point = surfacePoint(candidates[math.random(1, #candidates)])
-		if self:FarFromOthers(point) then
+		if point and self:FarFromOthers(point) then
 			const seed = GunRules.PlantAt(point, self.Pool[math.random(1, #self.Pool)])
 			if seed then
 				table.insert(self.Spawned, seed)
