@@ -667,7 +667,7 @@
       "id": "task-publish-001",
       "title": "Checklist de publicação",
       "description": "2026-10-08: levantamento do que falta. docs/PublishChecklist.md: salvar place, Rojo sincronizado, AdminSettings com UserIds reais, Max Players >= 20 no site, API Services, teste publicado com 2 contas (matchmaking, salas, squad, teleporte).\n\n2026-10-09: Feito: place salvo com backdoor removido, sons/músicas, DevProducts reais no ShopCatalog. FALTA: Rojo sincronizado antes do Publish, AdminSettings com UserIds reais, Max Players >= 20 no site, teste publicado com 2 contas (matchmaking, salas, loja/compra, squad, revive, crop drop).",
-      "column": "todo",
+      "column": "in-progress",
       "tags": [
         "publish"
       ],
