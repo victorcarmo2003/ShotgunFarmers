@@ -412,7 +412,7 @@
     {
       "id": "task-pickup-001",
       "title": "Spawnar cura e escudo pelo mapa",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nJogadores não acharam cura nem shield. Verificar se o sistema existe; se não, criar pickups com respawn e pontos por mapa.\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: Vital:Heal/SetArmor existem (Vital.luau:61,71) mas ninguém chama. Único pickup é seed de arma.\n\n2026-10-06: ADIADO pelo usuário — precisa modelar os pickups antes.",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nJogadores não acharam cura nem shield. Verificar se o sistema existe; se não, criar pickups com respawn e pontos por mapa.\n\nAUDITORIA ModuxGames 2026-10-06: FEATURE: Vital:Heal/SetArmor existem (Vital.luau:61,71) mas ninguém chama. Único pickup é seed de arma.\n\n2026-10-06: ADIADO pelo usuário — precisa modelar os pickups antes.\n\n2026-10-09: Pack 'Plants and Seeds' (Workspace) tem frutos colhidos prontos (ex.: Apple pra vida, Pumpkin pra escudo) - dá pra usar como modelo dos pickups.",
       "column": "todo",
       "tags": [
         "pickup",
@@ -421,7 +421,7 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-06"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-farming-004",
@@ -613,7 +613,7 @@
     {
       "id": "task-weapon-010",
       "title": "Modelos de arma faltando",
-      "description": "2026-10-08: levantamento do que falta. Assets.Weapons sem Gromato Launcher, Chilli Thrower, Double Cob (Disabled). ImageID vazio nessas 3 (barra de armas/practice mostram iniciais).\n\n2026-10-09: Gromato Launcher e Chilli Thrower marcados Disabled = true (Double Cob já estava): saem do spawn de sementes, do Practice e do sorteio de arma; não atiram se alguém tiver. Reativar tirando o Disabled quando o modelo existir.",
+      "description": "2026-10-08: levantamento do que falta. Assets.Weapons sem Gromato Launcher, Chilli Thrower, Double Cob (Disabled). ImageID vazio nessas 3 (barra de armas/practice mostram iniciais).\n\n2026-10-09: Gromato Launcher e Chilli Thrower marcados Disabled = true (Double Cob já estava): saem do spawn de sementes, do Practice e do sorteio de arma; não atiram se alguém tiver. Reativar tirando o Disabled quando o modelo existir.\n\n2026-10-09: Gromato Launcher e Chilli Thrower desativados até ter modelo (Double Cob já estava). Fica em todo só pelos modelos/ícones.",
       "column": "todo",
       "tags": [
         "weapon",
@@ -678,7 +678,7 @@
     {
       "id": "task-anim-003",
       "title": "Animações de movimento faltando",
-      "description": "2026-10-08: levantamento do que falta. PlayerAnimations Core: Run, Jump, Fall, Land vazios (+ crouch de input-003).",
+      "description": "2026-10-08: levantamento do que falta. PlayerAnimations Core: Run, Jump, Fall, Land vazios (+ crouch de input-003).\n\n2026-10-09: Correr agora usa RunForward/RunBackward da arma equipada (RigMovement ligado no AnimateController); Core.Run só vale sem arma. FALTA: Jump, Fall, Land (Core).",
       "column": "todo",
       "tags": [
         "animation",
@@ -686,7 +686,7 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-08",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-ui-006",
@@ -826,7 +826,7 @@
     {
       "id": "task-audio-004",
       "title": "Sons faltando no Assets.Sounds",
-      "description": "2026-10-08: auditoria profunda. Código referencia e não existe: GrenadeExplosion, BananaExplosion, LemonadeExplosion, MolotovExplosion, OnionnadeExplosion, PinappleExplosion, KillSplat, HeadshotSplat, MultiKill. Sem som definido: Chilli Thrower, Double Cob, golpe de Hoe/Shovel, reload, equipar arma, plantar/colher semente, passos, pulo/aterrissagem/slide, dano recebido, morte, respawn. Só 1 música (Music1).\n\n2026-10-09: criadas no place: PinappleExplosion=explosion1 92672064958181, GrenadeExplosion (Gromato/Carrocket)=explosion2 137170710336445, MolotovExplosion=explosion3 77659492821798, BananaExplosion=explosion1, LemonadeExplosion=potion explosion 78926518316635, OnionnadeExplosion=smoke granade 132096741187313, PotionBrewing=potion preparando 117951553324762 (sem uso ainda). 3D InverseTapered 15-400 studs. Faltam: KillSplat/HeadshotSplat/MultiKill e sons sem definição.\n\n2026-10-09: Explosões criadas (Pinapple, Grenade, Molotov, Banana, Lemonade, Onionnade + PotionBrewing sem uso). FALTA: KillSplat, HeadshotSplat, MultiKill (killfeed-003) e sons ainda sem definição (Chilli Thrower, golpe melee, reload, equipar, plantar/colher, passos, dano, morte, respawn).",
+      "description": "2026-10-08: auditoria profunda. Código referencia e não existe: GrenadeExplosion, BananaExplosion, LemonadeExplosion, MolotovExplosion, OnionnadeExplosion, PinappleExplosion, KillSplat, HeadshotSplat, MultiKill. Sem som definido: Chilli Thrower, Double Cob, golpe de Hoe/Shovel, reload, equipar arma, plantar/colher semente, passos, pulo/aterrissagem/slide, dano recebido, morte, respawn. Só 1 música (Music1).\n\n2026-10-09: criadas no place: PinappleExplosion=explosion1 92672064958181, GrenadeExplosion (Gromato/Carrocket)=explosion2 137170710336445, MolotovExplosion=explosion3 77659492821798, BananaExplosion=explosion1, LemonadeExplosion=potion explosion 78926518316635, OnionnadeExplosion=smoke granade 132096741187313, PotionBrewing=potion preparando 117951553324762 (sem uso ainda). 3D InverseTapered 15-400 studs. Faltam: KillSplat/HeadshotSplat/MultiKill e sons sem definição.\n\n2026-10-09: Explosões criadas (Pinapple, Grenade, Molotov, Banana, Lemonade, Onionnade + PotionBrewing sem uso). FALTA: KillSplat, HeadshotSplat, MultiKill (killfeed-003) e sons ainda sem definição (Chilli Thrower, golpe melee, reload, equipar, plantar/colher, passos, dano, morte, respawn).\n\n2026-10-09: Usuário adicionou Grow (crescimento da planta, usado em seed-002) e AmmoPickup (colheita). FALTA: KillSplat, HeadshotSplat, MultiKill e sons sem definição (golpe melee, reload, equipar, passos, dano, morte, respawn).",
       "column": "todo",
       "tags": [
         "audio",
