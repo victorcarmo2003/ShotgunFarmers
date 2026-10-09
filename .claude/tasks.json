@@ -181,7 +181,7 @@
     {
       "id": "task-weapon-004",
       "title": "Armas não aparecem na mão / arma invisível",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedbacks: \"armas nao estao aparecendo na mao\" + \"tem alguma arma que ta invisivel, apertei o botao direito pra aparecer a mira e fica essa area grandona\".\n\nChecar ArmsController/rig ArmWeld (Motor6D recriado em runtime) e modelos faltando por arma. Identificar qual arma tem ADS gigante. Relacionado: task-weapon-003.\n\nAUDITORIA ModuxGames 2026-10-06: Provável asset (d): weldWeapon em Weapon/client/ArmsController.luau:70-101 (ArmWeld/BodyWeld R6). Falhas silenciosas sem warn: modelo ausente (:166-168), sem PrimaryPart/Handle (:72-75), RigBuilder.Build nil se não R6 (Character/client/RigBuilder:49-54). Suspeitos sem modelo: Gromato Launcher, Chilli Thrower, Double Cob.\n\n2026-10-06 (ModuxGames): adicionados warn (1x por arma) nos pontos de falha silenciosa: ArmsController weaponAsset (asset ausente), weldWeapon (sem parte de solda, sem PrimaryPart/Handle, ArmWeld ausente criado com C0/C1 identidade), RigBuilder (rig nao R6), Equipment.attachWeaponVisual (asset ausente, BodyWeld ausente, sem PrimaryPart). PROXIMO PASSO: playtest no Studio, coletar os warns do Output e corrigir os assets em ReplicatedStorage.Assets.Weapons (welds C0/C1, PrimaryPart, modelos faltando).\n\nDIAGNÓSTICO NO STUDIO 2026-10-06: rig R6 ok. Assets.Weapons: faltam Chilli Thrower e Gromato Launcher (Double Cob desativada). Shotgun sem ArmWeld/BodyWeld. Todas as outras com ArmWeld e BodyWeld em C0/C1 IDENTIDADE (exceto ArmWeld de Bananarang e Lemonade). Teste visual: com identidade a arma fica dentro do braço/torso, só a ponta aparece = causa do bug. CORREÇÃO: popular C0/C1 corretos (fonte candidata: Assets/Guns.rbxm, All Assets.rbxl, backup/12_07_26.rbxl ou rigs de referência RIGS_ARMAS/BODY_RIGS_ARMAS) e criar os 2 modelos faltantes.\n\n2026-10-06: PAUSADO pelo usuário para revisitar depois. Ancoragem descartada (nenhuma part ancorada nos assets; código desancora). Causa = Motor6D C0/C1 identidade. warns de diagnóstico ficam no código.\n\n2026-10-09: técnica validada na pá/enxada (task-weapon-013): medir mãos do viewmodel no Play e resolver ArmWeld.C0 para o cabo/empunhadura passar pelas mãos na pose Hold. Pode ser aplicada às outras armas.",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedbacks: \"armas nao estao aparecendo na mao\" + \"tem alguma arma que ta invisivel, apertei o botao direito pra aparecer a mira e fica essa area grandona\".\n\nChecar ArmsController/rig ArmWeld (Motor6D recriado em runtime) e modelos faltando por arma. Identificar qual arma tem ADS gigante. Relacionado: task-weapon-003.\n\nAUDITORIA ModuxGames 2026-10-06: Provável asset (d): weldWeapon em Weapon/client/ArmsController.luau:70-101 (ArmWeld/BodyWeld R6). Falhas silenciosas sem warn: modelo ausente (:166-168), sem PrimaryPart/Handle (:72-75), RigBuilder.Build nil se não R6 (Character/client/RigBuilder:49-54). Suspeitos sem modelo: Gromato Launcher, Chilli Thrower, Double Cob.\n\n2026-10-06 (ModuxGames): adicionados warn (1x por arma) nos pontos de falha silenciosa: ArmsController weaponAsset (asset ausente), weldWeapon (sem parte de solda, sem PrimaryPart/Handle, ArmWeld ausente criado com C0/C1 identidade), RigBuilder (rig nao R6), Equipment.attachWeaponVisual (asset ausente, BodyWeld ausente, sem PrimaryPart). PROXIMO PASSO: playtest no Studio, coletar os warns do Output e corrigir os assets em ReplicatedStorage.Assets.Weapons (welds C0/C1, PrimaryPart, modelos faltando).\n\nDIAGNÓSTICO NO STUDIO 2026-10-06: rig R6 ok. Assets.Weapons: faltam Chilli Thrower e Gromato Launcher (Double Cob desativada). Shotgun sem ArmWeld/BodyWeld. Todas as outras com ArmWeld e BodyWeld em C0/C1 IDENTIDADE (exceto ArmWeld de Bananarang e Lemonade). Teste visual: com identidade a arma fica dentro do braço/torso, só a ponta aparece = causa do bug. CORREÇÃO: popular C0/C1 corretos (fonte candidata: Assets/Guns.rbxm, All Assets.rbxl, backup/12_07_26.rbxl ou rigs de referência RIGS_ARMAS/BODY_RIGS_ARMAS) e criar os 2 modelos faltantes.\n\n2026-10-06: PAUSADO pelo usuário para revisitar depois. Ancoragem descartada (nenhuma part ancorada nos assets; código desancora). Causa = Motor6D C0/C1 identidade. warns de diagnóstico ficam no código.\n\n2026-10-09: técnica validada na pá/enxada (task-weapon-013): medir mãos do viewmodel no Play e resolver ArmWeld.C0 para o cabo/empunhadura passar pelas mãos na pose Hold. Pode ser aplicada às outras armas.\n\n2026-10-09: Pá e enxada corrigidas (weapon-013) medindo as mãos no Play e resolvendo ArmWeld.C0. FALTA aplicar o mesmo nas armas de fogo e granadas (Shotgun, Peavolver, Sniperagus, Snipine, Carrocket, M6Bean, WatermeLMG, Uzichinni, Raygun, Strawborry, throwables) - precisa Play aberto com cada arma.",
       "column": "todo",
       "tags": [
         "weapon",
@@ -225,8 +225,8 @@
     {
       "id": "task-input-003",
       "title": "Apertar C deixa o jogador lento",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nC provavelmente é crouch (lentidão esperada). Confirmar se é intencional; se sim, falta feedback visual/animação de agachar (ver task-anim-019). Se não, revisar estado de velocidade preso.\n\n2026-10-06: C é crouch toggle intencional (WalkSpeed 28->10). Sem feedback em 1a pessoa parecia bug. MovementController agora tweena Humanoid.CameraOffset pra (0,-1.5,0) em 0.2s no estado Crouch e volta a zero nos outros estados; tween cancelado no respawn. Aguardando playtest.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: Intencional: C=crouch (Character/server/Movement.luau:11,77-83, 28->10). Sem CameraOffset. Usuário decidiu: câmera desce ~1.5 stud ao agachar.\n\nIMPLEMENTADO ModuxGames 2026-10-06: MovementController tweena Humanoid.CameraOffset para (0,-1.5,0) em 0.2s Quad Out ao entrar em Crouch e volta a zero ao sair (reage a MovementState replicado em Apply); tween cancelado em BindCharacter (respawn) e offset aplicado instantaneo em SetHumanoid. Nenhum outro uso de CameraOffset no projeto.\n\nAPROVADO pelo usuário 2026-10-06 (testado no Studio).\n\nREABERTO 2026-10-07: câmera ao agachar ok, falta animação de crouch.",
-      "column": "in-progress",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nC provavelmente é crouch (lentidão esperada). Confirmar se é intencional; se sim, falta feedback visual/animação de agachar (ver task-anim-019). Se não, revisar estado de velocidade preso.\n\n2026-10-06: C é crouch toggle intencional (WalkSpeed 28->10). Sem feedback em 1a pessoa parecia bug. MovementController agora tweena Humanoid.CameraOffset pra (0,-1.5,0) em 0.2s no estado Crouch e volta a zero nos outros estados; tween cancelado no respawn. Aguardando playtest.\n\nATENÇÃO 2026-10-06: a correção acima foi implementada no repo ANTIGO (D:Documents - WindowsRoblox-GamesShotgunFarmers), não neste. Caminhos de arquivo citados são do repo antigo. Reverificar/reaplicar aqui na estrutura por feature.\n\nAUDITORIA ModuxGames 2026-10-06: Intencional: C=crouch (Character/server/Movement.luau:11,77-83, 28->10). Sem CameraOffset. Usuário decidiu: câmera desce ~1.5 stud ao agachar.\n\nIMPLEMENTADO ModuxGames 2026-10-06: MovementController tweena Humanoid.CameraOffset para (0,-1.5,0) em 0.2s Quad Out ao entrar em Crouch e volta a zero ao sair (reage a MovementState replicado em Apply); tween cancelado em BindCharacter (respawn) e offset aplicado instantaneo em SetHumanoid. Nenhum outro uso de CameraOffset no projeto.\n\nAPROVADO pelo usuário 2026-10-06 (testado no Studio).\n\nREABERTO 2026-10-07: câmera ao agachar ok, falta animação de crouch.\n\n2026-10-09: Animações de crouch já existem (Core e por arma via RigMovement, agora ligado no AnimateController) e o HipHeight foi corrigido (input-005). Pronto pra revisão junto com input-005.",
+      "column": "awaiting-approval",
       "tags": [
         "input",
         "movement",
@@ -235,7 +235,7 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-07"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-map-001",
@@ -296,7 +296,7 @@
     {
       "id": "task-map-005",
       "title": "Corrigir animação da pá",
-      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedback ambíguo junto com \"nao consigo passar da porta\". Perguntar ao Dots o que é a pá e qual o bug.\n\n2026-10-08: esclarecido pelo usuário: \"a pá tá bugada\" = animação da pá (Shovel) com problema. Escopo: corrigir animação da pá.",
+      "description": "PLAYTEST 2026-10-06 (Dots/Lucalrc).\n\nFeedback ambíguo junto com \"nao consigo passar da porta\". Perguntar ao Dots o que é a pá e qual o bug.\n\n2026-10-08: esclarecido pelo usuário: \"a pá tá bugada\" = animação da pá (Shovel) com problema. Escopo: corrigir animação da pá.\n\n2026-10-09: Velocidade/impacto do golpe sincronizados (weapon-012, done) e encaixe da pá/enxada (weapon-013). Se ainda houver problema na animação da pá em si, descrever o que falta.",
       "column": "todo",
       "tags": [
         "weapon",
@@ -306,7 +306,7 @@
       ],
       "priority": "low",
       "createdAt": "2026-10-06",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-weapon-005",
@@ -600,7 +600,7 @@
     {
       "id": "task-anim-002",
       "title": "Animações de reload e poses faltando",
-      "description": "2026-10-08: levantamento do que falta. Viewmodels Reload vazio em Shotgun, Peavolver, Sniperagus, Snipine, Carrocket, M6Bean, WatermeLMG, Uzichinni, Raygun, Strawborry; Shotgun Draw vazio. CharacterPoses (3a pessoa): Shotgun ShootHip/ShootAim, Onionnade Aim/Throw vazios. Hoe usa animações da pá; arremesso médio sem animação própria.",
+      "description": "2026-10-08: levantamento do que falta. Viewmodels Reload vazio em Shotgun, Peavolver, Sniperagus, Snipine, Carrocket, M6Bean, WatermeLMG, Uzichinni, Raygun, Strawborry; Shotgun Draw vazio. CharacterPoses (3a pessoa): Shotgun ShootHip/ShootAim, Onionnade Aim/Throw vazios. Hoe usa animações da pá; arremesso médio sem animação própria.\n\n2026-10-09: Shotgun resolvida (ver anim-004): 3a pessoa ShootHip/ShootAim e 1a pessoa Draw preenchidos. FALTA: Reload (viewmodel) de Peavolver, Sniperagus, Snipine, Carrocket, M6Bean, WatermeLMG, Uzichinni, Raygun, Strawborry; CharacterPoses Onionnade Aim/Throw; Hoe com animação própria (usa a da pá); arremesso médio sem animação própria.",
       "column": "todo",
       "tags": [
         "animation",
@@ -608,7 +608,7 @@
       ],
       "priority": "medium",
       "createdAt": "2026-10-08",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-weapon-010",
@@ -666,14 +666,14 @@
     {
       "id": "task-publish-001",
       "title": "Checklist de publicação",
-      "description": "2026-10-08: levantamento do que falta. docs/PublishChecklist.md: salvar place, Rojo sincronizado, AdminSettings com UserIds reais, Max Players >= 20 no site, API Services, teste publicado com 2 contas (matchmaking, salas, squad, teleporte).",
+      "description": "2026-10-08: levantamento do que falta. docs/PublishChecklist.md: salvar place, Rojo sincronizado, AdminSettings com UserIds reais, Max Players >= 20 no site, API Services, teste publicado com 2 contas (matchmaking, salas, squad, teleporte).\n\n2026-10-09: Feito: place salvo com backdoor removido, sons/músicas, DevProducts reais no ShopCatalog. FALTA: Rojo sincronizado antes do Publish, AdminSettings com UserIds reais, Max Players >= 20 no site, teste publicado com 2 contas (matchmaking, salas, loja/compra, squad, revive, crop drop).",
       "column": "todo",
       "tags": [
         "publish"
       ],
       "priority": "high",
       "createdAt": "2026-10-08",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-09"
     },
     {
       "id": "task-anim-003",
@@ -826,7 +826,7 @@
     {
       "id": "task-audio-004",
       "title": "Sons faltando no Assets.Sounds",
-      "description": "2026-10-08: auditoria profunda. Código referencia e não existe: GrenadeExplosion, BananaExplosion, LemonadeExplosion, MolotovExplosion, OnionnadeExplosion, PinappleExplosion, KillSplat, HeadshotSplat, MultiKill. Sem som definido: Chilli Thrower, Double Cob, golpe de Hoe/Shovel, reload, equipar arma, plantar/colher semente, passos, pulo/aterrissagem/slide, dano recebido, morte, respawn. Só 1 música (Music1).\n\n2026-10-09: criadas no place: PinappleExplosion=explosion1 92672064958181, GrenadeExplosion (Gromato/Carrocket)=explosion2 137170710336445, MolotovExplosion=explosion3 77659492821798, BananaExplosion=explosion1, LemonadeExplosion=potion explosion 78926518316635, OnionnadeExplosion=smoke granade 132096741187313, PotionBrewing=potion preparando 117951553324762 (sem uso ainda). 3D InverseTapered 15-400 studs. Faltam: KillSplat/HeadshotSplat/MultiKill e sons sem definição.",
+      "description": "2026-10-08: auditoria profunda. Código referencia e não existe: GrenadeExplosion, BananaExplosion, LemonadeExplosion, MolotovExplosion, OnionnadeExplosion, PinappleExplosion, KillSplat, HeadshotSplat, MultiKill. Sem som definido: Chilli Thrower, Double Cob, golpe de Hoe/Shovel, reload, equipar arma, plantar/colher semente, passos, pulo/aterrissagem/slide, dano recebido, morte, respawn. Só 1 música (Music1).\n\n2026-10-09: criadas no place: PinappleExplosion=explosion1 92672064958181, GrenadeExplosion (Gromato/Carrocket)=explosion2 137170710336445, MolotovExplosion=explosion3 77659492821798, BananaExplosion=explosion1, LemonadeExplosion=potion explosion 78926518316635, OnionnadeExplosion=smoke granade 132096741187313, PotionBrewing=potion preparando 117951553324762 (sem uso ainda). 3D InverseTapered 15-400 studs. Faltam: KillSplat/HeadshotSplat/MultiKill e sons sem definição.\n\n2026-10-09: Explosões criadas (Pinapple, Grenade, Molotov, Banana, Lemonade, Onionnade + PotionBrewing sem uso). FALTA: KillSplat, HeadshotSplat, MultiKill (killfeed-003) e sons ainda sem definição (Chilli Thrower, golpe melee, reload, equipar, plantar/colher, passos, dano, morte, respawn).",
       "column": "todo",
       "tags": [
         "audio",
