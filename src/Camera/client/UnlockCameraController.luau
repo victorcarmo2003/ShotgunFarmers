@@ -2,11 +2,13 @@
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 local StarterPlayer = game:GetService("StarterPlayer")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
 const UnlockCameraController = Modux.Controller("UnlockCameraController", {
-	Require = { "GameStateController", "InputController" },
+	Require = { "GameStateController", "InputController", "RoundController" },
 	Priority = 400,
 })
 
@@ -30,6 +32,7 @@ function UnlockCameraController:Setup()
 	self.Forced = false :: boolean
 	self.Manual = false :: boolean
 	self.Menu = false :: boolean
+	self.Ending = false :: boolean
 end
 
 function UnlockCameraController:SetUnlocked(unlocked: boolean)
@@ -38,7 +41,7 @@ function UnlockCameraController:SetUnlocked(unlocked: boolean)
 end
 
 function UnlockCameraController:Refresh()
-	self:SetUnlocked(self.Forced or self.Manual or self.Menu)
+	self:SetUnlocked(self.Forced or self.Manual or self.Menu or self.Ending)
 end
 
 function UnlockCameraController:SetMenu(open: boolean)
@@ -59,6 +62,18 @@ UnlockCameraController:OnStart(function(self)
 	self.Dependencies.GameStateController:Watch("FirstPerson", function(on: boolean)
 		self.Forced = not on
 		self:Refresh()
+	end)
+
+	const gameState = self.Dependencies.GameStateController
+	const round = self.Dependencies.RoundController
+	Vide.root(function()
+		Vide.effect(function()
+			const ending = gameState.State() == "Intermission" or round.SummaryVisible()
+			if ending ~= self.Ending then
+				self.Ending = ending
+				self:Refresh()
+			end
+		end)
 	end)
 
 	const handle = self.Dependencies.InputController:Bind({

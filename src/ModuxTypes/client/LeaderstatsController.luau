@@ -6,6 +6,7 @@ local StatsNet = require(ReplicatedStorage.shared.Stats.Net)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local LeaderstatsScreen = require(StarterPlayer.StarterPlayerScripts.client.Leaderstats.LeaderstatsScreen)
 local TeamScore = require(StarterPlayer.StarterPlayerScripts.client.Stats.TeamScore)
+local KillRanking = require(StarterPlayer.StarterPlayerScripts.client.Stats.KillRanking)
 
 export type Record = {
 	Kills: number,
@@ -23,6 +24,7 @@ export type Public = {
 	Loading: { [number]: boolean },
 	LocalTeam: Vide.Source<TeamScore.Team>,
 	Mode: Vide.Source<LeaderstatsScreen.Mode>,
+	Ranking: Vide.Source<{ KillRanking.Entry }>,
 	Records: { [number]: Record },
 	Red: Vide.Source<{ LeaderstatsScreen.Row }>,
 	Rows: Vide.Source<{ LeaderstatsScreen.Row }>,

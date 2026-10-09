@@ -10,6 +10,7 @@ local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 local LeaderstatsScreen = require(StarterPlayer.StarterPlayerScripts.client.Leaderstats.LeaderstatsScreen)
 local TeamScore = require(StarterPlayer.StarterPlayerScripts.client.Stats.TeamScore)
+local KillRanking = require(StarterPlayer.StarterPlayerScripts.client.Stats.KillRanking)
 
 export type Record = {
 	Kills: number,
@@ -41,6 +42,7 @@ function LeaderstatsController:Setup()
 	self.Mode = Vide.source("FFA") :: Vide.Source<LeaderstatsScreen.Mode>
 	self.Held = Vide.source(false) :: Vide.Source<boolean>
 	self.LocalTeam = Vide.source("None" :: TeamScore.Team) :: Vide.Source<TeamScore.Team>
+	self.Ranking = Vide.source({}) :: Vide.Source<{ KillRanking.Entry }>
 	self.Unmount = nil :: (() -> ())?
 end
 
@@ -103,12 +105,39 @@ function LeaderstatsController:Refresh()
 	table.sort(red, byScore)
 	table.sort(blue, byScore)
 
+	const ranking: { KillRanking.Entry } = {}
+	local topKills = 0
+	for userId, record in self.Records do
+		const player = Players:GetPlayerByUserId(userId)
+		if player then
+			topKills = math.max(topKills, record.Kills)
+			table.insert(ranking, {
+				UserId = userId,
+				Kills = record.Kills,
+				Image = self.Thumbnails[userId] or "",
+				Team = record.Team,
+				IsLocal = player == Players.LocalPlayer,
+				Leader = false,
+			})
+		end
+	end
+	table.sort(ranking, function(first: KillRanking.Entry, second: KillRanking.Entry): boolean
+		if first.Kills ~= second.Kills then
+			return first.Kills > second.Kills
+		end
+		return first.UserId < second.UserId
+	end)
+	for _, entry in ranking do
+		entry.Leader = topKills > 0 and entry.Kills == topKills
+	end
+
 	const own = self.Records[Players.LocalPlayer.UserId]
 	Vide.batch(function()
 		self.Rows(everyone)
 		self.Red(red)
 		self.Blue(blue)
 		self.LocalTeam(if own then own.Team else "None")
+		self.Ranking(ranking)
 	end)
 end
 
@@ -180,6 +209,16 @@ function LeaderstatsController:Mount()
 				Level = career.Level,
 				Xp = career.Xp,
 				XpMax = career.XpMax,
+			}),
+
+			KillRanking({
+				Visible = function()
+					return not self:IsShown()
+				end,
+				Entries = self.Ranking,
+				Title = function()
+					return ""
+				end,
 			}),
 
 			TeamScore({
