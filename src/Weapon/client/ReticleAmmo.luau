@@ -19,7 +19,8 @@ export type Props = {
 	Scale: (() -> number)?,
 }
 
-const OFFSET = 40
+const OFFSET_X = 18
+const OFFSET_Y = 20
 const AMMO_TEXT = 26
 const AMMO_MIN = 16
 const STATUS_TEXT = 13
@@ -83,9 +84,9 @@ return function(props: Props): Frame
 
 	return create("Frame")({
 		Name = "ReticleAmmo",
-		AnchorPoint = Vector2.new(0, 0.5),
+		AnchorPoint = Vector2.new(0, 0),
 		Position = function(): UDim2
-			return UDim2.new(0.5, math.round(OFFSET * scale()), 0.5, 0)
+			return UDim2.new(0.5, math.round(OFFSET_X * scale()), 0.5, math.round(OFFSET_Y * scale()))
 		end,
 		Size = UDim2.fromOffset(0, 0),
 		AutomaticSize = Enum.AutomaticSize.XY,
