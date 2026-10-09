@@ -29,6 +29,9 @@ const MAX_CLAIMS = 12
 const MELEE_RADIUS = 1.5
 const BULLET_FOLDER = "Bullets"
 
+const MAX_PELLET_SOUNDS = 8
+const PELLET_SOUND_STAGGER = 0.015
+
 const raycastParams = RaycastParams.new()
 raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 
@@ -174,12 +177,20 @@ function HitController:Send(request: FireRequest, hitPosition: Vector3?, consume
 
 	self.HitMarkerTrigger(self.HitMarkerTrigger() + 1)
 	if hitPosition then
-		const camera = workspace.CurrentCamera
-		if camera then
-			WeaponSounds.PlayPooled(WeaponSounds.RandomHit(), camera)
-		else
-			WeaponSounds.PlayAt(WeaponSounds.RandomHit(), hitPosition)
-		end
+		self:PlayHitSounds(math.min(reply.Hits, MAX_PELLET_SOUNDS), hitPosition)
+	end
+end
+
+function HitController:PlayHitSounds(count: number, position: Vector3)
+	for index = 1, count do
+		task.delay((index - 1) * PELLET_SOUND_STAGGER, function()
+			const camera = workspace.CurrentCamera
+			if camera then
+				WeaponSounds.PlayPooled(WeaponSounds.RandomHit(), camera)
+			else
+				WeaponSounds.PlayAt(WeaponSounds.RandomHit(), position)
+			end
+		end)
 	end
 end
 
@@ -209,8 +220,7 @@ function HitController:FireHitscan(gunData: GetGun.GunData, origin: Vector3, loo
 	const visuals: { WeaponVFX.Pellet } = {}
 	local hitPosition: Vector3? = nil
 	local hitTravel = 0
-	local wallPosition: Vector3? = nil
-	local wallTravel = 0
+	const walls: { { Position: Vector3, Travel: number } } = {}
 
 	for _ = 1, gunData.Bullets do
 		const direction = spreadDirection(look, spread)
@@ -228,9 +238,8 @@ function HitController:FireHitscan(gunData: GetGun.GunData, origin: Vector3, loo
 					hitPosition = result.Position
 					hitTravel = cast.Travel
 				end
-			elseif not wallPosition then
-				wallPosition = result.Position
-				wallTravel = cast.Travel
+			elseif #walls < MAX_PELLET_SOUNDS then
+				table.insert(walls, { Position = result.Position, Travel = cast.Travel })
 			end
 		end
 
@@ -239,10 +248,9 @@ function HitController:FireHitscan(gunData: GetGun.GunData, origin: Vector3, loo
 
 	self.Dependencies.VFXController:LocalShot(gunData, look, trailOrigin, visuals)
 
-	const wall = wallPosition
-	if wall then
-		task.delay(wallTravel, function()
-			WeaponSounds.PlayAt(WeaponSounds.RandomWall(), wall)
+	for index, wall in walls do
+		task.delay(wall.Travel + (index - 1) * PELLET_SOUND_STAGGER, function()
+			WeaponSounds.PlayAt(WeaponSounds.RandomWall(), wall.Position)
 		end)
 	end
 

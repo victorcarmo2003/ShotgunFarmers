@@ -24,6 +24,7 @@ export type Public = {
 	PlayShotSound: (self: Public, gunData: GetGun.GunData) -> (),
 	CanFire: (self: Public) -> boolean,
 	Send: (self: Public, request: FireRequest, hitPosition: Vector3?, consumes: boolean, travel: number) -> (),
+	PlayHitSounds: (self: Public, count: number, position: Vector3) -> (),
 	Dispatch: (self: Public, request: FireRequest, hitPosition: Vector3?, consumes: boolean, travel: number?) -> (),
 	FireHitscan: (self: Public, gunData: GetGun.GunData, origin: Vector3, look: Vector3, now: number) -> (),
 	FireMelee: (self: Public, gunData: GetGun.GunData) -> (),
