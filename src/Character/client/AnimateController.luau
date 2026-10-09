@@ -4,7 +4,19 @@ local StarterPlayer = game:GetService("StarterPlayer")
 local GetAnimations = require(ReplicatedStorage.shared.Character.GetAnimations)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
-export type CoreAnimState = "Idle" | "Walk" | "Run" | "CrouchIdle" | "CrouchWalk" | "Jump" | "Fall" | "Land"
+export type CoreAnimState =
+	"Idle"
+	| "Walk"
+	| "WalkBackward"
+	| "Run"
+	| "RunBackward"
+	| "CrouchIdle"
+	| "CrouchWalk"
+	| "CrouchWalkForward"
+	| "CrouchWalkBackward"
+	| "Jump"
+	| "Fall"
+	| "Land"
 
 const FADE_TIME = 0.15
 
@@ -14,12 +26,18 @@ const LAND_HOLD = 0.2
 
 const TICK_RATE = 30
 
+const DIRECTION_THRESHOLD = 0.35
+
 const LOOPED_STATES: { [CoreAnimState]: boolean } = {
 	Idle = true,
 	Walk = true,
+	WalkBackward = true,
 	Run = true,
+	RunBackward = true,
 	CrouchIdle = true,
 	CrouchWalk = true,
+	CrouchWalkForward = true,
+	CrouchWalkBackward = true,
 	Jump = false,
 	Fall = true,
 	Land = false,
@@ -28,23 +46,35 @@ const LOOPED_STATES: { [CoreAnimState]: boolean } = {
 const PRIORITY_BY_STATE: { [CoreAnimState]: Enum.AnimationPriority } = {
 	Idle = Enum.AnimationPriority.Idle,
 	Walk = Enum.AnimationPriority.Movement,
+	WalkBackward = Enum.AnimationPriority.Movement,
 	Run = Enum.AnimationPriority.Movement,
+	RunBackward = Enum.AnimationPriority.Movement,
 	CrouchIdle = Enum.AnimationPriority.Movement,
 	CrouchWalk = Enum.AnimationPriority.Movement,
+	CrouchWalkForward = Enum.AnimationPriority.Movement,
+	CrouchWalkBackward = Enum.AnimationPriority.Movement,
 	Jump = Enum.AnimationPriority.Movement,
 	Fall = Enum.AnimationPriority.Movement,
 	Land = Enum.AnimationPriority.Movement,
 }
 
-local function coreIds(): { [CoreAnimState]: string }
+local function pick(override: string?, fallback: string): string
+	return if override and override ~= "" then override else fallback
+end
 
+local function animationIds(gunName: string?): { [CoreAnimState]: string }
 	const core = GetAnimations.Core()
+	const movement: GetAnimations.MovementSet = (if gunName then GetAnimations.Movement(gunName) else nil) or {}
 	return {
-		Idle = core.Idle,
-		Walk = core.Walk,
-		Run = core.Run,
-		CrouchIdle = core.CrouchIdle,
-		CrouchWalk = core.CrouchWalk,
+		Idle = pick(movement.Idle, core.Idle),
+		Walk = pick(movement.Walk, core.Walk),
+		WalkBackward = pick(movement.WalkBackward, ""),
+		Run = pick(movement.RunForward, core.Run),
+		RunBackward = pick(movement.RunBackward, ""),
+		CrouchIdle = pick(movement.CrouchIdle, core.CrouchIdle),
+		CrouchWalk = pick(movement.CrouchWalk, core.CrouchWalk),
+		CrouchWalkForward = pick(movement.CrouchWalkForward, ""),
+		CrouchWalkBackward = pick(movement.CrouchWalkBackward, ""),
 		Jump = core.Jump,
 		Fall = core.Fall,
 		Land = core.Land,
@@ -64,7 +94,7 @@ local function loadTrack(animator: Animator, id: string): AnimationTrack?
 end
 
 const AnimateController = Modux.Controller("AnimateController", {
-	Require = { "MovementController" },
+	Require = { "MovementController", "WeaponController" },
 	Priority = 700,
 })
 
@@ -76,6 +106,12 @@ function AnimateController:Setup()
 	self.Airborne = false :: boolean
 	self.LandHoldUntil = 0 :: number
 	self.LastMovingClock = 0 :: number
+	self.GunName = nil :: string?
+end
+
+function AnimateController:EquippedGun(): string?
+	const gunData = self.Dependencies.WeaponController:GunData()
+	return if gunData then gunData.DisplayName else nil
 end
 
 function AnimateController:ClearTracks()
@@ -94,7 +130,8 @@ function AnimateController:ClearTracks()
 end
 
 function AnimateController:LoadTracks(animator: Animator)
-	const ids = coreIds()
+	self.GunName = self:EquippedGun()
+	const ids = animationIds(self.GunName)
 	const tracks: { [CoreAnimState]: AnimationTrack? } = {}
 	for state, looped in LOOPED_STATES do
 		const track = loadTrack(animator, ids[state])
@@ -186,14 +223,36 @@ function AnimateController:ComputeBaseState(): CoreAnimState
 	end
 	const isMoving = isMovingNow or (now - self.LastMovingClock) < IDLE_GRACE
 
+	local forward = 0
+	const root = if humanoid then humanoid.RootPart else nil
+	if root and isMovingNow then
+		forward = moveDirection.Unit:Dot(root.CFrame.LookVector)
+	end
+	const backward = forward < -DIRECTION_THRESHOLD
+	const ahead = forward > DIRECTION_THRESHOLD
+
 	const mode = self.Dependencies.MovementController.MovementState()
 	if mode == "Crouch" or mode == "Sliding" then
-		return if isMoving then "CrouchWalk" else "CrouchIdle"
+		if not isMoving then
+			return "CrouchIdle"
+		end
+		return self:Prefer(if backward then "CrouchWalkBackward" elseif ahead then "CrouchWalkForward" else "CrouchWalk", "CrouchWalk")
 	elseif mode == "Running" then
-		return if isMoving then "Run" else "Idle"
+		if not isMoving then
+			return "Idle"
+		end
+		return self:Prefer(if backward then "RunBackward" else "Run", "Run")
 	end
 
-	return if isMoving then "Walk" else "Idle"
+	if not isMoving then
+		return "Idle"
+	end
+	return self:Prefer(if backward then "WalkBackward" else "Walk", "Walk")
+end
+
+function AnimateController:Prefer(state: CoreAnimState, fallback: CoreAnimState): CoreAnimState
+	const tracks = self.Tracks
+	return if tracks and tracks[state] then state else fallback
 end
 
 function AnimateController:OnHumanoidStateChanged(state: Enum.HumanoidStateType)
@@ -218,8 +277,17 @@ AnimateController:OnTick(function(self)
 		self:Attach(humanoid)
 	end
 
-	if not self.TrackedHumanoid then
+	const tracked = self.TrackedHumanoid
+	if not tracked then
 		return
+	end
+
+	if self:EquippedGun() ~= self.GunName then
+		const animator = tracked:FindFirstChildOfClass("Animator")
+		if animator then
+			self:ClearTracks()
+			self:LoadTracks(animator)
+		end
 	end
 
 	if self.Dependencies.MovementController.MovementState() == "Dead" then

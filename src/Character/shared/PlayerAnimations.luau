@@ -13,10 +13,10 @@ return {
 
 	CharacterPoses = {
 		Shotgun = {
-			Hold = "rbxassetid://79832104197849",
-			Aim = "rbxassetid://121752543633785",
-			ShootHip = "",
-			ShootAim = "",
+			Hold = "rbxassetid://84820626320224",
+			Aim = "rbxassetid://76302304728480",
+			ShootHip = "rbxassetid://119202733486860",
+			ShootAim = "rbxassetid://117706212779768",
 		},
 		Peavolver = {
 			Hold = "rbxassetid://77655915059835",
@@ -276,6 +276,17 @@ return {
 	DefaultPoseCategory = "Rifle",
 
 	RigMovement = {
+		Shotgun = {
+			Idle = "rbxassetid://87426652995703",
+			Walk = "rbxassetid://127875858754354",
+			WalkBackward = "rbxassetid://92731164654147",
+			RunForward = "rbxassetid://72625085516254",
+			RunBackward = "rbxassetid://134207049460887",
+			CrouchIdle = "rbxassetid://122189176988333",
+			CrouchWalk = "rbxassetid://77358885184321",
+			CrouchWalkForward = "rbxassetid://85227940908745",
+			CrouchWalkBackward = "rbxassetid://90105079269962",
+		},
 		Peavolver = {
 			Idle = "rbxassetid://121391983011658",
 			Walk = "rbxassetid://110475263128878",

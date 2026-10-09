@@ -30,13 +30,25 @@ export type AnimationSet = {
 	Draw: string?,
 }
 
+export type MovementSet = {
+	Idle: string?,
+	Walk: string?,
+	WalkBackward: string?,
+	RunForward: string?,
+	RunBackward: string?,
+	CrouchIdle: string?,
+	CrouchWalk: string?,
+	CrouchWalkForward: string?,
+	CrouchWalkBackward: string?,
+}
+
 const DATA = PlayerAnimations :: {
 	Core: CoreAnimations,
 	CharacterPoses: { [string]: AnimationSet },
 	Viewmodels: { [string]: AnimationSet },
 	PoseCategoryByGun: { [string]: string },
 	DefaultPoseCategory: string,
-	RigMovement: { [string]: string },
+	RigMovement: { [string]: MovementSet },
 }
 
 local GetAnimations = {}
@@ -55,6 +67,10 @@ end
 
 function GetAnimations.CharacterPose(gunName: string): AnimationSet?
 	return DATA.CharacterPoses[GetAnimations.Category(gunName)]
+end
+
+function GetAnimations.Movement(gunName: string): MovementSet?
+	return DATA.RigMovement[GetAnimations.Category(gunName)]
 end
 
 return GetAnimations
