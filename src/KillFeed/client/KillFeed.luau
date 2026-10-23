@@ -7,6 +7,7 @@ const create = Vide.create
 const values = Vide.values
 
 const ASPECT_RATIO = (0.3 * 16) / (0.6 * 9)
+const ROW_GAP = 4
 
 export type Entry = KillFeedEntry.Entry
 
@@ -35,7 +36,7 @@ return function(props: Props): Frame
 			HorizontalAlignment = Enum.HorizontalAlignment.Right,
 			VerticalAlignment = Enum.VerticalAlignment.Top,
 			SortOrder = Enum.SortOrder.LayoutOrder,
-			Padding = UDim.new(0.1, 0),
+			Padding = UDim.new(0, ROW_GAP),
 		}),
 
 		values(props.Entries, function(entry: Entry, index: () -> number)

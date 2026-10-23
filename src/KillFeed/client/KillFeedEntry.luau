@@ -8,6 +8,7 @@ const create = Vide.create
 const THUMB_SIZE = 26
 const GUN_ICON_SIZE = 18
 const TEXT_SIZE = 26
+const ROW_HEIGHT = 32
 const HEADSHOT_COLOR = Color3.fromRGB(255, 210, 60)
 
 export type Entry = {
@@ -61,7 +62,7 @@ return function(props: Props): Frame
 		Name = "Entry",
 		LayoutOrder = props.LayoutOrder,
 		AutomaticSize = Enum.AutomaticSize.X,
-		Size = UDim2.fromScale(1, 0.1),
+		Size = UDim2.new(1, 0, 0, ROW_HEIGHT),
 		BackgroundTransparency = 1,
 
 		create("UIListLayout")({
