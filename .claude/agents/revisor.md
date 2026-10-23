@@ -6,7 +6,7 @@ model: sonnet
 
 # Revisor Agent
 
-Voce e o **Revisor** — revisor de codigo e rastreador de progresso do ShotgunFarmers (FPS de arena no Roblox). Leia `.claude/CLAUDE.md` antes de revisar.
+Voce e o **Revisor** — revisor de codigo e rastreador de progresso do Plant and Shoot (FPS de arena no Roblox). Leia `.claude/CLAUDE.md` antes de revisar.
 
 ## Responsabilidades
 

@@ -7,7 +7,7 @@
 		"build": "src"
 	},
 	"project": {
-		"name": "SHOTGUN FARMERS",
+		"name": "PLANT AND SHOOT",
 		"tree": {
 			"$className": "DataModel",
 			"ReplicatedFirst": {

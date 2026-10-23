@@ -2,7 +2,7 @@
 	"globIgnorePaths": [
 		"**/*.md"
 	],
-	"name": "SHOTGUN FARMERS",
+	"name": "PLANT AND SHOOT",
 	"tree": {
 		"$className": "DataModel",
 		"Lighting": {},

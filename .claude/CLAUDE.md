@@ -1,7 +1,7 @@
-# ShotgunFarmers — Roblox Game Project
+# Plant and Shoot — Roblox Game Project
 
 ## Overview
-ShotgunFarmers is a first-person arena shooter (FPS) on Roblox where the weapons are vegetable-themed guns and the arenas are small farms. Players fire shotguns/rifles with per-pellet hit registration, plant and harvest "seeds" on `Farmland` parts (weapons and ammo spawn as seeds), and use a movement FSM with slide/crouch.
+Plant and Shoot is a first-person arena shooter (FPS) on Roblox where the weapons are vegetable-themed guns and the arenas are small farms. Players fire shotguns/rifles with per-pellet hit registration, plant and harvest "seeds" on `Farmland` parts (weapons and ammo spawn as seeds), and use a movement FSM with slide/crouch.
 
 - **Modes** (`src/Match/shared/GameModes.luau`): `FFA`, `TDM`, `Chicken` (team modes) and `Practice` (infinite round, infinite ammo/grenades).
 - **Lobby and match are the same place.** `ServerRoleService` (`src/Match/server/`) decides a server's role (`Lobby` | `Match` | `Router`) from the MemoryStore config of the reserved server (`game.PrivateServerId`). `MatchmakingService`/`RouterService`/`MatchRegistryService` + `TeleportGateway` do `ReserveServer` + `TeleportAsync` into the same place (see `docs/PublishChecklist.md`). Teleport does not work in Studio; use the `ForceRole`/`ForceMode`/`ForceMap` attributes on `workspace` (Studio only).

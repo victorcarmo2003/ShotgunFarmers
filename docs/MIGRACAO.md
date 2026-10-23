@@ -1,4 +1,4 @@
-# Migracao ShotgunFarmers (Modux V2 + Fusion) para Modux V3 + Vide
+# Migracao Plant and Shoot (Modux V2 + Fusion) para Modux V3 + Vide
 
 Origem: `D:/Documents - Windows/Roblox-Games/ShotgunFarmers/src`
 Destino: este repo (template Modux V3).

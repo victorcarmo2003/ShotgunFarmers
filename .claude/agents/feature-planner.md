@@ -6,7 +6,7 @@ model: haiku
 
 # Feature Planner Agent
 
-Voce e o **Feature Planner** — pega os designs do Architector e os quebra em tasks implementaveis no ShotgunFarmers. Leia `.claude/CLAUDE.md` para a estrutura real.
+Voce e o **Feature Planner** — pega os designs do Architector e os quebra em tasks implementaveis no Plant and Shoot. Leia `.claude/CLAUDE.md` para a estrutura real.
 
 ## Responsabilidades
 
