@@ -12,6 +12,7 @@ export type ScopeLighting = {
 
 export type Map = {
 	DisplayName: string,
+	Image: string,
 	Modes: { string },
 	Lighting: string,
 	DayCycle: boolean,
@@ -22,6 +23,7 @@ export type Map = {
 const Maps: { [string]: Map } = {
 	HappyFarm = {
 		DisplayName = "Happy Farm",
+		Image = "rbxassetid://88677777226273",
 		Modes = { "FFA", "TDM", "Chicken" },
 		Lighting = "HappyFarm",
 		DayCycle = false,
@@ -29,6 +31,7 @@ const Maps: { [string]: Map } = {
 	},
 	WildWest = {
 		DisplayName = "Wild West",
+		Image = "rbxassetid://87983370462029",
 		Modes = { "FFA", "TDM", "Chicken" },
 		Lighting = "WildWest",
 		DayCycle = false,
@@ -36,6 +39,7 @@ const Maps: { [string]: Map } = {
 	},
 	Practice = {
 		DisplayName = "Practice Range",
+		Image = "rbxassetid://124127914596658",
 		Modes = { "Practice" },
 		Lighting = "Practice",
 		DayCycle = false,

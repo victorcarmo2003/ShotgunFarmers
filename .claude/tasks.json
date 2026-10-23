@@ -1384,8 +1384,8 @@
     {
       "id": "task-map-007",
       "title": "Adicionar imagem dos mapas",
-      "description": "Pedido do Dots: imagem de cada mapa (seleção/voto). Combinado: tirar print normal dentro de cada mapa no Studio, subir como Decal e colocar o asset id em src/Match/shared/Maps.luau. Incluir o mapa de treino quando task-map-006 sair.",
-      "column": "todo",
+      "description": "Pedido do Dots: imagem de cada mapa (seleção/voto). Combinado: tirar print normal dentro de cada mapa no Studio, subir como Decal e colocar o asset id em src/Match/shared/Maps.luau. Incluir o mapa de treino quando task-map-006 sair. FEITO: prints rente ao chão de HappyFarm, WildWest (LavaFloor transparente só no clone) e Practice, tirados no Studio pelo MCP com o preset de lighting de cada mapa; arquivos em Assets/MapPreviews/. Subidos: HappyFarm rbxassetid://88677777226273, WildWest rbxassetid://87983370462029, Practice rbxassetid://124127914596658. Maps.luau ganhou campo Image (obrigatório no tipo Map). Exibir na votação/criação de sala é a task-ui-007.",
+      "column": "awaiting-approval",
       "tags": [
         "map",
         "ui",
