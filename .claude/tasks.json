@@ -1368,8 +1368,8 @@
     {
       "id": "task-hit-002",
       "title": "Indicador de hit e crosshair ao mirar",
-      "description": "Pedido do Dots: hitmarker ao acertar e crosshair ao mirar (ADS). Conferir o comportamento atual do Crosshair (src/Weapon) em hip e ADS antes de mexer. Aceite: hitmarker aparece em hip e ADS, crosshair visível ao apertar AIM.",
-      "column": "todo",
+      "description": "Pedido do Dots: hitmarker ao acertar e crosshair ao mirar (ADS). Conferir o comportamento atual do Crosshair (src/Weapon) em hip e ADS antes de mexer. Aceite: hitmarker aparece em hip e ADS, crosshair visível ao apertar AIM. FEITO: antes o Crosshair sumia sempre que IsAiming; agora só some quando a luneta (ScopeController.Active) está na tela, porque ela tem retícula própria. Mirando sem scope o crosshair fica e não abre com o movimento (spread de movimento zerado na mira). Hitmarker agora dispara pelo packet Hit.Dealt (DamageNumberController -> HitController:Mark), então aparece para qualquer dano confirmado pelo servidor (tiro, projétil, explosão, fogo), não só hitscan; cor branca, amarela no headshot e vermelha no abate (HitMarker ganhou prop Color). Sons de acerto continuam na resposta do Hit.Fire.",
+      "column": "awaiting-approval",
       "tags": [
         "hit",
         "weapon",

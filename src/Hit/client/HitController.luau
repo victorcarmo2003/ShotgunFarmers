@@ -30,6 +30,9 @@ const MELEE_RADIUS = 1.5
 const BULLET_FOLDER = "Bullets"
 
 const MAX_PELLET_SOUNDS = 8
+const MARKER_COLOR = Color3.fromRGB(255, 255, 255)
+const MARKER_HEADSHOT_COLOR = Color3.fromRGB(255, 214, 64)
+const MARKER_KILL_COLOR = Color3.fromRGB(255, 86, 64)
 const PELLET_SOUND_STAGGER = 0.015
 
 const raycastParams = RaycastParams.new()
@@ -53,6 +56,7 @@ const HitController = Modux.Controller("HitController", {
 function HitController:Setup()
 	self.LastShotTime = 0 :: number
 	self.HitMarkerTrigger = Vide.source(0) :: Vide.Source<number>
+	self.HitMarkerColor = Vide.source(MARKER_COLOR) :: Vide.Source<Color3>
 	self.Holding = false :: boolean
 	self.InFlight = 0 :: number
 	self.Fired = self.Libs.Signal.new() :: SignalLib.Signal<GetGun.GunData>
@@ -181,10 +185,14 @@ function HitController:Send(request: FireRequest, hitPosition: Vector3?, consume
 		task.wait(remaining)
 	end
 
-	self.HitMarkerTrigger(self.HitMarkerTrigger() + 1)
 	if hitPosition then
 		self:PlayHitSounds(math.min(reply.Hits, MAX_PELLET_SOUNDS), hitPosition)
 	end
+end
+
+function HitController:Mark(headshot: boolean, killed: boolean)
+	self.HitMarkerColor(if killed then MARKER_KILL_COLOR elseif headshot then MARKER_HEADSHOT_COLOR else MARKER_COLOR)
+	self.HitMarkerTrigger(self.HitMarkerTrigger() + 1)
 end
 
 function HitController:PlayHitSounds(count: number, position: Vector3)

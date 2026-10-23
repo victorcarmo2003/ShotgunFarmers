@@ -119,6 +119,7 @@ function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part
 	const arms = self.Dependencies.ArmsController
 	const movement = self.Dependencies.MovementController
 	const options = self.Dependencies.OptionsController
+	const scope = self.Dependencies.ScopeController
 	const hud = self.Dependencies.GameStateController:Capability("Hud")
 	const mobile = Platform.IsMobile()
 
@@ -212,16 +213,17 @@ function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part
 					return options:CrosshairConfig()
 				end,
 				Movement = Vide.spring(function()
-					return if movement.IsMoving() then 1 else 0
+					return if movement.IsMoving() and not arms.IsAiming() then 1 else 0
 				end, MOVEMENT_SPRING, 1),
 				Firing = self.Bloom,
 				Visible = function()
-					return not arms.IsAiming()
+					return not scope.Active()
 				end,
 			}),
 
 			HitMarker({
 				Trigger = hit.HitMarkerTrigger,
+				Color = hit.HitMarkerColor,
 			}),
 		})
 	end, playerGui)

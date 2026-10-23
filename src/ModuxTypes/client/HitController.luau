@@ -16,6 +16,7 @@ export type FireRequest = {
 
 export type Public = {
 	Fired: SignalLib.Signal<GetGun.GunData>,
+	HitMarkerColor: Vide.Source<Color3>,
 	HitMarkerTrigger: Vide.Source<number>,
 	Holding: boolean,
 	InFlight: number,
@@ -24,6 +25,7 @@ export type Public = {
 	PlayShotSound: (self: Public, gunData: GetGun.GunData) -> (),
 	CanFire: (self: Public) -> boolean,
 	Send: (self: Public, request: FireRequest, hitPosition: Vector3?, consumes: boolean, travel: number) -> (),
+	Mark: (self: Public, headshot: boolean, killed: boolean) -> (),
 	PlayHitSounds: (self: Public, count: number, position: Vector3) -> (),
 	Dispatch: (self: Public, request: FireRequest, hitPosition: Vector3?, consumes: boolean, travel: number?) -> (),
 	FireHitscan: (self: Public, gunData: GetGun.GunData, origin: Vector3, look: Vector3, now: number) -> (),

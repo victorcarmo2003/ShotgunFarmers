@@ -8,27 +8,32 @@ const effect = Vide.effect
 
 const MARK_LENGTH = 24
 const MARK_THICKNESS = 3
+const DEFAULT_COLOR = Color3.new(1, 1, 1)
 const FADE_TWEEN = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 export type Props = {
 	Trigger: () -> number,
+	Color: (() -> Color3)?,
 	Position: UDim2?,
 }
 
-local function mark(name: string, rotation: number): Frame
+local function mark(name: string, rotation: number, color: () -> Color3): Frame
 	return create("Frame")({
 		Name = name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromOffset(MARK_LENGTH, MARK_THICKNESS),
 		Rotation = rotation,
-		BackgroundColor3 = Color3.new(1, 1, 1),
+		BackgroundColor3 = color,
 		BackgroundTransparency = 1,
 	})
 end
 
 return function(props: Props): Frame
-	const marks = { mark("Mark1", 45), mark("Mark2", -45) }
+	const color = function(): Color3
+		return if props.Color then props.Color() else DEFAULT_COLOR
+	end
+	const marks = { mark("Mark1", 45, color), mark("Mark2", -45, color) }
 	const running: { [Frame]: Tween } = {}
 
 	local previous: number? = nil

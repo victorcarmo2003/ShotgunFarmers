@@ -36,7 +36,7 @@ const JITTER = 0.6
 const SIZE = UDim2.fromOffset(110, 44)
 const MAX_DISTANCE = 250
 
-const DamageNumberController = Modux.Controller("DamageNumberController", { Priority = 440 })
+const DamageNumberController = Modux.Controller("DamageNumberController", { Require = { "HitController" }, Priority = 440 })
 
 function DamageNumberController:Setup()
 	self.Entries = {} :: { [number]: Entry }
@@ -113,6 +113,7 @@ function DamageNumberController:Schedule(targetID: number, entry: Entry)
 end
 
 function DamageNumberController:Show(data: Dealt)
+	self.Dependencies.HitController:Mark(data.Headshot, data.Killed)
 	const now = os.clock()
 	local entry = self.Entries[data.TargetID]
 	if entry and not entry.Fading() and now - entry.LastAt <= MERGE_WINDOW then
