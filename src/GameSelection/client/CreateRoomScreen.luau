@@ -5,6 +5,7 @@ local Maps = require(ReplicatedStorage.shared.Match.Maps)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local ScreenKit = require(StarterPlayer.StarterPlayerScripts.client.Interface.ScreenKit)
 
+const create = Vide.create
 const source = Vide.source
 
 const at = ScreenKit.at
@@ -27,6 +28,10 @@ const COLUMN_X = { 150, 345, 540, 735 }
 const BUTTON_WIDTH = 180
 const BUTTON_HEIGHT = 43
 const RANDOM_MAP = ""
+const PREVIEW_X = 540
+const PREVIEW_Y = 315
+const PREVIEW_WIDTH = 375
+const PREVIEW_HEIGHT = 118
 
 local function roomMaps(): { string }
 	const names: { string } = {}
@@ -56,6 +61,44 @@ local function option(name: string, text: string, x: number, y: number, selected
 		Color = colorFor(selected),
 		OnActivated = onPick,
 		Children = { ScreenKit.label(text, 30, BUTTON_HEIGHT) },
+	})
+end
+
+local function preview(mapName: () -> string): Frame
+	const random = ScreenKit.text({
+		Name = "Random",
+		Text = "RANDOM",
+		Position = UDim2.fromScale(0, 0),
+		Size = UDim2.fromScale(1, 1),
+		FontSize = 36,
+		BoxHeight = PREVIEW_HEIGHT,
+	})
+	Vide.effect(function()
+		random.Visible = mapName() == RANDOM_MAP
+	end)
+
+	return create("Frame")({
+		Name = "MapPreview",
+		Position = at(PREVIEW_X, PREVIEW_Y),
+		Size = at(PREVIEW_WIDTH, PREVIEW_HEIGHT),
+		BackgroundColor3 = ScreenKit.Colors.Black,
+		BackgroundTransparency = ScreenKit.DARK_TRANSPARENCY,
+		ClipsDescendants = true,
+
+		create("ImageLabel")({
+			Name = "MapImage",
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			ScaleType = Enum.ScaleType.Crop,
+			Image = function()
+				const map = Maps[mapName()]
+				return if map then map.Image else ""
+			end,
+		}),
+
+		random,
+
+		ScreenKit.stroke(ScreenKit.Colors.White, 2),
 	})
 end
 
@@ -134,6 +177,8 @@ return function(props: Props): Frame
 
 			section("MAP", 230),
 			mapButtons,
+
+			preview(mapName),
 
 			section("ACCESS", 320),
 			option("Public", "PUBLIC", COLUMN_X[1], 352, function()

@@ -19,10 +19,12 @@ const CENTER_X = 561
 const IDLE_COLOR = Color3.fromRGB(46, 46, 52)
 const PICKED_COLOR = ScreenKit.Colors.Orange
 const WINNER_COLOR = ScreenKit.Colors.Green
+const PREVIEW_TINT = Color3.fromRGB(170, 170, 170)
 
 export type Option = {
 	Name: string,
 	DisplayName: string,
+	Image: string,
 	Votes: number,
 }
 
@@ -72,6 +74,18 @@ local function card(option: () -> Option, index: number, props: Props): Frame
 					Size = inside(162, 185, CARD_WIDTH, CARD_HEIGHT),
 					BackgroundColor3 = ScreenKit.Colors.Black,
 					BackgroundTransparency = ScreenKit.DARK_TRANSPARENCY,
+					ClipsDescendants = true,
+
+					create("ImageLabel")({
+						Name = "MapImage",
+						Size = UDim2.fromScale(1, 1),
+						BackgroundTransparency = 1,
+						ScaleType = Enum.ScaleType.Crop,
+						ImageColor3 = PREVIEW_TINT,
+						Image = function()
+							return option().Image
+						end,
+					}),
 
 					ScreenKit.text({
 						Name = "Votes",

@@ -42,6 +42,7 @@ function VoteController:Entries(): { VoteMenu.Option }
 			table.insert(entries, {
 				Name = name,
 				DisplayName = if map then map.DisplayName else name,
+				Image = if map then map.Image else "",
 				Votes = count,
 			})
 		end

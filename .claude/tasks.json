@@ -705,8 +705,8 @@
     {
       "id": "task-ui-007",
       "title": "Prévia dos mapas na votação",
-      "description": "2026-10-08: auditoria profunda. VoteMenu: card de mapa tem 'Preview' preto só com contagem de votos. Precisa imagem por mapa (campo novo em Maps.luau) e também nos botões de mapa do CREATE ROOM.",
-      "column": "todo",
+      "description": "2026-10-08: auditoria profunda. VoteMenu: card de mapa tem 'Preview' preto só com contagem de votos. Precisa imagem por mapa (campo novo em Maps.luau) e também nos botões de mapa do CREATE ROOM. FEITO 2026-10-23: VoteMenu.Option ganhou Image; a área Preview do card mostra a imagem do mapa (Crop, levemente escurecida para o número de votos ler bem), VoteController preenche com Maps[name].Image; story atualizada. CreateRoomScreen: os botões de mapa têm 43px de altura e não comportam imagem, então entrou um quadro MapPreview (375x118) à direita da linha ACCESS com a imagem do mapa escolhido, ou o texto RANDOM quando aleatório.",
+      "column": "awaiting-approval",
       "tags": [
         "ui",
         "round",
