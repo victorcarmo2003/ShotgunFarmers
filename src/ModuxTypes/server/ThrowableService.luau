@@ -1,9 +1,13 @@
 --!strict
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 local ThrowSim = require(ReplicatedStorage.shared.Weapon.ThrowSim)
 local Throwables = require(ReplicatedStorage.shared.Weapon.Throwables)
+local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
 
+type Fighter = BotTypes.Fighter
+type Bot = BotTypes.Bot
 export type ThrowRequest = {
 	Origin: Vector3,
 	Direction: Vector3,
@@ -49,15 +53,18 @@ export type Public = {
 	Zones: { Zone },
 	Setup: (self: Public) -> (),
 	AllocateId: (self: Public) -> number,
-	IsAlive: (self: Public, player: Player) -> boolean,
-	Hurt: (self: Public, owner: Player, victim: Player, amount: number, gunName: string, isHeadshot: boolean?) -> (),
+	IsAlive: (self: Public, fighter: Fighter) -> boolean,
+	Hurt: (self: Public, owner: Player, victim: Fighter, amount: number, gunName: string, isHeadshot: boolean?) -> (),
 	SafeOrigin: (self: Public, character: Model, requested: Vector3) -> Vector3,
 	ProcessThrow: (self: Public, request: ThrowRequest, player: Player) -> (),
 	Launch: (self: Public, owner: Player, gunName: string, kind: number, definition: Throwables.Definition, origin: Vector3, velocity: Vector3, curve: number, latency: number) -> (),
 	StepProjectile: (self: Public, projectile: Projectile) -> boolean,
+	BotOnSegment: (self: Public, projectile: Projectile, origin: Vector3, travel: Vector3) -> (Bot?, number, number),
+	StrikeBot: (self: Public, projectile: Projectile, bot: Bot, part: number) -> (),
 	NearEnemy: (self: Public, projectile: Projectile) -> boolean,
 	Strike: (self: Public, projectile: Projectile, instance: Instance) -> (),
 	CanSee: (self: Public, center: Vector3, character: Model) -> boolean,
+	CanSeePoint: (self: Public, center: Vector3, point: Vector3) -> boolean,
 	Blast: (self: Public, projectile: Projectile, center: Vector3) -> (),
 	Shrapnel: (self: Public, projectile: Projectile, center: Vector3) -> { Vector3 },
 	GroundBelow: (self: Public, position: Vector3) -> Vector3,

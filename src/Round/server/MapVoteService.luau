@@ -7,6 +7,7 @@ local LoadoutSettings = require(ReplicatedStorage.shared.Weapon.LoadoutSettings)
 local Maps = require(ReplicatedStorage.shared.Match.Maps)
 local PracticeCatalog = require(ReplicatedStorage.shared.Practice.PracticeCatalog)
 local VoteMaps = require(ReplicatedStorage.shared.Round.VoteMaps)
+local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
 local Modux = require(ServerScriptService.server.Modux)
 
 const MIN_OPTIONS = 2
@@ -33,6 +34,7 @@ function MapVoteService:Setup()
 	self.Pool = {} :: { GetGun.GunNames }
 	self.Wanted = {} :: { [Player]: GetGun.GunNames }
 	self.Granted = {} :: { [Player]: boolean }
+	self.Voted = self.Libs.Signal.new() :: SignalLib.Signal<Player, number>
 end
 
 function MapVoteService:ModeName(): string?
@@ -166,6 +168,7 @@ function MapVoteService:Cast(player: Player, option: number)
 
 	self.Votes[player] = option
 	self:Tally()
+	self.Voted:Fire(player, option)
 end
 
 function MapVoteService:Pick(): number

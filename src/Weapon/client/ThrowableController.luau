@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StarterPlayer = game:GetService("StarterPlayer")
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local SkinCatalog = require(ReplicatedStorage.shared.Shop.SkinCatalog)
 local ThrowSim = require(ReplicatedStorage.shared.Weapon.ThrowSim)
 local Throwables = require(ReplicatedStorage.shared.Weapon.Throwables)
 local WeaponNet = require(ReplicatedStorage.shared.Weapon.Net)
@@ -305,12 +306,16 @@ local function playerByGameID(id: number): Player?
 	return nil
 end
 
-local function projectileVisual(definition: Throwables.Definition, gunName: string): Model
+local function projectileVisual(definition: Throwables.Definition, gunName: string, owner: Player?): Model
 	const weapons = assetFolder("Weapons")
 	const modelName = definition.ProjectileModel or gunName
 	const asset = if weapons then weapons:FindFirstChild(modelName) else nil
 	if asset and asset:IsA("Model") then
 		const model = asset:Clone()
+		const skin = if owner then SkinCatalog.ForPlayer(owner, gunName) else nil
+		if skin then
+			SkinCatalog.Apply(model, skin, "1k")
+		end
 		for _, descendant in model:GetDescendants() do
 			if descendant:IsA("BasePart") then
 				inertPart(descendant)
@@ -722,7 +727,7 @@ function ThrowableController:OnSpawn(packet: WeaponNet.ThrowSpawn)
 		end
 	end
 
-	const visual = projectileVisual(definition, gunData.DisplayName)
+	const visual = projectileVisual(definition, gunData.DisplayName, owner)
 	self.Dependencies.VFXController:AttachTrail(visual, gunData.DisplayName)
 	const flight: Flight = {
 		Id = packet.Id,

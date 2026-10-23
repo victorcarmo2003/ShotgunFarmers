@@ -26,7 +26,10 @@ end
 function SnapshotService:RegisterSnapshot(player: Player, frame: SnapshotFrame)
 	const targetID = self.Dependencies.IDService:GetPlayerID(player)
 	self.Recorded[player] = targetID
+	self:RecordFrame(targetID, frame)
+end
 
+function SnapshotService:RecordFrame(targetID: number, frame: SnapshotFrame)
 	local history = self.History[targetID]
 	if not history then
 		history = {}

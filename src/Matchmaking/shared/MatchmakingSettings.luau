@@ -18,6 +18,8 @@ return {
 	TeleportRetries = 1,
 	RouterAttempts = 3,
 	RouterRetryDelay = 2,
+	RouterLoadTimeout = 10,
+	RouterSettleDelay = 0.5,
 	RegistryPageSize = 200,
 	RegistryMaxPages = 5,
 	JoinCandidates = 5,

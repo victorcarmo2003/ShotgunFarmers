@@ -2,6 +2,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PartyNet = require(ReplicatedStorage.shared.Party.Net)
+local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
 
 type Incoming = {
 	Id: string,
@@ -21,6 +22,7 @@ type FriendCache = { Ids: { [number]: boolean }, Names: { [number]: string }, At
 type PresenceEntry = { Value: any, At: number }
 
 export type Public = {
+	Answered: SignalLib.Signal<Player, number, string>,
 	Budget: { [Player]: { Start: number, Count: number } },
 	Friends: { [number]: FriendCache },
 	Incoming: { [Player]: { Incoming } },
@@ -30,6 +32,7 @@ export type Public = {
 	LastInvite: { [Player]: number },
 	Outgoing: { [string]: Outgoing },
 	PresenceCache: { [number]: PresenceEntry },
+	Sent: SignalLib.Signal<Player, number>,
 	Setup: (self: Public) -> (),
 	Notice: (self: Public, player: Player, message: string) -> (),
 	Spend: (self: Public, player: Player) -> boolean,

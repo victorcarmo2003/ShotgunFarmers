@@ -10,10 +10,12 @@ local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
 export type Entry = KillFeed.Entry
 
+export type Identity = { Name: string, Image: string }
+
 const ENTRY_LIFETIME = 6
 const MAX_ENTRIES = 5
 
-const KillFeedController = Modux.Controller("KillFeedController", { Priority = 420 })
+const KillFeedController = Modux.Controller("KillFeedController", { Require = { "BotController" }, Priority = 420 })
 
 function KillFeedController:Setup()
 	self.Entries = Vide.source({}) :: Vide.Source<{ Entry }>
@@ -42,6 +44,20 @@ function KillFeedController:Thumbnail(player: Player): string
 	return resolved
 end
 
+function KillFeedController:Identify(id: number): Identity?
+	const player = playerFromGameID(id)
+	if player then
+		return { Name = player.DisplayName, Image = self:Thumbnail(player) }
+	end
+
+	const bots = self.Dependencies.BotController
+	const member = bots:Find(id)
+	if member then
+		return { Name = member.DisplayName, Image = bots:Thumbnail(member) }
+	end
+	return nil
+end
+
 function KillFeedController:Forget(entry: Entry)
 	const current = table.clone(self.Entries())
 	const index = table.find(current, entry)
@@ -53,14 +69,14 @@ function KillFeedController:Forget(entry: Entry)
 	self.Entries(current)
 end
 
-function KillFeedController:Push(shooter: Player, victim: Player, gunName: string, isHeadshot: boolean)
+function KillFeedController:Push(shooter: Identity, victim: Identity, gunName: string, isHeadshot: boolean)
 	const gunData = GetGun.ByName(gunName)
 
 	const entry: Entry = {
-		ShooterName = shooter.DisplayName,
-		ShooterImage = self:Thumbnail(shooter),
-		VictimName = victim.DisplayName,
-		VictimImage = self:Thumbnail(victim),
+		ShooterName = shooter.Name,
+		ShooterImage = shooter.Image,
+		VictimName = victim.Name,
+		VictimImage = victim.Image,
 		GunName = (gunData and gunData.DisplayName) or gunName,
 		GunImage = (gunData and gunData.ImageID) or "",
 		IsHeadshot = isHeadshot,
@@ -84,8 +100,8 @@ KillFeedController:OnInit(function(self)
 
 	self.Libs.Net.KillFeed.Kill:onClient(function(data)
 		task.spawn(function()
-			const shooter = playerFromGameID(data.ShooterID)
-			const victim = playerFromGameID(data.VictimID)
+			const shooter = self:Identify(data.ShooterID)
+			const victim = self:Identify(data.VictimID)
 			if not shooter or not victim then
 				return
 			end

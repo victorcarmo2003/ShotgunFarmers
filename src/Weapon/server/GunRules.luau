@@ -3,6 +3,7 @@ local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GameSettings = require(ReplicatedStorage.shared.Settings.GameSettings)
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local SeedSettings = require(ReplicatedStorage.shared.Seed.SeedSettings)
 
 const PLANTABLE_TAG = "Farmland"
 const PLANT_RAY_RANGE = 150
@@ -100,7 +101,7 @@ local function dirtTemplate(): BasePart?
 	return nil
 end
 
-function GunRules.PlantAt(position: Vector3, gunName: string): BasePart?
+function GunRules.PlantAt(position: Vector3, gunName: string, source: string?, planter: Player?): BasePart?
 	const template = dirtTemplate()
 	if not template then
 		warn("[GunRules] Assets.Seeds.Dirt nao encontrado; nada plantado")
@@ -116,6 +117,10 @@ function GunRules.PlantAt(position: Vector3, gunName: string): BasePart?
 	dirt:PivotTo(CFrame.new(position) * dirt.CFrame.Rotation)
 	dirt:SetAttribute("GunName", gunName)
 	dirt:SetAttribute("PlantedAt", workspace:GetServerTimeNow())
+	dirt:SetAttribute(SeedSettings.SOURCE_ATTRIBUTE, source or "Unknown")
+	if planter then
+		dirt:SetAttribute(SeedSettings.PLANTED_BY_ATTRIBUTE, planter.UserId)
+	end
 	dirt.Parent = seedsFolder()
 	CollectionService:AddTag(dirt, SEED_TAG)
 	return dirt
@@ -150,7 +155,7 @@ function GunRules.TryPlant(shooter: Player, origin: Vector3, direction: Vector3,
 	end
 
 	if GunRules.IsPlantable(result.Instance) then
-		GunRules.PlantAt(result.Position, gunName)
+		GunRules.PlantAt(result.Position, gunName, "Shot", shooter)
 	end
 end
 

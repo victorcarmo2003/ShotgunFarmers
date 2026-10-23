@@ -12,7 +12,7 @@ const WINDOW_LIMIT = 20
 const RESPAWN_COOLDOWN = 1
 
 const PracticeService = Modux.Service("PracticeService", {
-	Require = { "PlayerService", "ServerRoleService", "SpawnService" },
+	Require = { "FunnelService", "PlayerService", "ServerRoleService", "SpawnService" },
 	Priority = 600,
 })
 
@@ -76,6 +76,7 @@ function PracticeService:Equip(player: Player, gunID: number): boolean
 	end
 	choices[entry.Slot] = gunName
 
+	self.Dependencies.FunnelService:Step(player, "Practice", "EquippedWeapon", { gunName })
 	return true
 end
 

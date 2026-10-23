@@ -8,6 +8,7 @@ local GetThumbnail = require(ReplicatedStorage.shared.Utils.GetThumbnail)
 local StatsNet = require(ReplicatedStorage.shared.Stats.Net)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
+local FarmPalette = require(StarterPlayer.StarterPlayerScripts.client.Interface.FarmPalette)
 local LeaderstatsScreen = require(StarterPlayer.StarterPlayerScripts.client.Leaderstats.LeaderstatsScreen)
 local TeamScore = require(StarterPlayer.StarterPlayerScripts.client.Stats.TeamScore)
 local KillRanking = require(StarterPlayer.StarterPlayerScripts.client.Stats.KillRanking)
@@ -25,9 +26,17 @@ export type Record = {
 const SCORE_DIVISOR = 10
 const CORE_GUI_ATTEMPTS = 20
 const CORE_GUI_RETRY = 0.5
+const RANKING_PER_TEAM = 4
 
 const LeaderstatsController = Modux.Controller("LeaderstatsController", {
-	Require = { "CareerController", "GameStateController", "InputController", "MenuEffectsController", "RoundController" },
+	Require = {
+		"BotController",
+		"CareerController",
+		"GameStateController",
+		"InputController",
+		"MenuEffectsController",
+		"RoundController",
+	},
 	Priority = 410,
 })
 
@@ -72,25 +81,56 @@ function LeaderstatsController:LoadThumbnail(player: Player)
 	end)
 end
 
+function LeaderstatsController:LoadBotThumbnail(userId: number)
+	if self.Thumbnails[userId] ~= nil or self.Loading[userId] then
+		return
+	end
+	const _, member = self.Dependencies.BotController:FindByUserId(userId)
+	if not member then
+		return
+	end
+	self.Loading[userId] = true
+
+	task.spawn(function()
+		const content = self.Dependencies.BotController:Thumbnail(member)
+		self.Loading[userId] = nil
+		self.Thumbnails[userId] = content
+		self:Refresh()
+	end)
+end
+
+function LeaderstatsController:Identify(userId: number): (string?, boolean)
+	const player = Players:GetPlayerByUserId(userId)
+	if player then
+		self:LoadThumbnail(player)
+		return player.DisplayName, player == Players.LocalPlayer
+	end
+
+	const _, member = self.Dependencies.BotController:FindByUserId(userId)
+	if member then
+		self:LoadBotThumbnail(userId)
+		return member.DisplayName, false
+	end
+	return nil, false
+end
+
 function LeaderstatsController:Refresh()
 	const everyone: { LeaderstatsScreen.Row } = {}
 	const red: { LeaderstatsScreen.Row } = {}
 	const blue: { LeaderstatsScreen.Row } = {}
 
 	for userId, record in self.Records do
-		const player = Players:GetPlayerByUserId(userId)
-		if player then
-			self:LoadThumbnail(player)
-
+		const name, isLocal = self:Identify(userId)
+		if name then
 			const row: LeaderstatsScreen.Row = {
-				Name = player.DisplayName,
+				Name = name,
 				Score = record.Score / SCORE_DIVISOR,
 				Ping = record.Ping,
 				Kills = record.Kills,
 				Deaths = record.Deaths,
 				Assists = record.Assists,
 				Image = self.Thumbnails[userId],
-				IsLocal = player == Players.LocalPlayer,
+				IsLocal = isLocal,
 			}
 
 			table.insert(everyone, row)
@@ -109,15 +149,15 @@ function LeaderstatsController:Refresh()
 	const ranking: { KillRanking.Entry } = {}
 	local topKills = 0
 	for userId, record in self.Records do
-		const player = Players:GetPlayerByUserId(userId)
-		if player then
+		const name, isLocal = self:Identify(userId)
+		if name then
 			topKills = math.max(topKills, record.Kills)
 			table.insert(ranking, {
 				UserId = userId,
 				Kills = record.Kills,
 				Image = self.Thumbnails[userId] or "",
 				Team = record.Team,
-				IsLocal = player == Players.LocalPlayer,
+				IsLocal = isLocal,
 				Leader = false,
 			})
 		end
@@ -132,13 +172,28 @@ function LeaderstatsController:Refresh()
 		entry.Leader = topKills > 0 and entry.Kills == topKills
 	end
 
+	local shownRanking = ranking
+	if self.Mode() == "TDM" then
+		const grouped: { KillRanking.Entry } = {}
+		for _, team in { "Red", "Blue" } do
+			local taken = 0
+			for _, entry in ranking do
+				if entry.Team == team and taken < RANKING_PER_TEAM then
+					table.insert(grouped, entry)
+					taken += 1
+				end
+			end
+		end
+		shownRanking = grouped
+	end
+
 	const own = self.Records[Players.LocalPlayer.UserId]
 	Vide.batch(function()
 		self.Rows(everyone)
 		self.Red(red)
 		self.Blue(blue)
 		self.LocalTeam(if own then own.Team else "None")
-		self.Ranking(ranking)
+		self.Ranking(shownRanking)
 	end)
 end
 
@@ -159,6 +214,12 @@ function LeaderstatsController:BindKeys()
 		Key = Enum.KeyCode.Tab,
 		Priority = 10,
 		Requires = "Hud",
+		Touch = {
+			Text = "SCORE",
+			Color = FarmPalette.Sky,
+			Order = 2,
+			Toggle = true,
+		},
 	})
 
 	handle.OnPress(function()
@@ -212,27 +273,6 @@ function LeaderstatsController:Mount()
 				Xp = career.Xp,
 				XpMax = career.XpMax,
 			}),
-
-			KillRanking({
-				Visible = function()
-					return not self:IsShown()
-				end,
-				Entries = self.Ranking,
-				Title = self.ModeName,
-			}),
-
-			TeamScore({
-				Visible = function()
-					return self.Mode() == "TDM" and not self:IsShown()
-				end,
-				Red = function()
-					return self.Totals().Red
-				end,
-				Blue = function()
-					return self.Totals().Blue
-				end,
-				LocalTeam = self.LocalTeam,
-			}),
 		})
 	end, playerGui)
 end
@@ -281,6 +321,10 @@ LeaderstatsController:OnInit(function(self)
 	end)
 
 	Players.PlayerAdded:Connect(function()
+		self:Refresh()
+	end)
+
+	self.Dependencies.BotController.Changed:Connect(function()
 		self:Refresh()
 	end)
 end)

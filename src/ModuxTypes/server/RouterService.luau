@@ -9,6 +9,7 @@ export type Public = {
 	CanEnter: (self: Public, player: Player, key: string, owner: number?) -> boolean,
 	ResolveExisting: (self: Public, player: Player) -> (string?, string?),
 	TryRoute: (self: Public, player: Player) -> (boolean, string?),
+	WaitForClient: (self: Public, player: Player) -> (),
 	Route: (self: Public, player: Player) -> (),
 	RouteAsync: (self: Public, player: Player) -> (),
 	Activate: (self: Public) -> (),

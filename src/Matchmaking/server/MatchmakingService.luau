@@ -2,6 +2,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local Funnels = require(ReplicatedStorage.shared.Analytics.Funnels)
 local GameModes = require(ReplicatedStorage.shared.Match.GameModes)
 local Maps = require(ReplicatedStorage.shared.Match.Maps)
 local MatchmakingNet = require(ReplicatedStorage.shared.Matchmaking.Net)
@@ -87,6 +88,8 @@ const MatchmakingService = Modux.Service("MatchmakingService", {
 		"MatchRegistryService",
 		"TeleportGateway",
 		"SquadService",
+		"FunnelService",
+		"RoundsFunnelService",
 	},
 	Priority = 550,
 })
@@ -115,6 +118,18 @@ function MatchmakingService:SetStatus(players: { Player }, state: State, reason:
 				Reason = string.sub(reason or "", 1, 200),
 			})
 		end
+	end
+end
+
+function MatchmakingService:Track(players: { Player }, step: string, fields: { string }?)
+	for _, player in players do
+		self.Dependencies.FunnelService:Step(player, "Matchmaking", step, fields)
+	end
+end
+
+function MatchmakingService:DropFunnel(players: { Player }, reason: string, detail: string?)
+	for _, player in players do
+		self.Dependencies.FunnelService:Drop(player, "Matchmaking", reason, if detail then { detail } else nil)
 	end
 end
 
@@ -157,6 +172,7 @@ function MatchmakingService:IsBusy(): boolean
 	end
 
 	if os.clock() - search.Started > MatchmakingSettings.SearchTimeout and search.Target ~= nil then
+		self:DropFunnel(presentPlayers(search.UserIds), "SearchTimeout")
 		self:EndSearch(search.Token)
 		return false
 	end
@@ -313,30 +329,42 @@ function MatchmakingService:Run(search: Search, find: Finder)
 	end
 
 	if not found or not target then
-		self:SetStatus(Players:GetPlayers(), "Failed", if found then reason else tostring(target))
+		const failure = if found then reason else tostring(target)
+		self:DropFunnel(presentPlayers(userIds), "FindFailed", failure)
+		self:SetStatus(Players:GetPlayers(), "Failed", failure)
 		self:EndSearch(token)
 		return
 	end
 
 	search.Target = target
 	const travelers = presentPlayers(userIds)
+	self:Track(travelers, "TargetFound")
 	self:SetStatus(travelers, "Teleporting", "")
 	self.Dependencies.SquadService:MarkTraveling(travelers, true)
 
-	const teleported, teleportReason = self.Dependencies.TeleportGateway:Teleport(
-		travelers,
-		target.AccessCode,
-		{ ReturnLobby = self.Dependencies.MatchRegistryService:GetLobbyKey() }
-	)
+	self:Track(travelers, "TeleportFired")
+	const teleported, teleportReason = self.Dependencies.TeleportGateway:Teleport(travelers, target.AccessCode, {
+		ReturnLobby = self.Dependencies.MatchRegistryService:GetLobbyKey(),
+		[Funnels.TeleportKey] = self.Dependencies.FunnelService:Export(travelers, { "Matchmaking", "RobuxShop", "Skins", "Party", "PrivateRoom", "Practice" }),
+	})
 
 	if not teleported then
+		self:DropFunnel(travelers, "TeleportFailed", teleportReason)
 		self.Dependencies.MatchRegistryService:ReleaseSlots(target.Key, userIds)
 		self:SetStatus(Players:GetPlayers(), "Failed", teleportReason)
 		self:EndSearch(token)
 	elseif self.Dependencies.TeleportGateway:IsSimulated() then
+		for _, traveler in travelers do
+			self.Dependencies.FunnelService:End(traveler, "Matchmaking")
+		end
 		task.wait(MatchmakingSettings.StudioTeleportDelay)
+		self.Dependencies.MatchRegistryService:ReleaseSlots(target.Key, userIds)
 		if token == self.Token then
-			self:SetStatus(Players:GetPlayers(), "Idle", "")
+			self:SetStatus(
+				Players:GetPlayers(),
+				"Failed",
+				"No Studio o teleporte e so simulado. Para testar uma partida, coloque ForceRole = Match (e ForceMode) nos atributos do Workspace."
+			)
 		end
 		self:EndSearch(token)
 	end
@@ -347,9 +375,29 @@ function MatchmakingService:Play(player: Player, mode: string): (boolean, string
 		return false, "Invalid mode"
 	end
 
-	return self:Begin(player, function(userIds: { number }): (Target?, string?)
+	return self:Begin(player, { "Play", mode }, function(userIds: { number }): (Target?, string?)
 		return self:FindTarget(mode :: PlayMode, userIds)
 	end)
+end
+
+function MatchmakingService:RoomStep(player: Player, step: string, fields: { string }?)
+	self.Dependencies.FunnelService:Step(player, "PrivateRoom", step, fields)
+end
+
+function MatchmakingService:RoomResult(player: Player, accepted: boolean, reason: string): (boolean, string)
+	if not accepted then
+		self.Dependencies.FunnelService:Drop(player, "PrivateRoom", "Rejected", { reason })
+	end
+	return accepted, reason
+end
+
+function MatchmakingService:RoomTarget(player: Player, kind: string, target: Target?, reason: string?): (Target?, string?)
+	if target then
+		self:RoomStep(player, "CodeValid", { kind })
+	else
+		self.Dependencies.FunnelService:Drop(player, "PrivateRoom", "InvalidCode", { reason or kind })
+	end
+	return target, reason
 end
 
 function MatchmakingService:CreateRoom(player: Player, mode: string, mapName: string, private: boolean): (boolean, string)
@@ -361,9 +409,10 @@ function MatchmakingService:CreateRoom(player: Player, mode: string, mapName: st
 		return false, "Invalid map for this mode"
 	end
 
-	return self:Begin(player, function(userIds: { number }): (Target?, string?)
-		return self:Create(mode, private, userIds, if mapName ~= "" then mapName else nil, true)
-	end)
+	self:RoomStep(player, "CreatedOrJoined", { "Create", mode })
+	return self:RoomResult(player, self:Begin(player, { "CreateRoom", mode }, function(userIds: { number }): (Target?, string?)
+		return self:RoomTarget(player, "Create", self:Create(mode, private, userIds, if mapName ~= "" then mapName else nil, true))
+	end))
 end
 
 function MatchmakingService:JoinRoom(player: Player, code: string): (boolean, string)
@@ -371,9 +420,10 @@ function MatchmakingService:JoinRoom(player: Player, code: string): (boolean, st
 		return false, "Enter a room code"
 	end
 
-	return self:Begin(player, function(userIds: { number }): (Target?, string?)
-		return self:FindRoom(code, userIds)
-	end)
+	self:RoomStep(player, "CreatedOrJoined", { "Join" })
+	return self:RoomResult(player, self:Begin(player, { "JoinRoom" }, function(userIds: { number }): (Target?, string?)
+		return self:RoomTarget(player, "Join", self:FindRoom(code, userIds))
+	end))
 end
 
 function MatchmakingService:JoinMatch(player: Player, key: string): (boolean, string)
@@ -381,7 +431,7 @@ function MatchmakingService:JoinMatch(player: Player, key: string): (boolean, st
 		return false, "Invalid room"
 	end
 
-	return self:Begin(player, function(userIds: { number }): (Target?, string?)
+	return self:Begin(player, { "JoinMatch" }, function(userIds: { number }): (Target?, string?)
 		const target = self.Dependencies.MatchRegistryService:JoinKey(key, userIds)
 		return target, if target then nil else "Room is full or closed"
 	end)
@@ -407,9 +457,13 @@ function MatchmakingService:ListRooms(player: Player): { MatchmakingNet.Room }
 	return self.RoomCache
 end
 
-function MatchmakingService:Begin(player: Player, find: Finder): (boolean, string)
+function MatchmakingService:Begin(player: Player, entry: { string }, find: Finder): (boolean, string)
+	const funnel = self.Dependencies.FunnelService
+	funnel:Step(player, "Matchmaking", "Play", entry)
+
 	const problem = self:Validate(player)
 	if problem then
+		funnel:Drop(player, "Matchmaking", "Rejected", { problem })
 		return false, problem
 	end
 
@@ -425,6 +479,14 @@ function MatchmakingService:Begin(player: Player, find: Finder): (boolean, strin
 	}
 	self.Search = search
 
+	const travelers = presentPlayers(search.UserIds)
+	for _, traveler in travelers do
+		if traveler ~= player then
+			funnel:Step(traveler, "Matchmaking", "Play", entry)
+		end
+	end
+	self:Track(travelers, "SearchBegin")
+
 	task.spawn(function()
 		self:Run(search, find)
 	end)
@@ -438,6 +500,7 @@ function MatchmakingService:OnTeleportFailed(player: Player, reason: string)
 		return
 	end
 
+	self:DropFunnel({ player }, "TeleportInitFailed", reason)
 	self.Dependencies.SquadService:MarkTraveling({ player }, false)
 	if search.Target then
 		self.Dependencies.MatchRegistryService:ReleaseSlots(search.Target.Key, { player.UserId })
@@ -460,6 +523,7 @@ function MatchmakingService:Cancel(player: Player)
 	end
 
 	self.Token += 1
+	self:DropFunnel(presentPlayers(search.UserIds), "Cancel")
 	self:EndSearch(search.Token)
 	self:SetStatus(Players:GetPlayers(), "Idle", "")
 end
@@ -469,6 +533,7 @@ function MatchmakingService:ReturnToLobby(player: Player, reason: string?)
 		return
 	end
 	self.Returning[player] = true
+	self.Dependencies.RoundsFunnelService:Leave(player, "ReturnToLobby")
 	self:SetStatus({ player }, "Teleporting", reason)
 
 	const registry = self.Dependencies.MatchRegistryService
@@ -489,11 +554,13 @@ function MatchmakingService:ReturnToLobby(player: Player, reason: string?)
 
 	local teleported = false
 	if target then
-		teleported, failure = self.Dependencies.TeleportGateway:Teleport(
-			{ player },
-			target.AccessCode,
-			{ ReturnLobby = target.Key }
-		)
+		if self:IsPracticeServer() then
+			self.Dependencies.FunnelService:Step(player, "Practice", "LeftPractice")
+		end
+		teleported, failure = self.Dependencies.TeleportGateway:Teleport({ player }, target.AccessCode, {
+			ReturnLobby = target.Key,
+			[Funnels.TeleportKey] = self.Dependencies.FunnelService:Export({ player }, { "Practice" }),
+		})
 	end
 
 	if not teleported then
@@ -555,11 +622,45 @@ function MatchmakingService:AdmissionProblem(player: Player): string?
 	return nil
 end
 
-function MatchmakingService:Admit(player: Player)
-	const problem = self:AdmissionProblem(player)
-	if not problem then
+function MatchmakingService:ResumeFunnel(player: Player)
+	const ok, joinData = pcall(function(): any
+		return player:GetJoinData()
+	end)
+	if not ok or typeof(joinData) ~= "table" then
 		return
 	end
+
+	const teleportData = joinData.TeleportData
+	if typeof(teleportData) == "table" then
+		self.Dependencies.FunnelService:Import(player, teleportData[Funnels.TeleportKey])
+	end
+end
+
+function MatchmakingService:IsPracticeServer(): boolean
+	const config = self.Dependencies.ServerRoleService:GetConfig()
+	return config ~= nil and config.Mode == MatchmakingSettings.PracticeMode
+end
+
+function MatchmakingService:TrackPractice(player: Player)
+	const funnel = self.Dependencies.FunnelService
+	const config = self.Dependencies.ServerRoleService:GetConfig()
+	if self:IsPracticeServer() then
+		funnel:Step(player, "Practice", "EnteredPractice")
+	elseif config then
+		funnel:Step(player, "Practice", "PlayedRealMatch", { config.Mode })
+	end
+end
+
+function MatchmakingService:Admit(player: Player)
+	self:ResumeFunnel(player)
+	const problem = self:AdmissionProblem(player)
+	if not problem then
+		self:Track({ player }, "Admitted")
+		self:TrackPractice(player)
+		return
+	end
+
+	self:DropFunnel({ player }, "AdmissionProblem", problem)
 
 	task.wait(MatchmakingSettings.AdmissionDelay)
 	self:ReturnToLobby(player, problem)
@@ -567,6 +668,9 @@ end
 
 function MatchmakingService:ActivateLobby()
 	self.LobbyActive = true
+	for _, player in Players:GetPlayers() do
+		self:ResumeFunnel(player)
+	end
 	self:PublishLeader()
 end
 
@@ -584,6 +688,10 @@ function MatchmakingService:ActivateMatch()
 		end)
 	end
 
+	self.Dependencies.PlayerService.CharacterAdded:Connect(function(player)
+		self:Track({ player }, "SpawnedInCombat", { self.Dependencies.RoundService.Status() })
+	end)
+
 	self.Libs.Charm.subscribe(self.Dependencies.RoundService.Status, function(status, previous)
 		const config = self.Dependencies.ServerRoleService:GetConfig()
 		if config and config.Ranked and status == "Intermission" and previous == "Match" then
@@ -598,6 +706,7 @@ function MatchmakingService:OnPlayerAdded(player: Player)
 	table.insert(self.Order, player)
 
 	if self.LobbyActive then
+		self:ResumeFunnel(player)
 		self:PublishLeader()
 	elseif self.MatchActive then
 		task.spawn(function()
@@ -610,6 +719,10 @@ function MatchmakingService:OnPlayerRemoving(player: Player)
 	const index = table.find(self.Order, player)
 	if index then
 		table.remove(self.Order, index)
+	end
+
+	if self.MatchActive and not self.Returning[player] and self:IsPracticeServer() then
+		self.Dependencies.FunnelService:Drop(player, "Practice", "Left")
 	end
 
 	self.States[player] = nil

@@ -2,11 +2,13 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 local Vide = require(ReplicatedStorage.Packages.Vide)
-local CreateRaw = require(ReplicatedStorage.shared.Interface.CreateRaw)
+local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local SkinCatalog = require(ReplicatedStorage.shared.Shop.SkinCatalog)
 local ScreenKit = require(StarterPlayer.StarterPlayerScripts.client.Interface.ScreenKit)
 
 const create = Vide.create
 const source = Vide.source
+const values = Vide.values
 
 const at = ScreenKit.at
 const inside = ScreenKit.inside
@@ -14,164 +16,274 @@ const label = ScreenKit.label
 
 const OFFSET_Y = 10
 
-const TAB_COUNT = 7
+const TAB_X = 44
+const TAB_WIDTH = 51
+const TAB_HEIGHT = 43
 const TAB_SPACING = 50
+const TAB_AREA_WIDTH = 56
+const TAB_AREA_HEIGHT = 452
+const TAB_SCROLL_THICKNESS = 4
 const TAB_COLOR = Color3.fromHex("#0095FF")
 const TAB_SELECTED_COLOR = Color3.fromHex("#FFAE00")
-const TAB_ICON = "rbxassetid://122573838382015"
+
+const PANEL_X = 95
+const PANEL_WIDTH = 455
+const PANEL_HEIGHT = 452
 
 const SLOTS_PER_ROW = 5
 const SLOT_SIZE = 69
 const SLOT_SPACING = 89
-const SECTION_TITLE_SPACING = 134
-const SECTION_SLOT_SPACING = 136
-const SLOT_STROKE = 3
+const ROW_SPACING = 100
+const SLOT_ORIGIN_X = 110
+const SLOT_ORIGIN_Y = 95
+const CAPTION_HEIGHT = 20
+const SLOT_COLOR = Color3.fromRGB(28, 28, 28)
+const LOCK_TRANSPARENCY = 0.35
 const CHECK_IMAGE = "rbxassetid://123304100581473"
+const DEFAULT_CAPTION = "DEFAULT"
+const LOCKED_CAPTION = "LOCKED"
 
-const CODE_COLOR = Color3.fromHex("#8B00C2")
+export type Category = {
+	Gun: string,
+	Image: string,
+	Skins: { SkinCatalog.Skin },
+}
 
-export type Section = {
-	Name: string,
-	Items: { string },
+type Slot = {
+	Skin: SkinCatalog.Skin?,
+	Gun: string,
+	Image: string,
+	Caption: string,
 }
 
 export type Props = {
 	Visible: (() -> boolean)?,
-	Sections: (() -> { Section })?,
-	OnSelectTab: ((index: number) -> ())?,
-	OnSelectItem: ((section: string, index: number) -> ())?,
-	OnCode: (() -> ())?,
+	Categories: (() -> { Category })?,
+	Owned: (() -> { [string]: boolean })?,
+	Equipped: (() -> { [string]: string })?,
+	OnEquip: ((id: string) -> ())?,
+	OnEquipDefault: ((gun: string) -> ())?,
+	OnSelectGun: ((gun: string) -> ())?,
+	OnPreview: ((gun: string, id: string?) -> ())?,
 	OnDone: (() -> ())?,
 	OnClose: (() -> ())?,
-}
-
-const DEFAULT_SECTIONS: { Section } = {
-	{ Name = "BODY", Items = { "", "", "", "", "" } },
-	{ Name = "OUTFIT", Items = { "", "", "", "", "" } },
 }
 
 local function y(value: number): number
 	return value + OFFSET_Y
 end
 
-local function tab(index: number, selectedTab: Vide.Source<number>, props: Props): Frame
+local function buildCategories(): { Category }
+	const entries: { GetGun.GunData } = {}
+	const all: { [string]: GetGun.GunData } = GetGun.All
+	for _, gun in all do
+		if not gun.Disabled and gun.ImageID ~= "" then
+			table.insert(entries, gun)
+		end
+	end
+	table.sort(entries, function(a: GetGun.GunData, b: GetGun.GunData): boolean
+		return a.ID < b.ID
+	end)
+
+	const categories: { Category } = {}
+	for _, gun in entries do
+		const skins: { SkinCatalog.Skin } = {}
+		for _, skin in SkinCatalog.Skins do
+			if skin.Gun == gun.DisplayName then
+				table.insert(skins, skin)
+			end
+		end
+		table.insert(categories, { Gun = gun.DisplayName, Image = gun.ImageID, Skins = skins })
+	end
+	return categories
+end
+
+local function tab(index: number, category: Category, total: number, selectedTab: Vide.Source<number>): Frame
 	return ScreenKit.pressable({
-		Name = `Tab{index}`,
-		Position = at(44, y(37 + TAB_SPACING * (index - 1))),
-		Size = at(51, 43),
+		Name = `Tab{category.Gun}`,
+		Position = inside(0, TAB_SPACING * (index - 1), TAB_AREA_WIDTH, total),
+		Size = inside(TAB_WIDTH, TAB_HEIGHT, TAB_AREA_WIDTH, total),
 		Color = function()
 			return if selectedTab() == index then TAB_SELECTED_COLOR else TAB_COLOR
 		end,
 		OnActivated = function()
 			selectedTab(index)
-			if props.OnSelectTab then
-				props.OnSelectTab(index)
-			end
 		end,
 		Children = {
 			create("ImageLabel")({
 				Name = "Icon",
-				Position = inside(6, 2, 51, 43),
-				Size = inside(39, 39, 51, 43),
+				Position = inside(6, 2, TAB_WIDTH, TAB_HEIGHT),
+				Size = inside(39, 39, TAB_WIDTH, TAB_HEIGHT),
 				BackgroundTransparency = 1,
 				ScaleType = Enum.ScaleType.Fit,
-				Image = TAB_ICON,
+				Image = category.Image,
 			}),
 		},
 	})
 end
 
-local function slot(section: string, sectionIndex: number, index: number, image: string, selected: Vide.Source<{ [string]: number }>, props: Props): ImageButton
-	return create("ImageButton")({
-		Name = `Slot{index}`,
-		Position = at(110 + SLOT_SPACING * (index - 1), y(95 + SECTION_SLOT_SPACING * (sectionIndex - 1))),
-		Size = at(SLOT_SIZE, SLOT_SIZE),
+local function tabColumn(categories: { Category }, selectedTab: Vide.Source<number>): ScrollingFrame
+	const total = math.max(#categories * TAB_SPACING, TAB_AREA_HEIGHT)
+	const tabs: { Instance } = {}
+	for index, category in categories do
+		table.insert(tabs, tab(index, category, total, selectedTab))
+	end
+
+	return create("ScrollingFrame")({
+		Name = "Tabs",
+		Position = at(TAB_X, y(37)),
+		Size = at(TAB_AREA_WIDTH, TAB_AREA_HEIGHT),
 		BackgroundTransparency = 1,
-		Image = image,
-		ScaleType = Enum.ScaleType.Fit,
+		BorderSizePixel = 0,
+		CanvasSize = UDim2.fromScale(0, total / TAB_AREA_HEIGHT),
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		ScrollBarThickness = TAB_SCROLL_THICKNESS,
+		ScrollBarImageColor3 = ScreenKit.Colors.White,
 
-		Activated = function()
-			const current = table.clone(selected())
-			current[section] = index
-			selected(current)
-			if props.OnSelectItem then
-				props.OnSelectItem(section, index)
-			end
-		end,
-
-		CreateRaw("UIStroke")({
-			Color = ScreenKit.Colors.White,
-			Thickness = SLOT_STROKE,
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-		}),
-
-		create("ImageLabel")({
-			Name = "Check",
-			Position = inside(35, 38, SLOT_SIZE, SLOT_SIZE),
-			Size = inside(27, 21, SLOT_SIZE, SLOT_SIZE),
-			BackgroundTransparency = 1,
-			ScaleType = Enum.ScaleType.Fit,
-			Image = CHECK_IMAGE,
-			Visible = function()
-				return selected()[section] == index
-			end,
-		}),
+		tabs,
 	})
 end
 
-local function sectionTitle(name: string, sectionIndex: number): Frame
+local function slot(position: number, entry: Slot, props: Props): Frame
+	const column = (position - 1) % SLOTS_PER_ROW
+	const row = (position - 1) // SLOTS_PER_ROW
+	const skin = entry.Skin
+
+	const owned = function(): boolean
+		if not skin then
+			return true
+		end
+		return props.Owned ~= nil and props.Owned()[skin.Id] == true
+	end
+	const equipped = function(): boolean
+		const current = if props.Equipped then props.Equipped()[entry.Gun] else nil
+		if skin then
+			return current == skin.Id
+		end
+		return current == nil
+	end
+
 	return create("Frame")({
-		Name = `{name}Title`,
-		Position = at(110, y(42 + SECTION_TITLE_SPACING * (sectionIndex - 1))),
-		Size = at(122, 44),
+		Name = `Slot{position}`,
+		Position = at(SLOT_ORIGIN_X + SLOT_SPACING * column, y(SLOT_ORIGIN_Y + ROW_SPACING * row)),
+		Size = at(SLOT_SIZE, SLOT_SIZE + CAPTION_HEIGHT),
 		BackgroundTransparency = 1,
 
-		create("TextLabel")({
-			Name = "Label",
-			AnchorPoint = Vector2.new(0, 0.5),
-			Position = UDim2.fromScale(0, 0.5),
-			Size = UDim2.fromScale(1, 36 / 44),
-			BackgroundTransparency = 1,
-			FontFace = ScreenKit.Font,
-			RichText = true,
-			Text = `<b>{name}</b>`,
-			TextColor3 = ScreenKit.Colors.White,
-			TextScaled = true,
-			TextXAlignment = Enum.TextXAlignment.Left,
+		ScreenKit.pressable({
+			Name = "Button",
+			Position = UDim2.fromScale(0, 0),
+			Size = inside(SLOT_SIZE, SLOT_SIZE, SLOT_SIZE, SLOT_SIZE + CAPTION_HEIGHT),
+			Color = SLOT_COLOR,
+			OnActivated = function()
+				if props.OnPreview then
+					props.OnPreview(entry.Gun, if skin then skin.Id else nil)
+				end
+				if not skin then
+					if props.OnEquipDefault then
+						props.OnEquipDefault(entry.Gun)
+					end
+				elseif owned() then
+					if props.OnEquip then
+						props.OnEquip(skin.Id)
+					end
+				end
+			end,
+			Children = {
+				create("ImageLabel")({
+					Name = "Image",
+					Position = inside(4, 4, SLOT_SIZE, SLOT_SIZE),
+					Size = inside(SLOT_SIZE - 8, SLOT_SIZE - 8, SLOT_SIZE, SLOT_SIZE),
+					BackgroundTransparency = 1,
+					ScaleType = Enum.ScaleType.Fit,
+					Image = entry.Image,
+				}),
+
+				create("Frame")({
+					Name = "Lock",
+					Size = UDim2.fromScale(1, 1),
+					BackgroundColor3 = ScreenKit.Colors.Black,
+					BackgroundTransparency = LOCK_TRANSPARENCY,
+					BorderSizePixel = 0,
+					ZIndex = 2,
+					Visible = function()
+						return not owned()
+					end,
+
+					ScreenKit.label(LOCKED_CAPTION, 14, SLOT_SIZE),
+				}),
+
+				create("ImageLabel")({
+					Name = "Check",
+					Position = inside(35, 38, SLOT_SIZE, SLOT_SIZE),
+					Size = inside(27, 21, SLOT_SIZE, SLOT_SIZE),
+					BackgroundTransparency = 1,
+					ScaleType = Enum.ScaleType.Fit,
+					Image = CHECK_IMAGE,
+					ZIndex = 3,
+					Visible = equipped,
+				}),
+
+			},
+		}),
+
+		ScreenKit.text({
+			Name = "Caption",
+			Text = entry.Caption,
+			Position = inside(0, SLOT_SIZE + 2, SLOT_SIZE, SLOT_SIZE + CAPTION_HEIGHT),
+			Size = inside(SLOT_SIZE, CAPTION_HEIGHT - 2, SLOT_SIZE, SLOT_SIZE + CAPTION_HEIGHT),
+			FontSize = 14,
+			BoxHeight = CAPTION_HEIGHT - 2,
 		}),
 	})
 end
 
-local function wideButton(name: string, text: string, x: number, color: Color3, onActivated: (() -> ())?): Frame
+local function slotsFor(category: Category?): { Slot }
+	if not category then
+		return {}
+	end
+
+	const list: { Slot } = {
+		{ Skin = nil, Gun = category.Gun, Image = category.Image, Caption = DEFAULT_CAPTION },
+	}
+	for _, skin in category.Skins do
+		table.insert(list, {
+			Skin = skin,
+			Gun = category.Gun,
+			Image = skin.Preview,
+			Caption = string.upper(skin.Pack),
+		})
+	end
+	return list
+end
+
+local function doneButton(onActivated: (() -> ())?): Frame
 	return ScreenKit.pressable({
-		Name = name,
-		Position = at(x, y(498)),
+		Name = "Done",
+		Position = at(PANEL_X + (PANEL_WIDTH - 190) / 2, y(498)),
 		Size = at(190, 43),
-		Color = color,
+		Color = ScreenKit.Colors.Green,
 		OnActivated = onActivated,
-		Children = { label(text, 36, 43) },
+		Children = { label("DONE", 36, 43) },
 	})
 end
 
 return function(props: Props): Frame
-	const sections = props.Sections or function()
-		return DEFAULT_SECTIONS
-	end
+	const categories: { Category } = if props.Categories then props.Categories() else buildCategories()
 	const selectedTab = source(1)
-	const selected = source({} :: { [string]: number })
 
-	const tabs: { Instance } = {}
-	for index = 1, TAB_COUNT do
-		table.insert(tabs, tab(index, selectedTab, props))
+	const selectedCategory = function(): Category?
+		return categories[selectedTab()]
 	end
 
-	const content: { Instance } = {}
-	for sectionIndex, section in sections() do
-		table.insert(content, sectionTitle(section.Name, sectionIndex))
-		for index = 1, math.min(#section.Items, SLOTS_PER_ROW) do
-			table.insert(content, slot(section.Name, sectionIndex, index, section.Items[index], selected, props))
+	Vide.effect(function()
+		const category = selectedCategory()
+		const onSelect = props.OnSelectGun
+		if category and onSelect then
+			Vide.untrack(function()
+				onSelect(category.Gun)
+			end)
 		end
-	end
+	end)
 
 	return ScreenKit.screen({
 		Name = "CosmeticsScreen",
@@ -179,17 +291,40 @@ return function(props: Props): Frame
 		Children = {
 			create("Frame")({
 				Name = "Panel",
-				Position = at(95, y(37)),
-				Size = at(455, 452),
+				Position = at(PANEL_X, y(37)),
+				Size = at(PANEL_WIDTH, PANEL_HEIGHT),
 				BackgroundColor3 = ScreenKit.Colors.Black,
 				BackgroundTransparency = ScreenKit.DARK_TRANSPARENCY,
 			}),
 
-			tabs,
-			content,
+			tabColumn(categories, selectedTab),
 
-			wideButton("Code", "CODE", 95, CODE_COLOR, props.OnCode),
-			wideButton("Done", "DONE", 360, ScreenKit.Colors.Green, function()
+			ScreenKit.text({
+				Name = "GunTitle",
+				Text = function()
+					const category = selectedCategory()
+					return if category then string.upper(category.Gun) else ""
+				end,
+				Position = at(SLOT_ORIGIN_X, y(42)),
+				Size = at(PANEL_WIDTH - 30, 44),
+				FontSize = 36,
+				BoxHeight = 44,
+				XAlignment = Enum.TextXAlignment.Left,
+			}),
+
+			create("Frame")({
+				Name = "Slots",
+				Size = UDim2.fromScale(1, 1),
+				BackgroundTransparency = 1,
+
+				values(function()
+					return slotsFor(selectedCategory())
+				end, function(entry: Slot, index: () -> number)
+					return slot(index(), entry, props)
+				end),
+			}),
+
+			doneButton(function()
 				if props.OnDone then
 					props.OnDone()
 				elseif props.OnClose then

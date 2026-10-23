@@ -102,6 +102,16 @@ return {
 			Throw = "rbxassetid://115184496389466",
 			ThrowShort = "rbxassetid://140407994975386",
 		},
+		Shovel = {
+			Hold = "rbxassetid://92815176992109",
+			Attack = "rbxassetid://92672194072200",
+			Draw = "rbxassetid://71009310137924",
+		},
+		Hoe = {
+			Hold = "rbxassetid://127368183893532",
+			Attack = "rbxassetid://126910522939875",
+			Draw = "rbxassetid://137566127562376",
+		},
 	},
 
 	Viewmodels = {
@@ -182,10 +192,15 @@ return {
 			Attack = "rbxassetid://77809076943291",
 			Draw = "rbxassetid://112097259140802",
 		},
+		Hoe = {
+			Hold = "rbxassetid://70805218747207",
+			Attack = "rbxassetid://128841212490691",
+			Draw = "rbxassetid://109360297899485",
+		},
 		Axe = {
-			Hold = "rbxassetid://89136509470448",
-			Attack = "rbxassetid://76034860227180",
-			Draw = "rbxassetid://92693147040868",
+			Hold = "rbxassetid://70805218747207",
+			Attack = "rbxassetid://128841212490691",
+			Draw = "rbxassetid://109360297899485",
 		},
 		Strawborry = {
 			Hold = "rbxassetid://105214057262937",
@@ -267,6 +282,7 @@ return {
 		Shotgun = "Shotgun",
 		["Double Cob"] = "Shotgun",
 		Hoe = "Hoe",
+		Shovel = "Shovel",
 		Bananarang = "Bananarang",
 		Lemonade = "Lemonade",
 		Moolotov = "Moolotov",
@@ -440,6 +456,28 @@ return {
 			CrouchWalk = "rbxassetid://124708178420469",
 			CrouchWalkForward = "rbxassetid://81652064562730",
 			CrouchWalkBackward = "rbxassetid://118301010425926",
+		},
+		Hoe = {
+			Idle = "rbxassetid://87426652995703",
+			Walk = "rbxassetid://127875858754354",
+			WalkBackward = "rbxassetid://92731164654147",
+			RunForward = "rbxassetid://72625085516254",
+			RunBackward = "rbxassetid://134207049460887",
+			CrouchIdle = "rbxassetid://122189176988333",
+			CrouchWalk = "rbxassetid://77358885184321",
+			CrouchWalkForward = "rbxassetid://85227940908745",
+			CrouchWalkBackward = "rbxassetid://90105079269962",
+		},
+		Shovel = {
+			Idle = "rbxassetid://87426652995703",
+			Walk = "rbxassetid://127875858754354",
+			WalkBackward = "rbxassetid://92731164654147",
+			RunForward = "rbxassetid://72625085516254",
+			RunBackward = "rbxassetid://134207049460887",
+			CrouchIdle = "rbxassetid://122189176988333",
+			CrouchWalk = "rbxassetid://77358885184321",
+			CrouchWalkForward = "rbxassetid://85227940908745",
+			CrouchWalkBackward = "rbxassetid://90105079269962",
 		},
 	},
 }

@@ -6,6 +6,8 @@ local KillFeedEntry = require(script.Parent.KillFeedEntry)
 const create = Vide.create
 const values = Vide.values
 
+const ASPECT_RATIO = (0.3 * 16) / (0.6 * 9)
+
 export type Entry = KillFeedEntry.Entry
 
 export type Props = {
@@ -22,6 +24,11 @@ return function(props: Props): Frame
 		Position = props.Position or UDim2.fromScale(0.76, 0.4),
 		Size = props.Size or UDim2.fromScale(0.3, 0.6),
 		BackgroundTransparency = 1,
+
+		create("UIAspectRatioConstraint")({
+			AspectRatio = ASPECT_RATIO,
+			DominantAxis = Enum.DominantAxis.Height,
+		}),
 
 		create("UIListLayout")({
 			FillDirection = Enum.FillDirection.Vertical,

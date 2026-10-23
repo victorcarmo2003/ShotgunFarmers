@@ -8,6 +8,7 @@ export type Item = {
 	RobuxPrice: number,
 	CoinPrice: number?,
 	Image: string?,
+	Description: string,
 	ProductId: number,
 	Grant: Grant,
 }
@@ -16,7 +17,8 @@ const Items: { Item } = {
 	{
 		Id = "CropDrop",
 		Name = "CROP DROP",
-		Color = Color3.fromHex("#1F9F68"),
+		Description = "Makes crops rain over the arena for 30 seconds, for every player. Used automatically during a match.",
+		Color = Color3.fromHex("#8B5A2B"),
 		RobuxPrice = 19,
 		Image = "rbxassetid://104434605047747",
 		ProductId = 3717365879,
@@ -24,8 +26,9 @@ const Items: { Item } = {
 	},
 	{
 		Id = "DoubleXp",
-		Name = "2X XP 1H",
-		Color = Color3.fromHex("#FFBB00"),
+		Name = "DOUBLE XP 1H",
+		Description = "Doubles all the XP you earn for 1 hour. Buying again adds more time.",
+		Color = Color3.fromHex("#B8741A"),
 		RobuxPrice = 25,
 		Image = "rbxassetid://131378468365288",
 		ProductId = 3717365826,
@@ -34,6 +37,7 @@ const Items: { Item } = {
 	{
 		Id = "Revival",
 		Name = "REVIVAL TOKEN",
+		Description = "Come back to life right after you die in a match. Uses 1 token per revive.",
 		Color = Color3.fromHex("#C62F2F"),
 		RobuxPrice = 9,
 		Image = "rbxassetid://111089067896192",

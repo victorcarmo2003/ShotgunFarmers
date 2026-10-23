@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Vide = require(ReplicatedStorage.Packages.Vide)
 
 export type Public = {
+	Available: Vide.Source<boolean>,
 	InfiniteAmmo: Vide.Source<boolean>,
 	InfiniteGrenades: Vide.Source<boolean>,
 	Opened: Vide.Source<boolean>,

@@ -1,11 +1,13 @@
 --!strict
 local Debris = game:GetService("Debris")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StarterPlayer = game:GetService("StarterPlayer")
 local GameSettings = require(ReplicatedStorage.shared.Settings.GameSettings)
 local GetAnimations = require(ReplicatedStorage.shared.Character.GetAnimations)
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local SkinCatalog = require(ReplicatedStorage.shared.Shop.SkinCatalog)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local WeaponSounds = require(ReplicatedStorage.shared.Weapon.WeaponSounds)
 local WeaponVFX = require(ReplicatedStorage.shared.Weapon.WeaponVFX)
@@ -216,6 +218,10 @@ function ArmsController:EquipViewmodel(gunData: GetGun.GunData?)
 	const asset = weaponAsset(gunData.DisplayName)
 	if asset then
 		const weaponModel = asset:Clone()
+		const skin = SkinCatalog.ForPlayer(Players.LocalPlayer, gunData.DisplayName)
+		if skin then
+			SkinCatalog.Apply(weaponModel, skin, "2k")
+		end
 		for _, descendant in weaponModel:GetDescendants() do
 			if descendant:IsA("BasePart") then
 				descendant.CanCollide = false
@@ -777,6 +783,11 @@ function ArmsController:StepBob(deltaTime: number): CFrame
 	const state = movement.MovementState()
 	const walking = movement.IsMoving() and state ~= "Sliding" and state ~= "Jumping"
 	const gunData = self.Dependencies.WeaponController:GunData()
+	if gunData ~= nil and gunData.PoseKind == "Melee" then
+		self.BobWeight = 0
+		self.BobPhase = 0
+		return CFrame.identity
+	end
 	const scoped = self.IsAiming() and gunData ~= nil and gunData.Scope ~= nil
 	const target = if not walking or scoped then 0 elseif self.IsAiming() then BOB_AIM_SCALE else 1
 	self.BobWeight += (target - self.BobWeight) * (1 - math.exp(-BOB_BLEND_RATE * deltaTime))

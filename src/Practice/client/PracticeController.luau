@@ -7,6 +7,7 @@ local PracticeNet = require(ReplicatedStorage.shared.Practice.Net)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 local PracticeScreen = require(StarterPlayer.StarterPlayerScripts.client.Practice.PracticeScreen)
+local FarmPalette = require(StarterPlayer.StarterPlayerScripts.client.Interface.FarmPalette)
 
 const MENU_SOURCE = "Practice"
 const MODE_ATTRIBUTE = "GameMode"
@@ -24,6 +25,7 @@ const PracticeController = Modux.Controller("PracticeController", {
 
 function PracticeController:Setup()
 	self.Opened = Vide.source(false) :: Vide.Source<boolean>
+	self.Available = Vide.source(false) :: Vide.Source<boolean>
 	self.InfiniteAmmo = Vide.source(false) :: Vide.Source<boolean>
 	self.InfiniteGrenades = Vide.source(false) :: Vide.Source<boolean>
 	self.Unmount = nil :: (() -> ())?
@@ -63,6 +65,7 @@ function PracticeController:Toggle()
 end
 
 function PracticeController:Refresh()
+	self.Available(self:IsPractice())
 	if self.Opened() and not self:IsPractice() then
 		self:SetOpen(false)
 	end
@@ -151,11 +154,24 @@ PracticeController:OnStart(function(self)
 	const player = Players.LocalPlayer
 
 	self.Dependencies.InputController
-		:Bind({ Name = "Practice", Key = Enum.KeyCode.B, Priority = 10 })
+		:Bind({
+			Name = "Practice",
+			Key = Enum.KeyCode.B,
+			Priority = 10,
+			Touch = {
+				Text = "MENU",
+				Color = FarmPalette.Pumpkin,
+				Order = 1,
+				Visible = function()
+					return self.Available()
+				end,
+			},
+		})
 		.OnPress(function()
 			self:Toggle()
 		end)
 
+	self:Refresh()
 	self:ReadInfinite()
 	player:GetAttributeChangedSignal(PracticeCatalog.INFINITE_AMMO):Connect(function()
 		self:ReadInfinite()

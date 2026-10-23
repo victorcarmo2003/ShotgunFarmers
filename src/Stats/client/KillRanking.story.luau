@@ -26,6 +26,18 @@ return function(target)
 				return true
 			end,
 			Entries = entries,
+			Teams = function()
+				return true
+			end,
+			Red = function()
+				return 3
+			end,
+			Blue = function()
+				return 2
+			end,
+			LocalTeam = function()
+				return "Red"
+			end,
 			Title = function()
 				return "Standard"
 			end,

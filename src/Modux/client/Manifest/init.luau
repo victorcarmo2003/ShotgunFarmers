@@ -2,7 +2,10 @@
 
 local StarterPlayer = game:GetService("StarterPlayer")
 local AdminController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.AdminController)
+local FunnelController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.FunnelController)
 local MusicController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.MusicController)
+local BotController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.BotController)
+local TeamOutlineController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.TeamOutlineController)
 local CameraController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.CameraController)
 local ColorCorrectionController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.ColorCorrectionController)
 local DeathCameraController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.DeathCameraController)
@@ -31,6 +34,7 @@ local PracticeController = require(StarterPlayer.StarterPlayerScripts.client.Mod
 local ProfileController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.ProfileController)
 local RoundController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.RoundController)
 local VoteController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.VoteController)
+local RestockController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.RestockController)
 local SeedController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.SeedController)
 local ShopController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.ShopController)
 local SnapshotController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.SnapshotController)
@@ -45,7 +49,10 @@ local WeaponController = require(StarterPlayer.StarterPlayerScripts.client.Modux
 
 export type AllControllers = {
 	AdminController: AdminController.Public,
+	FunnelController: FunnelController.Public,
 	MusicController: MusicController.Public,
+	BotController: BotController.Public,
+	TeamOutlineController: TeamOutlineController.Public,
 	CameraController: CameraController.Public,
 	ColorCorrectionController: ColorCorrectionController.Public,
 	DeathCameraController: DeathCameraController.Public,
@@ -74,6 +81,7 @@ export type AllControllers = {
 	ProfileController: ProfileController.Public,
 	RoundController: RoundController.Public,
 	VoteController: VoteController.Public,
+	RestockController: RestockController.Public,
 	SeedController: SeedController.Public,
 	ShopController: ShopController.Public,
 	SnapshotController: SnapshotController.Public,

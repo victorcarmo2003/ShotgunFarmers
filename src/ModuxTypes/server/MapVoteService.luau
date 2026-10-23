@@ -2,6 +2,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
 
 export type Public = {
 	Counts: { number },
@@ -9,6 +10,7 @@ export type Public = {
 	Open: boolean,
 	Options: { string },
 	Pool: { GetGun.GunNames },
+	Voted: SignalLib.Signal<Player, number>,
 	Votes: { [Player]: number },
 	Wanted: { [Player]: GetGun.GunNames },
 	Setup: (self: Public) -> (),

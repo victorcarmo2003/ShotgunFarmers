@@ -34,6 +34,8 @@ export type Public = {
 	Unmount: (() -> ())?,
 	Setup: (self: Public) -> (),
 	LoadThumbnail: (self: Public, player: Player) -> (),
+	LoadBotThumbnail: (self: Public, userId: number) -> (),
+	Identify: (self: Public, userId: number) -> (string?, boolean),
 	Refresh: (self: Public) -> (),
 	ApplyMode: (self: Public) -> (),
 	IsShown: (self: Public) -> boolean,

@@ -3,6 +3,8 @@ local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Maps = require(ReplicatedStorage.shared.Match.Maps)
 local ScopeSettings = require(ReplicatedStorage.shared.Weapon.ScopeSettings)
+local Vide = require(ReplicatedStorage.Packages.Vide)
+local ScopeReticle = require(script.Parent.ScopeReticle)
 
 export type Apparent = {
 	Center: Vector2,
@@ -18,7 +20,8 @@ export type ScopeLens = {
 	IsAttached: () -> boolean,
 	Apparent: () -> Apparent?,
 	SetKick: (offset: Vector2, roll: number) -> (),
-	Render: (visibility: number) -> (),
+	Render: (visibility: number, masked: boolean) -> (),
+	SetReticle: (thickness: number, dotSize: number) -> (),
 	Destroy: () -> (),
 }
 
@@ -161,20 +164,23 @@ local function new(playerGui: PlayerGui): ScopeLens
 	ring.ZIndex = 10
 	ring.Parent = gui
 
-	const horizontal = centered(
-		"Horizontal",
+	const reticleFrame = centered(
+		"Reticle",
 		11,
-		UDim2.new(ScopeSettings.LensCircleFraction, 0, 0, ScopeSettings.LensReticleThickness)
+		UDim2.fromScale(ScopeSettings.LensCircleFraction, ScopeSettings.LensCircleFraction)
 	)
-	horizontal.Parent = gui
-	const vertical = centered(
-		"Vertical",
-		11,
-		UDim2.new(0, ScopeSettings.LensReticleThickness, ScopeSettings.LensCircleFraction, 0)
-	)
-	vertical.Parent = gui
-	const dot = centered("Dot", 12, UDim2.fromOffset(ScopeSettings.LensReticleDot, ScopeSettings.LensReticleDot))
-	dot.Parent = gui
+	reticleFrame.BackgroundTransparency = 1
+	reticleFrame.Parent = gui
+
+	const reticleThickness = Vide.source(ScopeSettings.LensReticleThickness)
+	const reticleTransparency = Vide.source(1)
+	const unmountReticle = Vide.mount(function()
+		return ScopeReticle({
+			Thickness = reticleThickness,
+			Transparency = reticleTransparency,
+			ZIndex = 11,
+		})
+	end, reticleFrame)
 
 	gui.Parent = playerGui
 
@@ -189,6 +195,7 @@ local function new(playerGui: PlayerGui): ScopeLens
 	local anchorOffset = 0
 	local maskSlabs: { Part } = {}
 	local lastVisibility = -1
+	local maskShown = true
 
 	local function buildMask(part: Part)
 		table.clear(maskSlabs)
@@ -261,6 +268,7 @@ local function new(playerGui: PlayerGui): ScopeLens
 		attachedLens = nil
 		table.clear(maskSlabs)
 		lastVisibility = -1
+		maskShown = true
 	end
 
 	local function attach(lens: BasePart, anchor: Attachment?): boolean
@@ -350,27 +358,16 @@ local function new(playerGui: PlayerGui): ScopeLens
 	local function setKick(offset: Vector2, roll: number)
 		const position = UDim2.fromScale(0.5 + offset.X, 0.5 + offset.Y)
 		ring.Position = position
-		horizontal.Position = position
-		vertical.Position = position
-		dot.Position = position
+		reticleFrame.Position = position
 		ring.Rotation = roll
-		horizontal.Rotation = roll
-		vertical.Rotation = roll
+		reticleFrame.Rotation = roll
 	end
 
-	local function render(visibility: number)
+	local function render(visibility: number, masked: boolean)
 		const camera = workspace.CurrentCamera
 		const lens = attachedLens
 		const joint = motor
 		if not camera or not lens or not joint then
-			return
-		end
-
-		if visibility <= 0 then
-			if gui.Enabled then
-				gui.Enabled = false
-				setMaskVisible(false)
-			end
 			return
 		end
 
@@ -382,27 +379,35 @@ local function new(playerGui: PlayerGui): ScopeLens
 
 		if not gui.Enabled then
 			gui.Enabled = true
-			setMaskVisible(true)
+		end
+
+		const shown = masked and visibility > 0
+		if shown ~= maskShown then
+			maskShown = shown
+			setMaskVisible(shown)
 		end
 
 		if visibility ~= lastVisibility then
 			lastVisibility = visibility
 			const transparency = 1 - visibility
 			sky.BackgroundTransparency = transparency
-			viewport.ImageTransparency = transparency
+			viewport.ImageTransparency = math.min(transparency, ScopeSettings.PrewarmTransparency)
 			haze.BackgroundTransparency = 1 - visibility * (1 - hazeBase)
 			ring.ImageTransparency = transparency
 			const reticle = 1 - visibility * (1 - ScopeSettings.LensReticleTransparency)
-			horizontal.BackgroundTransparency = reticle
-			vertical.BackgroundTransparency = reticle
-			dot.BackgroundTransparency = reticle
+			reticleTransparency(reticle)
 		end
 
 		viewportCamera.CFrame = camera.CFrame
 	end
 
+	local function setReticle(thickness: number, _dotSize: number)
+		reticleThickness(thickness)
+	end
+
 	local function destroy()
 		detach()
+		unmountReticle()
 		gui:Destroy()
 	end
 
@@ -416,6 +421,7 @@ local function new(playerGui: PlayerGui): ScopeLens
 		Apparent = apparent,
 		SetKick = setKick,
 		Render = render,
+		SetReticle = setReticle,
 		Destroy = destroy,
 	}
 end

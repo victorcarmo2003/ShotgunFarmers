@@ -7,13 +7,14 @@ export type Set = {
 	Impact: string,
 	Flame: string?,
 	Trail: string?,
+	Streak: boolean?,
 }
 
 export type Muzzle = { Anchor: BasePart, Offset: CFrame }
 
 export type PelletKind = "None" | "Wall" | "Player" | "Head"
 
-export type Pellet = { EndPos: Vector3, Normal: Vector3, Kind: PelletKind, Delay: number? }
+export type Pellet = { EndPos: Vector3, Normal: Vector3, Kind: PelletKind, Delay: number?, Control: Vector3? }
 
 const WALL = "ImpactWall"
 
@@ -25,8 +26,8 @@ const SETS: { [string]: Set } = {
 	Uzichinni = { Muzzle = "Muzzle_Uzichinni", Tracer = "Tracer_Bullet", Impact = "Impact_Uzichinni" },
 	M6Bean = { Muzzle = "Muzzle_M6Bean", Tracer = "Tracer_Bullet", Impact = "Impact_M6Bean" },
 	WatermeLMG = { Muzzle = "Muzzle_WatermeLMG", Tracer = "Tracer_Bullet", Impact = "Impact_WatermeLMG" },
-	Snipine = { Muzzle = "Muzzle_Snipine", Tracer = "Tracer_Sniper", Impact = "Impact_Snipine" },
-	Sniperagus = { Muzzle = "Muzzle_Sniperagus", Tracer = "Tracer_Sniper", Impact = "Impact_Sniperagus" },
+	Snipine = { Muzzle = "Muzzle_Snipine", Tracer = "Tracer_Sniper", Impact = "Impact_Snipine", Streak = true },
+	Sniperagus = { Muzzle = "Muzzle_Sniperagus", Tracer = "Tracer_Sniper", Impact = "Impact_Sniperagus", Streak = true },
 	Strawborry = { Trail = "Tracer_Arrow", Impact = "Impact_Strawborry" },
 	Raygun = { Muzzle = "Muzzle_Default", Impact = "Impact_Raygun" },
 	Carrocket = { Muzzle = "Muzzle_Launcher", Impact = WALL, Trail = "Trail_Carrocket" },

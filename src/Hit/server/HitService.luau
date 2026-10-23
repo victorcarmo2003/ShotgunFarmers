@@ -8,7 +8,11 @@ local HitNet = require(ReplicatedStorage.shared.Hit.Net)
 local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
 local Lync = require(ReplicatedStorage.Packages.Lync)
+local BotSettings = require(ReplicatedStorage.shared.Bot.BotSettings)
+local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
 local Modux = require(ServerScriptService.server.Modux)
+
+type Fighter = BotTypes.Fighter
 
 export type FireRequest = {
 	Origin: Vector3,
@@ -28,7 +32,9 @@ export type FireBudget = {
 	At: number,
 }
 
-export type ResolvedHit = { Player: Player, HitPart: number, Distance: number }
+export type ResolvedHit = { Target: Fighter, HitPart: number, Distance: number }
+
+type Candidate = { Fighter: Fighter, ID: number, Root: Vector3, Character: Model? }
 
 const HITBOX_RADIUS = 4.5
 const CONE_BODY_RADIUS = 2
@@ -50,6 +56,7 @@ raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 
 const HitService = Modux.Service("HitService", {
 	Require = {
+		"BotRegistryService",
 		"GameStateService",
 		"IDService",
 		"MatchStatsService",
@@ -72,8 +79,50 @@ local function closestPointOnRay(origin: Vector3, direction: Vector3, maxDistanc
 end
 
 local function rootPart(character: Model?): BasePart?
-	const root = if character then character:FindFirstChild("HumanoidRootPart") else nil
-	return if root and root:IsA("BasePart") then root else nil
+	return BotTypes.Root(character)
+end
+
+function HitService:IDOf(fighter: Fighter): number
+	const bot = BotTypes.AsBot(fighter)
+	if bot then
+		return bot.GameID
+	end
+	return self.Dependencies.IDService:GetPlayerID(fighter :: Player)
+end
+
+function HitService:IsAlive(fighter: Fighter): boolean
+	const bot = BotTypes.AsBot(fighter)
+	if bot then
+		return bot.Alive
+	end
+	const vital = self.Components.Vital:Get(fighter :: Player)
+	return vital ~= nil and vital.Alive
+end
+
+function HitService:Candidates(shooter: Fighter): { Candidate }
+	const list: { Candidate } = {}
+	for _, player in Players:GetPlayers() do
+		if player == shooter or not self:IsAlive(player) then
+			continue
+		end
+		const character = player.Character
+		const root = rootPart(character)
+		if character and root then
+			table.insert(list, {
+				Fighter = player,
+				ID = self.Dependencies.IDService:GetPlayerID(player),
+				Root = root.Position,
+				Character = character,
+			})
+		end
+	end
+
+	for _, bot in self.Dependencies.BotRegistryService:All() do
+		if bot ~= shooter and bot.Alive then
+			table.insert(list, { Fighter = bot, ID = bot.GameID, Root = bot.Position, Character = nil })
+		end
+	end
+	return list
 end
 
 function HitService:SpendFireToken(player: Player): boolean
@@ -96,23 +145,34 @@ function HitService:SpendFireToken(player: Player): boolean
 	return true
 end
 
-function HitService:DealDamage(shooter: Player, target: Player, damage: number): (boolean, boolean)
-	const vital = self.Components.Vital:Get(target)
+function HitService:DealDamage(shooter: Fighter, target: Fighter, damage: number): (boolean, boolean)
+	const bot = BotTypes.AsBot(target)
+	if bot then
+		if not bot.Alive then
+			return false, false
+		end
+		self.Dependencies.MatchStatsService:RecordDamage(shooter, bot, math.min(damage, bot.Health + bot.Armor))
+		const _, botKilled = self.Dependencies.BotRegistryService:Damage(bot, damage)
+		return true, botKilled
+	end
+
+	const player = target :: Player
+	const vital = self.Components.Vital:Get(player)
 	if not vital or not vital.Alive then
 		return false, false
 	end
 
 	const dealt = math.min(damage, vital.Health + vital.Armor)
 	const killed = not vital:TakeDamage(damage)
-	self.Dependencies.MatchStatsService:RecordDamage(shooter, target, dealt)
-	self:NotifyDamaged(shooter, target, dealt)
+	self.Dependencies.MatchStatsService:RecordDamage(shooter, player, dealt)
+	self:NotifyDamaged(shooter, player, dealt)
 	return true, killed
 end
 
-function HitService:NotifyDamaged(shooter: Player, target: Player, amount: number)
+function HitService:NotifyDamaged(shooter: Fighter, target: Player, amount: number)
 	const netService = self.Dependencies.NetService
-	const shooterRoot = rootPart(shooter.Character)
-	if shooter == target or amount <= 0 or not shooterRoot then
+	const shooterPosition = BotTypes.Position(shooter)
+	if shooter == target or amount <= 0 or not shooterPosition then
 		return
 	end
 	if not netService:IsRunning() or not netService:IsReady(target) then
@@ -120,7 +180,7 @@ function HitService:NotifyDamaged(shooter: Player, target: Player, amount: numbe
 	end
 
 	self.Libs.Net.Vital.Damaged:fireClient(target, {
-		From = shooterRoot.Position,
+		From = shooterPosition,
 		Amount = math.clamp(math.round(amount), 0, 255),
 	})
 end
@@ -133,26 +193,28 @@ function HitService:ApplyKnockback(root: BasePart, direction: Vector3, force: nu
 	root:ApplyImpulse(direction.Unit * force * root.AssemblyMass)
 end
 
-function HitService:Announce(shooter: Player, victim: Player, gunName: string, isHeadshot: boolean)
+function HitService:Announce(shooter: Fighter, victim: Fighter, gunName: string, isHeadshot: boolean)
 	if not self.Dependencies.NetService:IsRunning() then
 		return
 	end
 
 	self.Libs.Net.KillFeed.Kill:fireClient(self.Dependencies.NetService.Audience, {
-		ShooterID = self.Dependencies.IDService:GetPlayerID(shooter),
-		VictimID = self.Dependencies.IDService:GetPlayerID(victim),
+		ShooterID = self:IDOf(shooter),
+		VictimID = self:IDOf(victim),
 		GunName = gunName,
 		IsHeadshot = isHeadshot,
 	})
 end
 
-function HitService:BroadcastShot(shooter: Player, gunData: GetGun.GunData, origin: Vector3, direction: Vector3)
+function HitService:BroadcastShot(shooter: Fighter, gunData: GetGun.GunData, origin: Vector3, direction: Vector3)
 	if gunData.FireMode == "Melee" or not self.Dependencies.NetService:IsRunning() then
 		return
 	end
 
-	self.Libs.Net.Hit.Shot:fireClient(Lync.except(shooter), {
-		ShooterID = self.Dependencies.IDService:GetPlayerID(shooter),
+	const player = BotTypes.AsPlayer(shooter)
+	const audience = if player then Lync.except(player) else self.Dependencies.NetService.Audience
+	self.Libs.Net.Hit.Shot:fireClient(audience, {
+		ShooterID = self:IDOf(shooter),
 		GunID = gunData.ID,
 		Origin = origin,
 		Direction = direction,
@@ -167,29 +229,57 @@ function HitService:ResolvePellet(
 	claimedHitPart: number,
 	timestamp: number,
 	range: number,
-	hitbox: number?
-): (boolean, Player?, number?, number?)
+	hitbox: number?,
+	gunData: GetGun.GunData?
+): (boolean, Fighter?, number?, number?)
 	if direction.Magnitude < 0.5 or range <= 0 then
 		return false, nil, nil, nil
 	end
 	const unitDirection = direction.Unit
 
-	const target = self.Dependencies.IDService:GetPlayerFromID(claimedTargetID)
-	if not target or target == shooter then
-		return false, nil, nil, nil
-	end
-
 	const shooterCharacter = shooter.Character
-	const targetCharacter = target.Character
-	const targetRoot = rootPart(targetCharacter)
-	if not shooterCharacter or not targetCharacter or not targetRoot then
+	if not shooterCharacter then
 		return false, nil, nil, nil
 	end
 
-	const rewound = self.Dependencies.SnapshotService:GetRewoundPosition(claimedTargetID, timestamp)
-		or targetRoot.Position
+	local target: Fighter? = nil
+	local current: Vector3? = nil
+	const filter: { Instance } = { shooterCharacter }
 
-	raycastParams.FilterDescendantsInstances = { shooterCharacter, targetCharacter }
+	const bot = self.Dependencies.BotRegistryService:FromID(claimedTargetID)
+	if bot then
+		if bot.Alive then
+			target = bot
+			current = bot.Position
+		end
+	else
+		const player = self.Dependencies.IDService:GetPlayerFromID(claimedTargetID)
+		const targetCharacter = if player then player.Character else nil
+		const targetRoot = rootPart(targetCharacter)
+		if player and player ~= shooter and targetCharacter and targetRoot then
+			target = player
+			current = targetRoot.Position
+			table.insert(filter, targetCharacter)
+		end
+	end
+
+	if not target or not current then
+		return false, nil, nil, nil
+	end
+
+	const rewindAt = if bot then timestamp - BotSettings.InterpolationDelay else timestamp
+	const rewound: Vector3 = self.Dependencies.SnapshotService:GetRewoundPosition(claimedTargetID, rewindAt)
+		or current :: Vector3
+
+	raycastParams.FilterDescendantsInstances = filter
+	if gunData then
+		const sweep = Ballistics.Sweep(gunData, origin, unitDirection, range, raycastParams, rewound)
+		if (sweep.Closest - rewound).Magnitude > (hitbox or HITBOX_RADIUS) then
+			return false, nil, nil, nil
+		end
+		return true, target, claimedHitPart, sweep.Distance
+	end
+
 	const obstruction = workspace:Raycast(origin, unitDirection * range, raycastParams)
 	const maxDistance = if obstruction then obstruction.Distance else range
 
@@ -217,21 +307,10 @@ function HitService:ConeTargets(
 	const unitDirection = direction.Unit
 	const halfAngle = math.rad(angle)
 
-	for _, target in Players:GetPlayers() do
-		if target == shooter then
-			continue
-		end
-
-		const vital = self.Components.Vital:Get(target)
-		const targetCharacter = target.Character
-		const targetRoot = rootPart(targetCharacter)
-		if not vital or not vital.Alive or not targetCharacter or not targetRoot then
-			continue
-		end
-
-		const targetID = self.Dependencies.IDService:GetPlayerID(target)
-		const rewound = self.Dependencies.SnapshotService:GetRewoundPosition(targetID, timestamp)
-			or targetRoot.Position
+	for _, candidate in self:Candidates(shooter) do
+		const rewindAt = if candidate.Character then timestamp else timestamp - BotSettings.InterpolationDelay
+		const rewound = self.Dependencies.SnapshotService:GetRewoundPosition(candidate.ID, rewindAt)
+			or candidate.Root
 		const offset = rewound - origin
 		const distance = offset.Magnitude
 		if distance > range + CONE_BODY_RADIUS then
@@ -245,12 +324,14 @@ function HitService:ConeTargets(
 			end
 		end
 
-		raycastParams.FilterDescendantsInstances = { shooterCharacter, targetCharacter }
+		raycastParams.FilterDescendantsInstances = if candidate.Character
+			then { shooterCharacter, candidate.Character }
+			else { shooterCharacter }
 		if workspace:Raycast(origin, offset, raycastParams) then
 			continue
 		end
 
-		table.insert(hits, { Player = target, HitPart = Body.Torso, Distance = distance })
+		table.insert(hits, { Target = candidate.Fighter, HitPart = Body.Torso, Distance = distance })
 	end
 
 	return hits
@@ -269,26 +350,48 @@ function HitService:HitDamage(gunData: GetGun.GunData, hit: ResolvedHit): number
 	return math.max(math.round(damage), 1)
 end
 
-function HitService:ApplyHit(shooter: Player, hit: ResolvedHit, gunData: GetGun.GunData, gunName: string, origin: Vector3)
-	const dealt, killed = self:DealDamage(shooter, hit.Player, self:HitDamage(gunData, hit))
+function HitService:ApplyHit(shooter: Fighter, hit: ResolvedHit, gunData: GetGun.GunData, gunName: string, origin: Vector3)
+	const dealt, killed = self:DealDamage(shooter, hit.Target, self:HitDamage(gunData, hit))
 	if not dealt then
 		return
 	end
 
-	const victimRoot = rootPart(hit.Player.Character)
+	const victimRoot = rootPart(BotTypes.Character(hit.Target))
 	if victimRoot then
 		self:ApplyKnockback(victimRoot, victimRoot.Position - origin, gunData.Knockback)
 	end
 
-	if gunData.FireMode == "Cone" and not killed then
-		self.Burned:Fire(shooter, hit.Player, gunName)
+	const shooterPlayer = BotTypes.AsPlayer(shooter)
+	const victimPlayer = BotTypes.AsPlayer(hit.Target)
+	if gunData.FireMode == "Cone" and not killed and shooterPlayer and victimPlayer then
+		self.Burned:Fire(shooterPlayer, victimPlayer, gunName)
 	end
 
 	if killed then
 		const isHeadshot = hit.HitPart == Body.Head
-		self.Dependencies.MatchStatsService:RecordKill(shooter, hit.Player, isHeadshot)
-		self:Announce(shooter, hit.Player, gunName, isHeadshot)
+		self.Dependencies.MatchStatsService:RecordKill(shooter, hit.Target, isHeadshot)
+		self:Announce(shooter, hit.Target, gunName, isHeadshot)
 	end
+end
+
+function HitService:ApplyHits(shooter: Fighter, hits: { ResolvedHit }, gunData: GetGun.GunData, gunName: string, origin: Vector3): number
+	local landed = 0
+	for _, hit in hits do
+		if self.Dependencies.TeamService:SameTeam(shooter, hit.Target) or not self:IsAlive(hit.Target) then
+			continue
+		end
+		landed += 1
+
+		const travel = if gunData.FireMode == "Hitscan" then Ballistics.Travel(gunData, hit.Distance) else 0
+		if travel > MIN_TRAVEL_DELAY then
+			task.delay(travel, function()
+				self:ApplyHit(shooter, hit, gunData, gunName, origin)
+			end)
+		else
+			self:ApplyHit(shooter, hit, gunData, gunName, origin)
+		end
+	end
+	return landed
 end
 
 function HitService:ProcessFire(request: FireRequest, shooter: Player): FireReply
@@ -376,27 +479,7 @@ function HitService:ProcessFire(request: FireRequest, shooter: Player): FireRepl
 		)
 	end
 
-	local landed = 0
-	for _, hit in hits do
-		if self.Dependencies.TeamService:SameTeam(shooter, hit.Player) then
-			continue
-		end
-
-		const targetVital = self.Components.Vital:Get(hit.Player)
-		if not targetVital or not targetVital.Alive then
-			continue
-		end
-		landed += 1
-
-		const travel = if mode == "Hitscan" then Ballistics.Travel(gunData, hit.Distance) else 0
-		if travel > MIN_TRAVEL_DELAY then
-			task.delay(travel, function()
-				self:ApplyHit(shooter, hit, gunData, gunName, request.Origin)
-			end)
-		else
-			self:ApplyHit(shooter, hit, gunData, gunName, request.Origin)
-		end
-	end
+	const landed = self:ApplyHits(shooter, hits, gunData, gunName, request.Origin)
 
 	self:ApplyKnockback(root, -direction, gunData.Knockback)
 	return { Accepted = true, Hits = math.min(landed, MAX_REPLY_HITS) }

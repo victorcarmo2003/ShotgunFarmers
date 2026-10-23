@@ -14,6 +14,7 @@ type Invite = {
 }
 
 export type Public = {
+	BillboardsHidden: Vide.Source<boolean>,
 	Current: Vide.Source<Invite | false>,
 	Friends: Vide.Source<{ PartyNet.Friend }>,
 	InviteRequested: SignalLib.Signal<>,

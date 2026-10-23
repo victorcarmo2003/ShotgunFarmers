@@ -41,6 +41,7 @@ function PartyController:Setup()
 	self.Loading = source(false) :: Vide.Source<boolean>
 	self.Current = source(false :: Invite | false) :: Vide.Source<Invite | false>
 	self.Progress = source(1) :: Vide.Source<number>
+	self.BillboardsHidden = source(false) :: Vide.Source<boolean>
 	self.Queue = {} :: { Invite }
 	self.Timer = nil :: RBXScriptConnection?
 	self.Notice = self.Libs.Signal.new() :: SignalLib.Signal<string>
@@ -267,7 +268,7 @@ function PartyController:Billboard(slot: number, lobbyRoot: () -> Instance | fal
 			return self:SlotPart(slot)
 		end,
 		Enabled = function()
-			if gameState.State() ~= "Lobby" or not lobbyRoot() then
+			if gameState.State() ~= "Lobby" or not lobbyRoot() or self.BillboardsHidden() then
 				return false
 			end
 			const current = member()

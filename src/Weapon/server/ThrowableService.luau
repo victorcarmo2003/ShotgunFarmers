@@ -10,7 +10,11 @@ local ThrowSim = require(ReplicatedStorage.shared.Weapon.ThrowSim)
 local Throwables = require(ReplicatedStorage.shared.Weapon.Throwables)
 local WeaponVFX = require(ReplicatedStorage.shared.Weapon.WeaponVFX)
 local GunRules = require(ServerScriptService.server.Weapon.GunRules)
+local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
 local Modux = require(ServerScriptService.server.Modux)
+
+type Fighter = BotTypes.Fighter
+type Bot = BotTypes.Bot
 
 export type ThrowRequest = {
 	Origin: Vector3,
@@ -60,6 +64,7 @@ const BURN_SOURCE = "Moolotov"
 
 const ThrowableService = Modux.Service("ThrowableService", {
 	Require = {
+		"BotRegistryService",
 		"GameStateService",
 		"HitService",
 		"IDService",
@@ -98,12 +103,11 @@ function ThrowableService:AllocateId(): number
 	return self.NextId
 end
 
-function ThrowableService:IsAlive(player: Player): boolean
-	const vital = self.Components.Vital:Get(player)
-	return vital ~= nil and vital.Alive
+function ThrowableService:IsAlive(fighter: Fighter): boolean
+	return self.Dependencies.HitService:IsAlive(fighter)
 end
 
-function ThrowableService:Hurt(owner: Player, victim: Player, amount: number, gunName: string, isHeadshot: boolean?)
+function ThrowableService:Hurt(owner: Player, victim: Fighter, amount: number, gunName: string, isHeadshot: boolean?)
 	const ownerPresent = owner:IsDescendantOf(Players)
 	local damage = amount
 	if victim == owner then
@@ -265,13 +269,24 @@ function ThrowableService:StepProjectile(projectile: Projectile): boolean
 	const state = projectile.State
 	projectile.Params.FilterDescendantsInstances = ThrowSim.Ignore(projectile.Owner, definition.Contact)
 
+	const before = state.Position
 	const contact = ThrowSim.Step(definition, state, projectile.Params)
+	const travel = (if contact then contact.Position else state.Position) - before
+	const bot, botDistance, botPart = self:BotOnSegment(projectile, before, travel)
+	if bot then
+		if definition.Direct then
+			self:StrikeBot(projectile, bot, botPart)
+		end
+		self:Detonate(projectile, before + travel.Unit * botDistance)
+		return true
+	end
+
 	if contact then
 		if definition.Direct then
 			self:Strike(projectile, contact.Instance)
 		end
 		if projectile.Plants and GunRules.IsPlantable(contact.Instance) then
-			GunRules.PlantAt(contact.Position, projectile.GunName)
+			GunRules.PlantAt(contact.Position, projectile.GunName, "Shot", projectile.Owner)
 		end
 		self:Detonate(projectile, contact.Position + contact.Normal * Throwables.PROJECTILE_RADIUS)
 		return true
@@ -289,6 +304,31 @@ function ThrowableService:StepProjectile(projectile: Projectile): boolean
 	return false
 end
 
+function ThrowableService:BotOnSegment(projectile: Projectile, origin: Vector3, travel: Vector3): (Bot?, number, number)
+	if travel.Magnitude < 0.001 then
+		return nil, 0, Body.Other
+	end
+
+	const owner = projectile.Owner
+	const ownerPresent = owner:IsDescendantOf(Players)
+	const bot, distance, part = self.Dependencies.BotRegistryService:RayHit(origin, travel, travel.Magnitude)
+	if bot and ownerPresent and self.Dependencies.TeamService:SameTeam(owner, bot) then
+		return nil, 0, Body.Other
+	end
+	return bot, distance, part
+end
+
+function ThrowableService:StrikeBot(projectile: Projectile, bot: Bot, part: number)
+	const isHeadshot = part == Body.Head
+	const gunData = GetGun.ByName(projectile.GunName)
+	local damage = projectile.Definition.DamageCenter
+	if isHeadshot and gunData then
+		damage *= gunData.HeadshotMultiplier
+	end
+
+	self:Hurt(projectile.Owner, bot, damage, projectile.GunName, isHeadshot)
+end
+
 function ThrowableService:NearEnemy(projectile: Projectile): boolean
 	const proximity = projectile.Definition.Proximity
 	if not proximity then
@@ -298,6 +338,14 @@ function ThrowableService:NearEnemy(projectile: Projectile): boolean
 	const owner = projectile.Owner
 	const ownerPresent = owner:IsDescendantOf(Players)
 	const position = projectile.State.Position
+	for _, bot in self.Dependencies.BotRegistryService:All() do
+		if not bot.Alive or (ownerPresent and self.Dependencies.TeamService:SameTeam(owner, bot)) then
+			continue
+		end
+		if (bot.Position - position).Magnitude <= proximity then
+			return true
+		end
+	end
 	for _, player in Players:GetPlayers() do
 		if player == owner or not self:IsAlive(player) then
 			continue
@@ -346,8 +394,32 @@ function ThrowableService:CanSee(center: Vector3, character: Model): boolean
 	return false
 end
 
+function ThrowableService:CanSeePoint(center: Vector3, point: Vector3): boolean
+	const params = self.SightParams
+	params.FilterDescendantsInstances = ThrowSim.Ignore(nil, false)
+	return workspace:Raycast(center, point - center, params) == nil
+end
+
 function ThrowableService:Blast(projectile: Projectile, center: Vector3)
 	const definition = projectile.Definition
+	for _, bot in self.Dependencies.BotRegistryService:All() do
+		if not bot.Alive then
+			continue
+		end
+
+		const distance = (bot.Position - center).Magnitude
+		if distance > definition.Radius then
+			continue
+		end
+
+		const head = bot.Position + Vector3.yAxis
+		if not self:CanSeePoint(center, bot.Position) and not self:CanSeePoint(center, head) then
+			continue
+		end
+
+		self:Hurt(projectile.Owner, bot, Throwables.Falloff(definition, distance), projectile.GunName)
+	end
+
 	for _, player in Players:GetPlayers() do
 		const character = player.Character
 		const root = rootPart(character)
@@ -383,6 +455,11 @@ function ThrowableService:Shrapnel(projectile: Projectile, center: Vector3): { V
 		const angle = baseAngle + (index - 1) * (math.pi * 2 / spec.Count)
 		const direction = Vector3.new(math.cos(angle), SHRAPNEL_LIFT, math.sin(angle)).Unit
 		const result = workspace:Raycast(center, direction * spec.Range, params)
+		const reach = if result then result.Distance else spec.Range
+		const shardBot = self:BotOnSegment(projectile, center, direction * reach)
+		if shardBot then
+			self:Hurt(projectile.Owner, shardBot, spec.Damage, projectile.GunName)
+		end
 		table.insert(ends, if result then result.Position else center + direction * spec.Range)
 
 		const model = if result then result.Instance:FindFirstAncestorOfClass("Model") else nil
@@ -496,6 +573,13 @@ function ThrowableService:ScanZones(now: number)
 		end
 
 		const spec = zone.Spec
+		if damageTick then
+			for _, bot in self.Dependencies.BotRegistryService:All() do
+				if bot.Alive and Throwables.InsideZone(spec, zone.Center, bot.Position) then
+					self:Hurt(zone.Owner, bot, spec.Dps * Throwables.ZONE_DAMAGE_INTERVAL, zone.GunName)
+				end
+			end
+		end
 		for _, player in Players:GetPlayers() do
 			const root = rootPart(player.Character)
 			if not root or not self:IsAlive(player) then

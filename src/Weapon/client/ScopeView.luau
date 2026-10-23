@@ -119,11 +119,13 @@ local function new(playerGui: PlayerGui): ScopeView
 	end
 
 	local hazeBase = 1
+	local lastAlpha = -1
 
 	gui.Parent = playerGui
 
 	local function setLighting(lighting: Maps.ScopeLighting)
 		hazeBase = lighting.HazeTransparency
+		lastAlpha = -1
 		for _, strip in strips do
 			strip.Gradient.Color = ColorSequence.new({
 				ColorSequenceKeypoint.new(0, lighting.SkyTop),
@@ -162,6 +164,7 @@ local function new(playerGui: PlayerGui): ScopeView
 		for _, strip in strips do
 			strip.Frame.Visible = false
 		end
+		lastAlpha = -1
 	end
 
 	local function place(strip: Strip, x: number, y: number, width: number, height: number, canvas: Vector2)
@@ -213,13 +216,19 @@ local function new(playerGui: PlayerGui): ScopeView
 		plane.Size = Vector3.new(planeWidth, planeHeight, PLANE_THICKNESS)
 		plane.CFrame = cameraCFrame * CFrame.new(0, 0, -ScopeSettings.PlaneDistance)
 
-		const skyTransparency = 1 - alpha
-		const hazeTransparency = 1 - alpha * (1 - hazeBase)
+		if alpha ~= lastAlpha then
+			lastAlpha = alpha
+			const skyTransparency = 1 - alpha
+			const imageTransparency = math.min(skyTransparency, ScopeSettings.PrewarmTransparency)
+			const hazeTransparency = 1 - alpha * (1 - hazeBase)
+			for _, strip in strips do
+				strip.Sky.BackgroundTransparency = skyTransparency
+				strip.Viewport.ImageTransparency = imageTransparency
+				strip.Haze.BackgroundTransparency = hazeTransparency
+			end
+		end
 		for _, strip in strips do
 			if strip.Frame.Visible then
-				strip.Sky.BackgroundTransparency = skyTransparency
-				strip.Viewport.ImageTransparency = skyTransparency
-				strip.Haze.BackgroundTransparency = hazeTransparency
 				strip.Camera.CFrame = cameraCFrame
 			end
 		end

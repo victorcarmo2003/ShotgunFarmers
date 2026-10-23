@@ -4,12 +4,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StarterPlayer = game:GetService("StarterPlayer")
 local GetThumbnail = require(ReplicatedStorage.shared.Utils.GetThumbnail)
+local Platform = require(ReplicatedStorage.shared.Interface.Platform)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
 local Crosshair = require(StarterPlayer.StarterPlayerScripts.client.Weapon.Crosshair)
-local ReticleAmmo = require(StarterPlayer.StarterPlayerScripts.client.Weapon.ReticleAmmo)
-local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local ScopeSettings = require(ReplicatedStorage.shared.Weapon.ScopeSettings)
 local GunBar = require(StarterPlayer.StarterPlayerScripts.client.Weapon.GunBar)
 local HitMarker = require(StarterPlayer.StarterPlayerScripts.client.Hit.HitMarker)
 local KillFeed = require(StarterPlayer.StarterPlayerScripts.client.KillFeed.KillFeed)
@@ -27,6 +27,12 @@ const BLOOM_RECOVERY = 2.5
 const MOVEMENT_SPRING = 0.12
 const REFERENCE_HEIGHT = 1080
 
+const STATUS_POSITION = UDim2.fromScale(0.03, 0.895)
+const STATUS_POSITION_MOBILE = UDim2.fromScale(0.03, 0.235)
+const STATUS_SIZE_MOBILE = UDim2.fromScale(0.32, 0.21)
+const GUN_POSITION_MOBILE = UDim2.fromScale(1, 0.02)
+const GUN_SIZE_MOBILE = UDim2.fromScale(0.14, 0.48)
+
 const InterfaceController = Modux.Controller("InterfaceController", {
 	Require = {
 		"ArmsController",
@@ -37,6 +43,7 @@ const InterfaceController = Modux.Controller("InterfaceController", {
 		"MovementController",
 		"OptionsController",
 		"RoundController",
+		"ScopeController",
 		"SurfaceUIController",
 		"VitalController",
 		"WeaponController",
@@ -103,20 +110,6 @@ function InterfaceController:BuildGunSlots(): { GunBar.SlotProps }
 	return slots
 end
 
-function InterfaceController:ShowReticleAmmo(): boolean
-	if not self.Dependencies.OptionsController:ReticleAmmo() then
-		return false
-	end
-
-	const weapon = self.Dependencies.WeaponController
-	const gunData = weapon:GunData()
-	if not gunData or not GetGun.UsesAmmo(gunData) then
-		return false
-	end
-
-	return not (self.Dependencies.ArmsController.IsAiming() and gunData.Scope ~= nil)
-end
-
 function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part })
 	const vital = self.Dependencies.VitalController
 	const round = self.Dependencies.RoundController
@@ -127,6 +120,7 @@ function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part
 	const movement = self.Dependencies.MovementController
 	const options = self.Dependencies.OptionsController
 	const hud = self.Dependencies.GameStateController:Capability("Hud")
+	const mobile = Platform.IsMobile()
 
 	self.Unmount = Vide.mount(function()
 		surface(
@@ -139,6 +133,16 @@ function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part
 					return not leaderstats:IsShown()
 				end,
 				Entries = leaderstats.Ranking,
+				Teams = function()
+					return leaderstats.Mode() == "TDM"
+				end,
+				Red = function()
+					return leaderstats.Totals().Red
+				end,
+				Blue = function()
+					return leaderstats.Totals().Blue
+				end,
+				LocalTeam = leaderstats.LocalTeam,
 				Title = function()
 					const mode = leaderstats.ModeName()
 					const clock = round:Clock()
@@ -166,6 +170,9 @@ function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part
 			panels.PlayerStatusUI,
 			hud,
 			StatusBar({
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = if mobile then STATUS_POSITION_MOBILE else STATUS_POSITION,
+				Size = if mobile then STATUS_SIZE_MOBILE else nil,
 				Health = function()
 					return vital.Health() / MAX_HEALTH
 				end,
@@ -181,12 +188,23 @@ function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part
 			})
 		)
 
-		surface(playerGui, "GunUI", panels.GunUI, hud, GunBar({ Slots = self:BuildGunSlots() }))
+		surface(
+			playerGui,
+			"GunUI",
+			panels.GunUI,
+			hud,
+			GunBar({
+				Slots = self:BuildGunSlots(),
+				Position = if mobile then GUN_POSITION_MOBILE else nil,
+				Size = if mobile then GUN_SIZE_MOBILE else nil,
+			})
+		)
 
 		return create("ScreenGui")({
 			Name = "CrosshairUI",
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
+			DisplayOrder = ScopeSettings.OverlayDisplayOrder + 1,
 			Enabled = hud,
 
 			Crosshair.new({
@@ -204,22 +222,6 @@ function InterfaceController:Mount(playerGui: Instance, panels: { [string]: Part
 
 			HitMarker({
 				Trigger = hit.HitMarkerTrigger,
-			}),
-
-			ReticleAmmo({
-				Ammo = function()
-					return self.Dependencies.WeaponController:ActiveAmmo()
-				end,
-				MaxAmmo = function()
-					const gunData = self.Dependencies.WeaponController:GunData()
-					return if gunData then gunData.Amount else 0
-				end,
-				Visible = function()
-					return self:ShowReticleAmmo()
-				end,
-				Scale = function()
-					return self.ViewportScale()
-				end,
 			}),
 		})
 	end, playerGui)
@@ -255,9 +257,9 @@ InterfaceController:OnStart(function(self)
 
 	const surfaces = self.Dependencies.SurfaceUIController
 
-	const main = surfaces:New("MainUI", { Depth = 2.7 })
-	const status = surfaces:New("PlayerStatusUI", { Rotation = Vector3.new(0, 10, 0), Depth = 3.9 })
-	const guns = surfaces:New("GunUI", { Rotation = Vector3.new(0, -10, 0), Depth = 3.9 })
+	const main = surfaces:New("MainUI", { Depth = 3 })
+	const status = surfaces:New("PlayerStatusUI", { Rotation = Vector3.new(0, 10, 0), Depth = 3.9, Edge = -1 })
+	const guns = surfaces:New("GunUI", { Rotation = Vector3.new(0, -10, 0), Depth = 3.9, Edge = 1 })
 	if not main or not status or not guns then
 		warn("[InterfaceController] painel nao criado; HUD nao sobe")
 		return

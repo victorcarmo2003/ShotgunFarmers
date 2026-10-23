@@ -11,6 +11,9 @@ const ASSET_PREFIX = "rbxassetid://"
 const PRIORITY_FOLDERS = { "Weapons" }
 const LATER_FOLDERS = { "VFX", "Sounds", "Seeds" }
 const LOADING_DONE_ATTRIBUTE = "LoadingDone"
+const ROLE_ATTRIBUTE = "ServerRole"
+const ROUTER_ROLE = "Router"
+const ROLE_TIMEOUT = 10
 
 const PreloadController = Modux.Controller("PreloadController", {
 	Priority = 990,
@@ -88,7 +91,19 @@ local function preload(list: { any })
 	end
 end
 
+local function isRouter(): boolean
+	const deadline = os.clock() + ROLE_TIMEOUT
+	while workspace:GetAttribute(ROLE_ATTRIBUTE) == nil and os.clock() < deadline do
+		task.wait(0.1)
+	end
+	return workspace:GetAttribute(ROLE_ATTRIBUTE) == ROUTER_ROLE
+end
+
 function PreloadController:Run()
+	if isRouter() then
+		return
+	end
+
 	const started = os.clock()
 
 	const first: { any } = {}

@@ -1,5 +1,9 @@
 --!strict
 
+local ServerScriptService = game:GetService("ServerScriptService")
+local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
+
+type Fighter = BotTypes.Fighter
 type Sample = {
 	point: Vector3,
 	part: BasePart,
@@ -32,9 +36,9 @@ export type Public = {
 	ApplyFilter: (self: Public) -> (),
 	SampleCandidates: (self: Public, parts: { BasePart }) -> { Sample },
 	Resolve: (self: Public, point: Vector3, part: BasePart) -> Resolved?,
-	GetEnemyPositions: (self: Public, player: Player) -> { Vector3 },
+	GetEnemyPositions: (self: Public, fighter: Fighter) -> { Vector3 },
 	PruneRecent: (self: Public) -> (),
-	PickSpawn: (self: Public, player: Player, parts: { BasePart }) -> CFrame?,
+	PickSpawn: (self: Public, fighter: Fighter, parts: { BasePart }) -> CFrame?,
 	RandomPointOn: (self: Public, part: BasePart) -> CFrame,
 	GetTeamSpawnCFrame: (self: Public, teamName: string) -> CFrame?,
 	ReleaseSlot: (self: Public, player: Player) -> (),
@@ -43,7 +47,7 @@ export type Public = {
 	MoveToSlot: (self: Public, player: Player, slot: number) -> (),
 	ArrangeSlots: (self: Public, assignments: { [Player]: number }) -> (),
 	GetLobbyDestination: (self: Public, player: Player) -> CFrame?,
-	GetMatchDestination: (self: Public, player: Player) -> CFrame?,
+	GetMatchDestination: (self: Public, fighter: Fighter) -> CFrame?,
 	GetDestination: (self: Public, player: Player) -> CFrame?,
 	SpawnPlayer: (self: Public, player: Player) -> (),
 	Respawn: (self: Public, player: Player, delay: number?) -> (),

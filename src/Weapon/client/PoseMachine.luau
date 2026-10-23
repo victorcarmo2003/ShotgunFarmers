@@ -148,11 +148,13 @@ end
 
 function PoseMachine._playRole(self: PoseMachine, role: Role, fade: number)
 	const duration = if role == "Attack" then self._attackDuration else nil
-	for _, track in { self._viewmodelTracks[role], self._characterTracks[role] } do
+	const viewmodelTrack = self._viewmodelTracks[role]
+	for _, track in { viewmodelTrack, self._characterTracks[role] } do
 		if role == BASE_ROLE and track.IsPlaying then
 			continue
 		end
-		const speed = if duration and duration > 0 and track.Length > 0 then track.Length / duration else 1
+		const stretch = duration ~= nil and duration > 0 and track.Length > 0 and track == viewmodelTrack
+		const speed = if stretch then track.Length / duration else 1
 		track:Play(fade, 1, speed)
 	end
 end

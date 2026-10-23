@@ -13,12 +13,14 @@ const HEALTH_COLOR = ColorSequence.new(Color3.fromRGB(0, 158, 105))
 const SHIELD_ICON = "rbxassetid://84000941134084"
 const HEALTH_ICON = "rbxassetid://98924504834257"
 const PORTRAIT_COLOR = Color3.fromRGB(32, 32, 32)
+const ASPECT_RATIO = (0.3 * 16) / (0.2 * 9)
 
 export type Props = {
 	Health: () -> number,
 	Armor: () -> number,
 	PlayerName: () -> string,
 	PlayerImage: () -> string,
+	AnchorPoint: Vector2?,
 	Position: UDim2?,
 	Size: UDim2?,
 }
@@ -33,10 +35,15 @@ return function(props: Props): CanvasGroup
 	return create("CanvasGroup")({
 		Name = "StatusBar",
 
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = props.Position or UDim2.fromScale(0.03, 0.895),
+		AnchorPoint = props.AnchorPoint or Vector2.new(0.5, 0.5),
+		Position = props.Position or UDim2.fromScale(0.15, 0.895),
 		Size = props.Size or UDim2.fromScale(0.3, 0.2),
 		BackgroundTransparency = 1,
+
+		create("UIAspectRatioConstraint")({
+			AspectRatio = ASPECT_RATIO,
+			DominantAxis = Enum.DominantAxis.Height,
+		}),
 
 		create("UIListLayout")({
 			FillDirection = Enum.FillDirection.Horizontal,

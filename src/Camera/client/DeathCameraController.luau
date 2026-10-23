@@ -30,7 +30,7 @@ const PRACTICE_MODE = "Practice"
 const NO_INFO: DeathScreen.Info = { Killer = "", Gun = "", Headshot = false }
 
 const DeathCameraController = Modux.Controller("DeathCameraController", {
-	Require = { "ArmsController", "GameStateController", "MovementController" },
+	Require = { "ArmsController", "BotController", "FunnelController", "GameStateController", "MovementController" },
 	Priority = 410,
 })
 
@@ -41,7 +41,7 @@ function DeathCameraController:Setup()
 	self.Remaining = Vide.source(0) :: Vide.Source<number>
 	self.DeathToken = 0 :: number
 	self.RevivalTokens = Vide.source(0) :: Vide.Source<number>
-	self.Killer = nil :: Player?
+	self.Killer = nil :: (() -> Model?)?
 	self.FocusDone = false :: boolean
 end
 
@@ -64,14 +64,18 @@ function DeathCameraController:TryRevive()
 		return
 	end
 
+	const funnel = self.Dependencies.FunnelController
 	if self.RevivalTokens() > 0 then
+		funnel:Track("Revive", "PressedRevive", "Tokens")
 		self.Libs.Net.Shop.Revive:fireServer()
 		return
 	end
 
 	const item = ShopCatalog.ById(REVIVAL_ITEM)
 	if item then
+		funnel:Track("Revive", "PressedRevive", "Robux")
 		MarketplaceService:PromptProductPurchase(Players.LocalPlayer, item.ProductId)
+		funnel:Track("Revive", "PromptOpened")
 	end
 end
 
@@ -103,6 +107,9 @@ function DeathCameraController:ShowDeath()
 	self.Dead(true)
 	self.FocusDone = false
 	self:FocusSelf()
+	if self:ReviveText() ~= "" then
+		self.Dependencies.FunnelController:Track("Revive", "SawOffer", if self.RevivalTokens() > 0 then "Tokens" else "Robux")
+	end
 
 	task.delay(SELF_FOCUS_TIME, function()
 		if self.DeathToken ~= token or not self.Dead() then
@@ -179,8 +186,7 @@ local function playerFromGameID(id: number): Player?
 	return nil
 end
 
-local function characterRoot(player: Player): BasePart?
-	const character = player.Character
+local function characterRoot(character: Model?): BasePart?
 	const root = if character then character:FindFirstChild("HumanoidRootPart") else nil
 	return if root and root:IsA("BasePart") then root else nil
 end
@@ -227,7 +233,7 @@ end
 
 function DeathCameraController:FocusSelf()
 	const camera = workspace.CurrentCamera
-	if not camera or not characterRoot(Players.LocalPlayer) then
+	if not camera or not characterRoot(Players.LocalPlayer.Character) then
 		self.Dependencies.ArmsController:ClearRig()
 		return
 	end
@@ -239,7 +245,7 @@ function DeathCameraController:FocusSelf()
 	local elapsed = 0
 
 	self:Bind(function(currentCamera: Camera, deltaTime: number)
-		const root = characterRoot(Players.LocalPlayer)
+		const root = characterRoot(Players.LocalPlayer.Character)
 		if not root then
 			return
 		end
@@ -282,9 +288,9 @@ function DeathCameraController:StopSpectating(character: Model?)
 	end
 end
 
-function DeathCameraController:StartSpectating(shooter: Player)
+function DeathCameraController:StartSpectating(shooter: () -> Model?)
 	const camera = workspace.CurrentCamera
-	if not camera or not characterRoot(shooter) then
+	if not camera or not characterRoot(shooter()) then
 		return
 	end
 
@@ -292,7 +298,7 @@ function DeathCameraController:StartSpectating(shooter: Player)
 	local elapsed = 0
 
 	self:Bind(function(currentCamera: Camera, deltaTime: number)
-		const root = characterRoot(shooter)
+		const root = characterRoot(shooter())
 		if not root then
 			return
 		end
@@ -315,12 +321,27 @@ DeathCameraController:OnInit(function(self)
 		end
 
 		const shooter = playerFromGameID(data.ShooterID)
+		const bots = self.Dependencies.BotController
+		const bot = if shooter then nil else bots:Find(data.ShooterID)
+		local killerName = ""
+		local killer: (() -> Model?)? = nil
+		if shooter and shooter ~= Players.LocalPlayer then
+			killerName = shooter.DisplayName
+			killer = function(): Model?
+				return shooter.Character
+			end
+		elseif bot then
+			killerName = bot.DisplayName
+			killer = function(): Model?
+				return bots:ModelOf(data.ShooterID)
+			end
+		end
 		self.DeathInfo({
-			Killer = if shooter and shooter ~= Players.LocalPlayer then shooter.DisplayName else "",
+			Killer = killerName,
 			Gun = data.GunName,
 			Headshot = data.IsHeadshot,
 		})
-		self.Killer = if shooter and shooter ~= Players.LocalPlayer then shooter else nil
+		self.Killer = killer
 		self:ShowDeath()
 
 		const killer = self.Killer

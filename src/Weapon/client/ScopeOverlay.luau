@@ -2,12 +2,11 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ScopeSettings = require(ReplicatedStorage.shared.Weapon.ScopeSettings)
 local Vide = require(ReplicatedStorage.Packages.Vide)
+local ScopeReticle = require(script.Parent.ScopeReticle)
 
 const create = Vide.create
 
-const LINE_THICKNESS = 1
-const DOT_SIZE = 4
-const RETICLE_COLOR = Color3.new(0, 0, 0)
+const LINE_THICKNESS = 4
 const RETICLE_TRANSPARENCY = 0.15
 
 export type Props = {
@@ -18,6 +17,8 @@ export type Props = {
 	Alpha: (() -> number)?,
 	Rotation: (() -> number)?,
 	HousingColor: (() -> Color3)?,
+	Thickness: (() -> number)?,
+	DotSize: (() -> number)?,
 }
 
 local function new(props: Props): Frame
@@ -36,6 +37,9 @@ local function new(props: Props): Frame
 	end
 	const housing = props.HousingColor or function()
 		return ScopeSettings.DefaultHousingColor
+	end
+	const thickness = props.Thickness or function()
+		return LINE_THICKNESS
 	end
 
 	const position = function()
@@ -94,46 +98,23 @@ local function new(props: Props): Frame
 		}),
 
 		create("Frame")({
-			Name = "Horizontal",
+			Name = "Reticle",
 			ZIndex = 3,
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			Position = position,
 			Rotation = rotation,
 			Size = function()
-				return UDim2.new(fraction(), 0, 0, LINE_THICKNESS)
+				const scale = fraction()
+				return UDim2.fromScale(scale, scale)
 			end,
 			SizeConstraint = Enum.SizeConstraint.RelativeYY,
-			BackgroundColor3 = RETICLE_COLOR,
-			BackgroundTransparency = reticleTransparency,
-			BorderSizePixel = 0,
-		}),
+			BackgroundTransparency = 1,
 
-		create("Frame")({
-			Name = "Vertical",
-			ZIndex = 3,
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = position,
-			Rotation = rotation,
-			Size = function()
-				return UDim2.new(0, LINE_THICKNESS, fraction(), 0)
-			end,
-			SizeConstraint = Enum.SizeConstraint.RelativeYY,
-			BackgroundColor3 = RETICLE_COLOR,
-			BackgroundTransparency = reticleTransparency,
-			BorderSizePixel = 0,
-		}),
-
-		create("Frame")({
-			Name = "Dot",
-			ZIndex = 3,
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = position,
-			Size = UDim2.fromOffset(DOT_SIZE, DOT_SIZE),
-			BackgroundColor3 = RETICLE_COLOR,
-			BackgroundTransparency = function()
-				return 1 - alpha()
-			end,
-			BorderSizePixel = 0,
+			ScopeReticle({
+				Thickness = thickness,
+				Transparency = reticleTransparency,
+				ZIndex = 3,
+			}),
 		}),
 	})
 end

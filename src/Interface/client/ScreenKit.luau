@@ -19,6 +19,8 @@ const SPRING_PERIOD = 0.15
 const SPRING_DAMPING = 1
 
 const RETURN_KEY_IMAGE = "rbxassetid://118599692819422"
+const RETURN_COLOR = Color3.fromRGB(45, 45, 45)
+const RETURN_HOVER_COLOR = Color3.fromRGB(70, 70, 70)
 
 local function escape(value: string): string
 	return (value:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
@@ -217,12 +219,19 @@ function ScreenKit.header(text: Text): Frame
 	}
 end
 
-function ScreenKit.returnButton(y: number, onClose: (() -> ())?): ImageButton
+function ScreenKit.returnButton(y: number, onClose: (() -> ())?, showKey: boolean?): ImageButton
+	const keyVisible = showKey ~= false
+	const hovered = source(false)
+
 	return create "ImageButton" {
 		Name = "Return",
 		Position = ScreenKit.at(115, y),
 		Size = ScreenKit.at(154, 33),
-		BackgroundTransparency = 1,
+		AutoButtonColor = false,
+		BackgroundColor3 = function()
+			return if hovered() then RETURN_HOVER_COLOR else RETURN_COLOR
+		end,
+		BackgroundTransparency = 0,
 
 		Activated = function()
 			UISounds.Play "Click"
@@ -230,9 +239,16 @@ function ScreenKit.returnButton(y: number, onClose: (() -> ())?): ImageButton
 				onClose()
 			end
 		end,
+		MouseEnter = function()
+			hovered(true)
+		end,
+		MouseLeave = function()
+			hovered(false)
+		end,
 
 		create "ImageLabel" {
 			Name = "Key",
+			Visible = keyVisible,
 			Size = UDim2.fromScale(50 / 154, 1),
 			BackgroundTransparency = 1,
 			ScaleType = Enum.ScaleType.Fit,
@@ -241,8 +257,8 @@ function ScreenKit.returnButton(y: number, onClose: (() -> ())?): ImageButton
 
 		create "Frame" {
 			Name = "Hint",
-			Position = UDim2.fromScale(56 / 154, 3 / 33),
-			Size = UDim2.fromScale(98 / 154, 28 / 33),
+			Position = if keyVisible then UDim2.fromScale(56 / 154, 3 / 33) else UDim2.fromScale(0, 3 / 33),
+			Size = if keyVisible then UDim2.fromScale(98 / 154, 28 / 33) else UDim2.fromScale(1, 28 / 33),
 			BackgroundTransparency = 1,
 
 			ScreenKit.label("RETURN", 24, 28),

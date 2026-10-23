@@ -1,6 +1,8 @@
 --!strict
+local ContentProvider = game:GetService("ContentProvider")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 local Vide = require(ReplicatedStorage.Packages.Vide)
@@ -9,6 +11,7 @@ local ErrorPopup = require(StarterPlayer.StarterPlayerScripts.client.Match.Error
 local LobbyScreen = require(StarterPlayer.StarterPlayerScripts.client.Lobby.LobbyScreen)
 local ShopScreen = require(StarterPlayer.StarterPlayerScripts.client.Shop.ShopScreen)
 local CosmeticsScreen = require(StarterPlayer.StarterPlayerScripts.client.Cosmetics.CosmeticsScreen)
+local WeaponInspector = require(StarterPlayer.StarterPlayerScripts.client.Cosmetics.WeaponInspector)
 local GameSelectionScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.GameSelectionScreen)
 local CreateRoomScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.CreateRoomScreen)
 local JoinRoomScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.JoinRoomScreen)
@@ -19,6 +22,8 @@ local SocialService = game:GetService("SocialService")
 local UserInputService = game:GetService("UserInputService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local ShopCatalog = require(ReplicatedStorage.shared.Shop.ShopCatalog)
+local MatchSettings = require(ReplicatedStorage.shared.Match.MatchSettings)
+local SkinCatalog = require(ReplicatedStorage.shared.Shop.SkinCatalog)
 local UISounds = require(StarterPlayer.StarterPlayerScripts.client.Interface.UISounds)
 
 const create = Vide.create
@@ -30,6 +35,20 @@ const CONTROLS_WAIT = 10
 
 const DEFAULT_CAMERA = "CameraPosition1"
 const RETURN_KEY = Enum.KeyCode.Q
+
+const CAMERA_SMOOTH = 5
+const MOUSE_SMOOTH = 4
+const MOUSE_MOVE = 0.35
+const MOUSE_YAW = 0.035
+const MOUSE_PITCH = 0.025
+
+const HIDE_OTHERS_SCREENS: { [string]: boolean } = { Customize = true }
+const CUSTOMIZE_POSITION = "6"
+const PRELOAD_FOLDERS = { "SkinTextures", "SkinMeshes" }
+const LOADING_DONE_ATTRIBUTE = "LoadingDone"
+const PRELOAD_WAIT = 20
+const PRELOAD_POLL = 0.25
+const POPUP_BACKDROP_TRANSPARENCY = 0.45
 
 const ROOM_SCREENS: { [string]: boolean } = { CreateRoom = true, JoinRoom = true }
 const SEARCH_SCREENS: { [string]: boolean } = { Play = true, CreateRoom = true, JoinRoom = true }
@@ -48,6 +67,14 @@ type ScreenProps = {
 	OnJoinMatch: ((key: string) -> ())?,
 	OnBuyRobux: ((id: string) -> ())?,
 	OnBuyCoins: ((id: string) -> ())?,
+	OnEquipSkin: ((id: string) -> ())?,
+	OnEquipDefault: ((gun: string) -> ())?,
+	OnUseSkin: ((id: string) -> ())?,
+	OnSelectGun: ((gun: string) -> ())?,
+	OnPreviewSkin: ((gun: string, id: string?) -> ())?,
+	OnRedeemCode: ((code: string) -> ())?,
+	OwnedSkins: (() -> { [string]: boolean })?,
+	EquippedSkins: (() -> { [string]: string })?,
 	PlayerName: (() -> string)?,
 	Level: (() -> number)?,
 	Xp: (() -> number)?,
@@ -76,6 +103,10 @@ const SCREENS: { [string]: { Component: ScreenComponent, Camera: string? } } = {
 				OnClose = props.OnClose,
 				OnBuyRobux = props.OnBuyRobux,
 				OnBuyCoins = props.OnBuyCoins,
+				OnEquip = props.OnEquipSkin,
+				Owned = props.OwnedSkins,
+				Equipped = props.EquippedSkins,
+				OnRedeemCode = props.OnRedeemCode,
 			})
 		end,
 	},
@@ -84,6 +115,12 @@ const SCREENS: { [string]: { Component: ScreenComponent, Camera: string? } } = {
 			return CosmeticsScreen({
 				Visible = props.Visible,
 				OnClose = props.OnClose,
+				Owned = props.OwnedSkins,
+				Equipped = props.EquippedSkins,
+				OnEquip = props.OnUseSkin,
+				OnEquipDefault = props.OnEquipDefault,
+				OnSelectGun = props.OnSelectGun,
+				OnPreview = props.OnPreviewSkin,
 			})
 		end,
 		Camera = "CameraPosition2",
@@ -169,10 +206,12 @@ const LobbyController = Modux.Controller("LobbyController", {
 	Require = {
 		"GameStateController",
 		"CareerController",
+		"FunnelController",
 		"ProfileController",
 		"OnlineController",
 		"MatchmakingController",
 		"PartyController",
+		"ShopController",
 	},
 	Priority = 450,
 })
@@ -180,8 +219,19 @@ const LobbyController = Modux.Controller("LobbyController", {
 function LobbyController:Setup()
 	self.Active = false :: boolean
 	self.CameraPart = nil :: BasePart?
+	self.CameraCFrame = nil :: CFrame?
+	self.MouseOffset = Vector2.zero :: Vector2
+	self.OthersHidden = false :: boolean
+	self.Staged = false :: boolean
+	self.StagedFrom = nil :: CFrame?
+	self.Inspector = WeaponInspector.new() :: WeaponInspector.Inspector
+	self.Inspecting = false :: boolean
+	self.CustomizeGun = nil :: string?
+	self.CosmeticsPreloaded = false :: boolean
+	self.HideConnections = {} :: { RBXScriptConnection }
 	self.CameraConnections = {} :: { RBXScriptConnection }
 	self.PopupUnmount = nil :: (() -> ())?
+	self.PopupInput = nil :: RBXScriptConnection?
 	self.CameraChangedConnection = nil :: RBXScriptConnection?
 	self.ErrorShown = false :: boolean
 	self.Inviting = false :: boolean
@@ -198,6 +248,13 @@ function LobbyController:Open(name: string)
 
 	if self.CurrentScreen() ~= name then
 		UISounds.Play("Open")
+		if name == "Shop" then
+			self.Dependencies.FunnelController:Track("RobuxShop", "OpenedShop")
+		elseif name == "Customize" then
+			self.Dependencies.FunnelController:Track("Skins", "OpenedCosmetics")
+		elseif name == "Friends" then
+			self.Dependencies.FunnelController:Track("Party", "OpenedFriends")
+		end
 	end
 	self.CurrentScreen(name)
 	self:UpdateCamera()
@@ -239,6 +296,154 @@ function LobbyController:UpdateCamera()
 	if part and part:IsA("BasePart") then
 		self.CameraPart = part
 		self:ApplyCamera()
+	end
+
+	self:SyncOthers()
+	self:SyncStage()
+end
+
+function LobbyController:HideCharacter(character: Model?)
+	if not character then
+		return
+	end
+
+	const hidden = self.OthersHidden
+	const value = if hidden then 1 else 0
+	for _, descendant in character:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.LocalTransparencyModifier = value
+		elseif descendant:IsA("Decal") then
+			(descendant :: any).LocalTransparencyModifier = value
+		elseif descendant:IsA("BillboardGui") then
+			descendant.Enabled = not hidden
+		end
+	end
+end
+
+function LobbyController:WatchCharacter(character: Model)
+	self:HideCharacter(character)
+	table.insert(
+		self.HideConnections,
+		character.DescendantAdded:Connect(function()
+			if self.OthersHidden then
+				self:HideCharacter(character)
+			end
+		end)
+	)
+end
+
+function LobbyController:TrackOther(player: Player)
+	table.insert(
+		self.HideConnections,
+		player.CharacterAdded:Connect(function(character)
+			self:WatchCharacter(character)
+		end)
+	)
+	if player.Character then
+		self:WatchCharacter(player.Character)
+	end
+end
+
+function LobbyController:Inspect(gun: string, skinId: string?)
+	if not self.Active or self.CurrentScreen() ~= "Customize" then
+		return
+	end
+
+	const skin = if skinId then SkinCatalog.ById(skinId) else nil
+	self.Inspector.Show(gun, skin)
+	self.Inspecting = true
+	self.Dependencies.FunnelController:Track("Skins", "InspectedWeapon", gun)
+end
+
+function LobbyController:InspectEquipped(gun: string)
+	self:Inspect(gun, self.Dependencies.ProfileController.EquippedSkins()[gun])
+end
+
+function LobbyController:SetSkin(id: string)
+	if not SkinCatalog.ById(id) then
+		return
+	end
+
+	task.spawn(function()
+		const accepted, reason = self.Dependencies.ShopController:EquipSkin(id, true)
+		if not accepted then
+			self:ShowError(reason, "SHOP")
+		end
+	end)
+end
+
+function LobbyController:CustomizePart(): BasePart?
+	const lobby = workspace:FindFirstChild("Lobby")
+	const positions = if lobby then lobby:FindFirstChild("CharacterPositions") else nil
+	const part = if positions then positions:FindFirstChild(CUSTOMIZE_POSITION) else nil
+	return if part and part:IsA("BasePart") then part else nil
+end
+
+function LobbyController:SyncStage()
+	const active = self.Active and HIDE_OTHERS_SCREENS[self.CurrentScreen()] == true
+	self.Dependencies.PartyController.BillboardsHidden(active)
+
+	if active then
+		const gun = self.CustomizeGun
+		if gun and not self.Inspecting then
+			self:InspectEquipped(gun)
+		end
+	elseif self.Inspecting then
+		self.Inspecting = false
+		self.Inspector.Hide()
+	end
+
+	if active == self.Staged then
+		return
+	end
+
+	const character = Players.LocalPlayer.Character
+	if active then
+		const part = self:CustomizePart()
+		if not character or not part then
+			warn(`[LobbyController] Lobby.CharacterPositions.{CUSTOMIZE_POSITION} nao encontrada`)
+			return
+		end
+		self.Staged = true
+		self.StagedFrom = character:GetPivot()
+		character:PivotTo(part.CFrame + MatchSettings.SpawnOffset)
+		return
+	end
+
+	self.Staged = false
+	const from = self.StagedFrom
+	self.StagedFrom = nil
+	if character and from then
+		character:PivotTo(from)
+	end
+end
+
+function LobbyController:SyncOthers()
+	const hidden = self.Active and HIDE_OTHERS_SCREENS[self.CurrentScreen()] == true
+	if hidden == self.OthersHidden then
+		return
+	end
+
+	self.OthersHidden = hidden
+	for _, connection in self.HideConnections do
+		connection:Disconnect()
+	end
+	table.clear(self.HideConnections)
+
+	if hidden then
+		table.insert(
+			self.HideConnections,
+			Players.PlayerAdded:Connect(function(player)
+				self:TrackOther(player)
+			end)
+		)
+		for _, player in Players:GetPlayers() do
+			self:TrackOther(player)
+		end
+	else
+		for _, player in Players:GetPlayers() do
+			self:HideCharacter(player.Character)
+		end
 	end
 end
 
@@ -299,16 +504,79 @@ function LobbyController:CreateRoom()
 end
 
 function LobbyController:BuyRobux(id: string)
+	const skin = SkinCatalog.ById(id)
+	if skin then
+		if skin.GamepassId <= 0 then
+			self:ShowError("Coming soon", "SHOP")
+			return
+		end
+		self.Dependencies.FunnelController:Track("Skins", "TriedBuy", skin.Id)
+		MarketplaceService:PromptGamePassPurchase(Players.LocalPlayer, skin.GamepassId)
+		return
+	end
+
 	const item = ShopCatalog.ById(id)
 	if not item then
 		return
 	end
 
+	const funnel = self.Dependencies.FunnelController
+	funnel:Track("RobuxShop", "ClickedItem", item.Id)
 	MarketplaceService:PromptProductPurchase(Players.LocalPlayer, item.ProductId)
+	funnel:Track("RobuxShop", "PromptOpened", item.Id)
 end
 
-function LobbyController:BuyCoins(_id: string)
-	self:ShowError("Coming soon", "SHOP")
+function LobbyController:BuyCoins(id: string)
+	if not SkinCatalog.ById(id) then
+		return
+	end
+
+	task.spawn(function()
+		const accepted, reason = self.Dependencies.ShopController:BuySkin(id)
+		if not accepted then
+			self:ShowError(reason, "SHOP")
+		end
+	end)
+end
+
+function LobbyController:ToggleSkin(id: string)
+	const skin = SkinCatalog.ById(id)
+	if not skin then
+		return
+	end
+
+	const equip = self.Dependencies.ProfileController.EquippedSkins()[skin.Gun] ~= id
+	task.spawn(function()
+		const accepted, reason = self.Dependencies.ShopController:EquipSkin(id, equip)
+		if not accepted then
+			self:ShowError(reason, "SHOP")
+		end
+	end)
+end
+
+function LobbyController:RedeemCode(code: string)
+	task.spawn(function()
+		const accepted, message = self.Dependencies.ShopController:RedeemCode(code)
+		if accepted then
+			self:ShowError(message, "CODE REDEEMED", true)
+		else
+			self:ShowError(message, "INVALID CODE")
+		end
+	end)
+end
+
+function LobbyController:UnequipGun(gun: string)
+	const id = self.Dependencies.ProfileController.EquippedSkins()[gun]
+	if not id then
+		return
+	end
+
+	task.spawn(function()
+		const accepted, reason = self.Dependencies.ShopController:EquipSkin(id, false)
+		if not accepted then
+			self:ShowError(reason, "SHOP")
+		end
+	end)
 end
 
 function LobbyController:RedeemQuest(id: string)
@@ -422,6 +690,31 @@ function LobbyController:MountScreen()
 					end,
 					OnBuyCoins = function(id)
 						self:BuyCoins(id)
+					end,
+					OnEquipSkin = function(id)
+						self:ToggleSkin(id)
+					end,
+					OnEquipDefault = function(gun)
+						self:UnequipGun(gun)
+					end,
+					OnUseSkin = function(id)
+						self:SetSkin(id)
+					end,
+					OnSelectGun = function(gun)
+						self.CustomizeGun = gun
+						self:InspectEquipped(gun)
+					end,
+					OnPreviewSkin = function(gun, id)
+						self:Inspect(gun, id)
+					end,
+					OnRedeemCode = function(code)
+						self:RedeemCode(code)
+					end,
+					OwnedSkins = function()
+						return self.Dependencies.ProfileController.OwnedSkins()
+					end,
+					EquippedSkins = function()
+						return self.Dependencies.ProfileController.EquippedSkins()
 					end,
 					OnRedeem = function(id)
 						self:RedeemQuest(id)
@@ -547,7 +840,39 @@ function LobbyController:ApplyCamera()
 	end
 
 	camera.CameraType = Enum.CameraType.Scriptable
-	camera.CFrame = part.CFrame
+	if not self.CameraCFrame then
+		self.CameraCFrame = part.CFrame
+	end
+	camera.CFrame = self.CameraCFrame :: CFrame
+end
+
+function LobbyController:StepCamera(dt: number)
+	const camera = workspace.CurrentCamera
+	const part = self.CameraPart
+	if not camera or not part then
+		return
+	end
+
+	const base = (self.CameraCFrame or part.CFrame):Lerp(part.CFrame, 1 - math.exp(-dt * CAMERA_SMOOTH))
+	self.CameraCFrame = base
+
+	const viewport = camera.ViewportSize
+	const mouse = UserInputService:GetMouseLocation()
+	const target = if self.Inspecting then Vector2.zero else Vector2.new(
+		math.clamp((mouse.X - viewport.X / 2) / (viewport.X / 2), -1, 1),
+		math.clamp((mouse.Y - viewport.Y / 2) / (viewport.Y / 2), -1, 1)
+	)
+	const offset = self.MouseOffset:Lerp(target, 1 - math.exp(-dt * MOUSE_SMOOTH))
+	self.MouseOffset = offset
+
+	camera.CameraType = Enum.CameraType.Scriptable
+	camera.CFrame = base
+		* CFrame.new(offset.X * MOUSE_MOVE, -offset.Y * MOUSE_MOVE, 0)
+		* CFrame.Angles(-offset.Y * MOUSE_PITCH, -offset.X * MOUSE_YAW, 0)
+
+	if self.Inspecting then
+		self.Inspector.Update(dt, camera.CFrame)
+	end
 end
 
 function LobbyController:ClearCameraConnections()
@@ -566,6 +891,15 @@ function LobbyController:BindCamera()
 	end
 
 	self:ApplyCamera()
+
+	table.insert(
+		self.CameraConnections,
+		RunService.RenderStepped:Connect(function(dt)
+			if self.Active then
+				self:StepCamera(dt)
+			end
+		end)
+	)
 
 	table.insert(
 		self.CameraConnections,
@@ -602,10 +936,46 @@ function LobbyController:EnableControls()
 	end
 end
 
+function LobbyController:PreloadCosmetics()
+	if self.CosmeticsPreloaded then
+		return
+	end
+	self.CosmeticsPreloaded = true
+
+	task.spawn(function()
+		const player = Players.LocalPlayer
+		const deadline = os.clock() + PRELOAD_WAIT
+		while not player:GetAttribute(LOADING_DONE_ATTRIBUTE) and os.clock() < deadline do
+			task.wait(PRELOAD_POLL)
+		end
+
+		const list: { any } = {}
+		const assets = ReplicatedStorage:FindFirstChild("Assets")
+		for _, name in PRELOAD_FOLDERS do
+			const folder = if assets then assets:FindFirstChild(name) else nil
+			if folder then
+				table.insert(list, folder)
+			end
+		end
+		for _, skin in SkinCatalog.Skins do
+			table.insert(list, skin.Preview)
+		end
+
+		const ok, err = pcall(function()
+			ContentProvider:PreloadAsync(list)
+		end)
+		if not ok then
+			warn(`[LobbyController] falha no preload de cosmeticos: {err}`)
+		end
+	end)
+end
+
 function LobbyController:EnterLobby()
 	self.Active = true
 	self.Token += 1
 	const token = self.Token
+
+	self:PreloadCosmetics()
 
 	self:DisableControls()
 
@@ -637,7 +1007,11 @@ function LobbyController:ExitLobby()
 	self.Active = false
 	self.Token += 1
 	self.CameraPart = nil
+	self.CameraCFrame = nil
+	self.MouseOffset = Vector2.zero
 	self.CurrentScreen("")
+	self:SyncOthers()
+	self:SyncStage()
 
 	self:ClearCameraConnections()
 
@@ -683,33 +1057,69 @@ function LobbyController:OnState(state: string)
 	end
 end
 
-function LobbyController:ShowError(message: string, title: string?)
-	UISounds.Play("Error")
-	if self.PopupUnmount then
-		self.PopupUnmount()
-		self.PopupUnmount = nil
+function LobbyController:ClosePopup()
+	const input = self.PopupInput
+	self.PopupInput = nil
+	if input then
+		input:Disconnect()
 	end
 
-	self.PopupUnmount = Vide.mount(function()
-		return create("ScreenGui")({
+	const unmount = self.PopupUnmount
+	self.PopupUnmount = nil
+	if unmount then
+		unmount()
+	end
+end
+
+function LobbyController:ShowError(message: string, title: string?, success: boolean?)
+	UISounds.Play(if success then "Open" else "Error")
+	self:ClosePopup()
+
+	const close = function()
+		self:ClosePopup()
+	end
+
+	local popupGui: ScreenGui? = nil
+	const unmountPopup = Vide.mount(function()
+		popupGui = create("ScreenGui")({
 			Name = "MatchErrorUI",
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
 			DisplayOrder = 100,
 
+			create("TextButton")({
+				Name = "Backdrop",
+				Size = UDim2.fromScale(1, 1),
+				BackgroundColor3 = Color3.fromRGB(43, 26, 14),
+				BackgroundTransparency = POPUP_BACKDROP_TRANSPARENCY,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Text = "",
+				Activated = close,
+			}),
+
 			ErrorPopup({
 				Title = title or "Erro",
 				Message = message,
-				OnClose = function()
-					const unmount = self.PopupUnmount
-					self.PopupUnmount = nil
-					if unmount then
-						unmount()
-					end
-				end,
+				Success = success,
+				OnClose = close,
 			}),
-		})
+		}) :: ScreenGui
+		return popupGui
 	end, Players.LocalPlayer:WaitForChild("PlayerGui"))
+
+	self.PopupUnmount = function()
+		unmountPopup()
+		if popupGui then
+			popupGui:Destroy()
+		end
+	end
+
+	self.PopupInput = UserInputService.InputBegan:Connect(function(input: InputObject)
+		if input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.Escape then
+			close()
+		end
+	end)
 end
 
 LobbyController:OnInit(function(self)

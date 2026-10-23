@@ -86,6 +86,9 @@ function ProfileService:Replicate(player: Player)
 
 		Gamepasses = profile.Gamepasses(),
 
+		OwnedSkins = profile.OwnedSkins(),
+		EquippedSkins = profile.EquippedSkins(),
+
 		Item = profile.Item(),
 		UnlockedItems = profile.UnlockedItems(),
 		UnlockedClasses = profile.UnlockedClasses(),

@@ -5,10 +5,11 @@ local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
 local WeaponSounds = require(ReplicatedStorage.shared.Weapon.WeaponSounds)
 local Lync = require(ReplicatedStorage.Packages.Lync)
 local GunRules = require(ServerScriptService.server.Weapon.GunRules)
+local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
 local Modux = require(ServerScriptService.server.Modux)
 
 export type Pellet = { TargetID: number, HitPart: number }
-export type Hit = { Player: Player, HitPart: number, Distance: number }
+export type Hit = { Target: BotTypes.Fighter, HitPart: number, Distance: number }
 
 const MELEE_HITBOX = 3.5
 const PLANT_INTERVAL = 0.45
@@ -107,11 +108,12 @@ function Gun:Shoot(
 				pellet.HitPart,
 				timestamp,
 				stats.Range,
-				nil
+				nil,
+				stats
 			)
 			if confirmed and target then
 				table.insert(hits, {
-					Player = target,
+					Target = target,
 					HitPart = hitPart or pellet.HitPart,
 					Distance = distance or 0,
 				})
@@ -148,7 +150,7 @@ function Gun:Strike(shooter: Player, origin: Vector3, direction: Vector3, pellet
 		MELEE_HITBOX
 	)
 	if confirmed and target then
-		table.insert(hits, { Player = target, HitPart = hitPart or pellet.HitPart, Distance = distance or 0 })
+		table.insert(hits, { Target = target, HitPart = hitPart or pellet.HitPart, Distance = distance or 0 })
 	end
 
 	return hits

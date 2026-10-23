@@ -19,7 +19,15 @@ export type PendingShot = {
 	Viewmodel: boolean,
 	Flame: boolean,
 }
-export type Screen = { Part: BasePart, Loops: { ParticleEmitter }, Bursts: { Burst }, ActiveUntil: number, Looping: boolean }
+export type Screen = {
+	Part: BasePart,
+	Loops: { ParticleEmitter },
+	Bursts: { Burst },
+	Offsets: { [ParticleEmitter]: number },
+	Depth: number,
+	ActiveUntil: number,
+	Looping: boolean,
+}
 export type Burst = { Emitter: ParticleEmitter, Count: number }
 
 export type Public = {
@@ -44,6 +52,7 @@ export type Public = {
 	LocalModel: (self: Public, gunData: GetGun.GunData) -> (Model?, boolean),
 	LocalShot: (self: Public, gunData: GetGun.GunData, forward: Vector3, start: Vector3, pellets: { WeaponVFX.Pellet }) -> (),
 	LocalFlame: (self: Public, gunData: GetGun.GunData, origin: Vector3, forward: Vector3) -> (),
+	ShooterCharacter: (self: Public, id: number) -> Model?,
 	OnShotSound: (self: Public, packet: WeaponNet.ShotSound) -> (),
 	OnRemoteShot: (self: Public, packet: HitNet.Shot) -> (),
 	OnRemoteLaunch: (self: Public, packet: WeaponNet.ThrowSpawn) -> (),

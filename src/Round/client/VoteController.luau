@@ -34,9 +34,10 @@ end
 function VoteController:Entries(): { VoteMenu.Option }
 	const entries: { VoteMenu.Option } = {}
 	const votes = self.Votes()
+	const winner = self.Winner()
 	for index, name in VoteMaps.list(self.Mode()) do
 		const count = votes[index]
-		if count ~= nil then
+		if count ~= nil and (winner == 0 or index == winner) then
 			const map = Maps[name]
 			table.insert(entries, {
 				Name = name,
@@ -113,7 +114,9 @@ function VoteController:Mount()
 					return self:Entries()
 				end,
 				MyVote = self.MyVote,
-				Winner = self.Winner,
+				Winner = function()
+					return if self.Winner() > 0 then 1 else 0
+				end,
 				Seconds = self.Dependencies.RoundController.Seconds,
 				OnVote = function(index: number)
 					self:Cast(index)

@@ -58,13 +58,17 @@ function HitController:Setup()
 	self.Fired = self.Libs.Signal.new() :: SignalLib.Signal<GetGun.GunData>
 end
 
-local function playerFromPart(part: Instance): Player?
+local function targetFromPart(part: Instance): Instance?
 	const model = part:FindFirstAncestorOfClass("Model")
 	if not model then
 		return nil
 	end
 
-	return Players:GetPlayerFromCharacter(model)
+	const player = Players:GetPlayerFromCharacter(model)
+	if player then
+		return player
+	end
+	return if typeof(model:GetAttribute("GameID")) == "number" then model else nil
 end
 
 local function spreadDirection(direction: Vector3, spread: number): Vector3
@@ -105,7 +109,8 @@ local function pelletFor(
 	endPos: Vector3,
 	direction: Vector3,
 	claim: HitNet.Pellet?,
-	delay: number?
+	delay: number?,
+	control: Vector3?
 ): WeaponVFX.Pellet
 	local kind: WeaponVFX.PelletKind = "Wall"
 	if not result then
@@ -119,12 +124,13 @@ local function pelletFor(
 		Normal = if result then result.Normal else -direction,
 		Kind = kind,
 		Delay = delay,
+		Control = control,
 	}
 	return pellet
 end
 
 local function claimFor(result: RaycastResult): HitNet.Pellet?
-	const target = playerFromPart(result.Instance)
+	const target = targetFromPart(result.Instance)
 	const targetID = if target then target:GetAttribute("GameID") else nil
 	if typeof(targetID) ~= "number" then
 		return nil
@@ -243,7 +249,7 @@ function HitController:FireHitscan(gunData: GetGun.GunData, origin: Vector3, loo
 			end
 		end
 
-		table.insert(visuals, pelletFor(result, cast.EndPos, direction, claim, cast.Travel))
+		table.insert(visuals, pelletFor(result, cast.EndPos, direction, claim, cast.Travel, cast.Control))
 	end
 
 	self.Dependencies.VFXController:LocalShot(gunData, look, trailOrigin, visuals)

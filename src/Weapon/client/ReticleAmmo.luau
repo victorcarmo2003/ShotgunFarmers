@@ -17,6 +17,7 @@ export type Props = {
 	MaxAmmo: () -> number,
 	Visible: () -> boolean,
 	Scale: (() -> number)?,
+	Position: (() -> UDim2)?,
 }
 
 const OFFSET_X = 18
@@ -86,6 +87,9 @@ return function(props: Props): Frame
 		Name = "ReticleAmmo",
 		AnchorPoint = Vector2.new(0, 0),
 		Position = function(): UDim2
+			if props.Position then
+				return props.Position()
+			end
 			return UDim2.new(0.5, math.round(OFFSET_X * scale()), 0.5, math.round(OFFSET_Y * scale()))
 		end,
 		Size = UDim2.fromOffset(0, 0),

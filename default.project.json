@@ -42,6 +42,18 @@
 						"optional": "src/Admin/shared"
 					}
 				},
+				"Analytics": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/Analytics/shared"
+					}
+				},
+				"Bot": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/Bot/shared"
+					}
+				},
 				"Career": {
 					"$ignoreUnknownInstances": false,
 					"$path": {
@@ -58,6 +70,12 @@
 					"$ignoreUnknownInstances": false,
 					"$path": {
 						"optional": "src/DayNight/shared"
+					}
+				},
+				"GoldenApple": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/GoldenApple/shared"
 					}
 				},
 				"Hit": {
@@ -227,6 +245,18 @@
 						"optional": "src/Admin/server"
 					}
 				},
+				"Analytics": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/Analytics/server"
+					}
+				},
+				"Bot": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/Bot/server"
+					}
+				},
 				"Career": {
 					"$ignoreUnknownInstances": false,
 					"$path": {
@@ -245,10 +275,22 @@
 						"optional": "src/DayNight/server"
 					}
 				},
+				"GoldenApple": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/GoldenApple/server"
+					}
+				},
 				"Hit": {
 					"$ignoreUnknownInstances": false,
 					"$path": {
 						"optional": "src/Hit/server"
+					}
+				},
+				"Lava": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/Lava/server"
 					}
 				},
 				"Lobby": {
@@ -295,6 +337,16 @@
 							"optional": "src/ModuxTypes/server/AdminService.luau"
 						}
 					},
+					"BotRegistryService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/BotRegistryService.luau"
+						}
+					},
+					"BotService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/BotService.luau"
+						}
+					},
 					"CareerService": {
 						"$path": {
 							"optional": "src/ModuxTypes/server/CareerService.luau"
@@ -320,9 +372,19 @@
 							"optional": "src/ModuxTypes/server/Equipment.luau"
 						}
 					},
+					"FunnelService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/FunnelService.luau"
+						}
+					},
 					"GameStateService": {
 						"$path": {
 							"optional": "src/ModuxTypes/server/GameStateService.luau"
+						}
+					},
+					"GoldenAppleService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/GoldenAppleService.luau"
 						}
 					},
 					"Gun": {
@@ -343,6 +405,11 @@
 					"InviteService": {
 						"$path": {
 							"optional": "src/ModuxTypes/server/InviteService.luau"
+						}
+					},
+					"LavaService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/LavaService.luau"
 						}
 					},
 					"MapVoteService": {
@@ -390,6 +457,16 @@
 							"optional": "src/ModuxTypes/server/OptionsService.luau"
 						}
 					},
+					"PartyFunnelService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/PartyFunnelService.luau"
+						}
+					},
+					"PlantLoopService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/PlantLoopService.luau"
+						}
+					},
 					"PlayerBillboardService": {
 						"$path": {
 							"optional": "src/ModuxTypes/server/PlayerBillboardService.luau"
@@ -415,9 +492,24 @@
 							"optional": "src/ModuxTypes/server/ProfileService.luau"
 						}
 					},
+					"RestockService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/RestockService.luau"
+						}
+					},
+					"ReviveFunnelService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/ReviveFunnelService.luau"
+						}
+					},
 					"RoleService": {
 						"$path": {
 							"optional": "src/ModuxTypes/server/ServerRoleService.luau"
+						}
+					},
+					"RoomFunnelService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/RoomFunnelService.luau"
 						}
 					},
 					"RoundFreezeService": {
@@ -430,6 +522,11 @@
 							"optional": "src/ModuxTypes/server/RoundService.luau"
 						}
 					},
+					"RoundsFunnelService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/RoundsFunnelService.luau"
+						}
+					},
 					"RouterService": {
 						"$path": {
 							"optional": "src/ModuxTypes/server/RouterService.luau"
@@ -440,9 +537,19 @@
 							"optional": "src/ModuxTypes/server/Seed.luau"
 						}
 					},
+					"ShopFunnelService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/ShopFunnelService.luau"
+						}
+					},
 					"ShopService": {
 						"$path": {
 							"optional": "src/ModuxTypes/server/ShopService.luau"
+						}
+					},
+					"SkinFunnelService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/SkinFunnelService.luau"
 						}
 					},
 					"SnapshotService": {
@@ -604,6 +711,9 @@
 		"StarterPlayer": {
 			"StarterCharacterScripts": {},
 			"StarterPlayerScripts": {
+				"FarmSkinBoot": {
+					"$path": "boot/FarmSkinBoot.client.luau"
+				},
 				"client": {
 					"$className": "Folder",
 					"$ignoreUnknownInstances": false,
@@ -613,10 +723,22 @@
 							"optional": "src/Admin/client"
 						}
 					},
+					"Analytics": {
+						"$ignoreUnknownInstances": false,
+						"$path": {
+							"optional": "src/Analytics/client"
+						}
+					},
 					"Audio": {
 						"$ignoreUnknownInstances": false,
 						"$path": {
 							"optional": "src/Audio/client"
+						}
+					},
+					"Bot": {
+						"$ignoreUnknownInstances": false,
+						"$path": {
+							"optional": "src/Bot/client"
 						}
 					},
 					"Camera": {

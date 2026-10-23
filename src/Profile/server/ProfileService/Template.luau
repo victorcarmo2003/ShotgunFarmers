@@ -8,6 +8,10 @@ return {
 	XpBoostEnds = 0,
 	CropDrops = 0,
 
+	RedeemedCodes = {} :: { [string]: boolean },
+	OwnedSkins = {} :: { [string]: boolean },
+	EquippedSkins = {} :: { [string]: string },
+
 	Item = {} :: { [string]: number },
 	UnlockedItems = {} :: { [number]: boolean },
 	UnlockedClasses = { [1] = true } :: { [number]: boolean },

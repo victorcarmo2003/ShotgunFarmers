@@ -2,15 +2,32 @@
 local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
+local Platform = require(ReplicatedStorage.shared.Interface.Platform)
+local MobileControls = require(script.Parent.MobileControls)
 local GameState = require(ReplicatedStorage.shared.Match.GameState)
+local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 
 export type Context = "Gameplay" | "Menu"
+
+export type TouchMenu = {
+	Text: string,
+	Color: Color3,
+	Order: number,
+	Toggle: boolean?,
+	Visible: (() -> boolean)?,
+}
+
+export type TouchEntry = {
+	Name: string,
+	Menu: TouchMenu,
+}
 
 export type Binding = {
 	Name: string,
 	Key: Enum.KeyCode | Enum.UserInputType,
 	TouchButton: boolean?,
+	Touch: TouchMenu?,
 	Priority: number?,
 	Position: UDim2?,
 	Requires: GameState.Capability?,
@@ -36,6 +53,12 @@ function InputController:Setup()
 	self.Listeners = {} :: { (Context) -> () }
 	self.Bindings = {} :: { [string]: Binding }
 	self.Overrides = {} :: { [string]: Enum.KeyCode }
+	self.TouchMenus = Vide.source({}) :: Vide.Source<{ TouchEntry }>
+end
+
+function InputController:TouchAllowed(): boolean
+	const state = self.Dependencies.GameStateController.State()
+	return state ~= "Lobby" and state ~= "Loading"
 end
 
 function InputController:Dispatch(name: string, state: Enum.UserInputState): Enum.ContextActionResult
@@ -92,7 +115,27 @@ function InputController:Bind(binding: Binding): Handle
 	self.Bindings[binding.Name] = binding
 	self:Register(binding.Name)
 
+	if binding.Touch then
+		self:SetTouchMenu(binding.Name, binding.Touch)
+	end
+
 	return handle
+end
+
+function InputController:SetTouchMenu(name: string, menu: TouchMenu?)
+	const entries: { TouchEntry } = {}
+	for _, entry in Vide.read(self.TouchMenus) do
+		if entry.Name ~= name then
+			table.insert(entries, entry)
+		end
+	end
+	if menu then
+		table.insert(entries, { Name = name, Menu = menu })
+	end
+	table.sort(entries, function(first: TouchEntry, second: TouchEntry): boolean
+		return first.Menu.Order < second.Menu.Order
+	end)
+	self.TouchMenus(entries)
 end
 
 function InputController:KeyOf(name: string): (Enum.KeyCode | Enum.UserInputType)?
@@ -115,7 +158,7 @@ function InputController:Register(name: string)
 		function(actionName: string, state: Enum.UserInputState): Enum.ContextActionResult
 			return self:Dispatch(actionName, state)
 		end,
-		binding.TouchButton or false,
+		false,
 		binding.Priority or 0,
 		self.Overrides[name] or binding.Key
 	)
@@ -157,6 +200,7 @@ function InputController:Unbind(name: string)
 	self.Handles[name] = nil
 	self.Bindings[name] = nil
 	ContextActionService:UnbindAction(name)
+	self:SetTouchMenu(name, nil)
 end
 
 function InputController:OnContextChange(callback: (Context) -> ())
@@ -175,6 +219,12 @@ end
 
 InputController:OnInit(function(self)
 	self:Setup()
+end)
+
+InputController:OnStart(function(self)
+	if Platform.IsMobile() then
+		MobileControls.Mount(self)
+	end
 end)
 
 return InputController

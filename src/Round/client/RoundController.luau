@@ -109,6 +109,13 @@ function RoundController:Label(): string
 	return `{LABELS[self.Status()] or self.Status()}  {formatSeconds(self.Seconds())}`
 end
 
+function RoundController:Clock(): string
+	if workspace:GetAttribute("GameMode") == PRACTICE_MODE then
+		return ""
+	end
+	return formatSeconds(self.Seconds())
+end
+
 RoundController:OnInit(function(self)
 	self:Setup()
 

@@ -12,6 +12,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 return {
 	Core = require(ReplicatedStorage.shared.Net.Core),
+	Analytics = require(ReplicatedStorage.shared.Analytics.Net),
+	Bot = require(ReplicatedStorage.shared.Bot.Net),
 	Career = require(ReplicatedStorage.shared.Career.Net),
 	Character = require(ReplicatedStorage.shared.Character.Net),
 	Hit = require(ReplicatedStorage.shared.Hit.Net),

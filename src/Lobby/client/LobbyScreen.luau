@@ -16,7 +16,16 @@ const PRESS_SCALE = 0.9
 const SELECTED_COLOR = Color3.fromHex "#1F9F68"
 const SELECTED_TEXT_SCALE = 1.2
 const COIN_IMAGE = "rbxassetid://123768928279796"
-const HIDDEN_TABS: { [string]: boolean } = { Customize = true, Quests = true }
+const HIDDEN_TABS: { [string]: boolean } = { Quests = true }
+
+const PLAY_WIDTH = 0.35
+const PLAY_HEIGHT = 1.2
+const BUTTON_WIDTH = 0.15
+const SIDE_GAP = 0.03
+const GROUP_WIDTH = 1.2
+const GROUP_PADDING = 0.04 / GROUP_WIDTH
+const SIDE_EDGE = 0.5 - PLAY_WIDTH / 2 - SIDE_GAP
+const SIDE_SIZE = UDim2.fromScale(BUTTON_WIDTH / GROUP_WIDTH, 1)
 
 export type Props = {
 	Visible: (() -> boolean)?,
@@ -30,6 +39,8 @@ export type Props = {
 type TopButtonProps = {
 	Name: string,
 	Size: UDim2?,
+	Position: UDim2?,
+	AnchorPoint: Vector2?,
 	LayoutOrder: number,
 	BackgroundTransparency: number,
 	BackgroundColor3: Color3?,
@@ -59,6 +70,8 @@ local function createTopButton(props: TopButtonProps)
 	return create "Frame" {
 		Name = props.Name,
 		Size = size,
+		Position = props.Position or UDim2.new(),
+		AnchorPoint = props.AnchorPoint or Vector2.zero,
 		LayoutOrder = props.LayoutOrder,
 		BackgroundTransparency = 1,
 		Visible = shown(props.Name),
@@ -177,43 +190,48 @@ return function(props: Props): Frame
 					AspectRatio = 840 / 70,
 				},
 
-				createTopButton {
-					Name = "Shop",
-					Selected = isSelected("Shop"),
-					LayoutOrder = 1,
+				create "Frame" {
+					Name = "Left",
+					AnchorPoint = Vector2.new(1, 0),
+					Position = UDim2.fromScale(SIDE_EDGE, 0),
+					Size = UDim2.fromScale(GROUP_WIDTH, 1),
 					BackgroundTransparency = 1,
-					BackgroundColor3 = Color3.new(0, 0, 0),
-					Text = "SHOP",
-					Activated = function()
-						if props.OnNavigate then
-							props.OnNavigate("Shop")
-						end
-					end,
-				},
 
-				createTopButton {
-					Name = "Customize",
-					Selected = isSelected("Customize"),
-					LayoutOrder = 2,
-					BackgroundTransparency = 1,
-					BackgroundColor3 = Color3.new(0, 0, 0),
-					Text = "CUSTOMIZE",
-					Activated = function()
-						if props.OnNavigate then
-							props.OnNavigate("Customize")
-						end
-					end,
+					createTopButton {
+						Name = "Shop",
+						Selected = isSelected("Shop"),
+						LayoutOrder = 1,
+						Size = SIDE_SIZE,
+						BackgroundTransparency = 1,
+						BackgroundColor3 = Color3.new(0, 0, 0),
+						Text = "SHOP",
+						Activated = function()
+							if props.OnNavigate then
+								props.OnNavigate("Shop")
+							end
+						end,
+					},
+
+					create "UIListLayout" {
+						FillDirection = Enum.FillDirection.Horizontal,
+						HorizontalAlignment = Enum.HorizontalAlignment.Right,
+						VerticalAlignment = Enum.VerticalAlignment.Top,
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						Padding = UDim.new(GROUP_PADDING, 0),
+					},
 				},
 
 				createTopButton {
 					Name = "Play",
 					Selected = isSelected("Play"),
 					SelectedTextColor3 = Color3.new(1, 1, 1),
-					LayoutOrder = 3,
+					LayoutOrder = 2,
+					AnchorPoint = Vector2.new(0.5, 0),
+					Position = UDim2.fromScale(0.5, 0),
 					BackgroundTransparency = 0,
 					BackgroundColor3 = Color3.fromHex "#1F9F68",
 					PressedColor3 = Color3.fromHex "#197f53",
-					Size = UDim2.fromScale(0.35, 1.2),
+					Size = UDim2.fromScale(PLAY_WIDTH, PLAY_HEIGHT),
 					Text = "PLAY",
 					TextSize = 50,
 					TextScale = 0.65,
@@ -225,40 +243,65 @@ return function(props: Props): Frame
 					end,
 				},
 
-				createTopButton {
-					Name = "Carrer",
-					Selected = isSelected("Carrer"),
-					LayoutOrder = 4,
+				create "Frame" {
+					Name = "Right",
+					AnchorPoint = Vector2.new(0, 0),
+					Position = UDim2.fromScale(1 - SIDE_EDGE, 0),
+					Size = UDim2.fromScale(GROUP_WIDTH, 1),
 					BackgroundTransparency = 1,
-					BackgroundColor3 = Color3.new(0, 0, 0),
-					Text = "CAREER",
-					Activated = function()
-						if props.OnNavigate then
-							props.OnNavigate("Carrer")
-						end
-					end,
-				},
 
-				createTopButton {
-					Name = "Quests",
-					Selected = isSelected("Quests"),
-					LayoutOrder = 5,
-					BackgroundTransparency = 1,
-					BackgroundColor3 = Color3.new(0, 0, 0),
-					Text = "QUESTS",
-					Activated = function()
-						if props.OnNavigate then
-							props.OnNavigate("Quests")
-						end
-					end,
-				},
+					createTopButton {
+						Name = "Carrer",
+						Selected = isSelected("Carrer"),
+						LayoutOrder = 1,
+						Size = SIDE_SIZE,
+						BackgroundTransparency = 1,
+						BackgroundColor3 = Color3.new(0, 0, 0),
+						Text = "CAREER",
+						Activated = function()
+							if props.OnNavigate then
+								props.OnNavigate("Carrer")
+							end
+						end,
+					},
 
-				create "UIListLayout" {
-					FillDirection = Enum.FillDirection.Horizontal,
-					HorizontalAlignment = Enum.HorizontalAlignment.Center,
-					VerticalAlignment = Enum.VerticalAlignment.Top,
-					SortOrder = Enum.SortOrder.LayoutOrder,
-					Padding = UDim.new(0.1, 0),
+					createTopButton {
+						Name = "Customize",
+						Selected = isSelected("Customize"),
+						LayoutOrder = 2,
+						Size = SIDE_SIZE,
+						BackgroundTransparency = 1,
+						BackgroundColor3 = Color3.new(0, 0, 0),
+						Text = "CUSTOMIZE",
+						Activated = function()
+							if props.OnNavigate then
+								props.OnNavigate("Customize")
+							end
+						end,
+					},
+
+					createTopButton {
+						Name = "Quests",
+						Selected = isSelected("Quests"),
+						LayoutOrder = 3,
+						Size = SIDE_SIZE,
+						BackgroundTransparency = 1,
+						BackgroundColor3 = Color3.new(0, 0, 0),
+						Text = "QUESTS",
+						Activated = function()
+							if props.OnNavigate then
+								props.OnNavigate("Quests")
+							end
+						end,
+					},
+
+					create "UIListLayout" {
+						FillDirection = Enum.FillDirection.Horizontal,
+						HorizontalAlignment = Enum.HorizontalAlignment.Left,
+						VerticalAlignment = Enum.VerticalAlignment.Top,
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						Padding = UDim.new(GROUP_PADDING, 0),
+					},
 				},
 			},
 

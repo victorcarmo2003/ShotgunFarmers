@@ -6,6 +6,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local PartyNet = require(ReplicatedStorage.shared.Party.Net)
 local PartySettings = require(ReplicatedStorage.shared.Party.PartySettings)
 local SquadRecord = require(ReplicatedStorage.shared.Party.SquadRecord)
+local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
 local Modux = require(ServerScriptService.server.Modux)
 
 type Incoming = {
@@ -50,6 +51,8 @@ function InviteService:Setup()
 	self.Incoming = {} :: { [Player]: { Incoming } }
 	self.Outgoing = {} :: { [string]: Outgoing }
 	self.Joining = {} :: { [Player]: string }
+	self.Sent = self.Libs.Signal.new() :: SignalLib.Signal<Player, number>
+	self.Answered = self.Libs.Signal.new() :: SignalLib.Signal<Player, number, string>
 end
 
 function InviteService:Notice(player: Player, message: string)
@@ -307,6 +310,7 @@ function InviteService:Invite(player: Player, userId: number): (boolean, string)
 		self.Outgoing[id] = nil
 	end)
 
+	self.Sent:Fire(player, userId)
 	return true, ""
 end
 
@@ -412,6 +416,9 @@ function InviteService:HandleReply(message: { [string]: any })
 
 	const name = if typeof(message.FromName) == "string" and message.FromName ~= "" then message.FromName else "Your friend"
 	const result = message.Result
+	if from ~= 0 and typeof(result) == "string" then
+		self.Answered:Fire(player, from, result)
+	end
 	if result == "Declined" then
 		self:Notice(player, `{name} declined your invite`)
 	elseif result == "Expired" then

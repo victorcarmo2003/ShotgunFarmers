@@ -136,7 +136,7 @@ function WeaponSpawnService:SpawnOne(): boolean
 	for _ = 1, POINT_RETRIES do
 		const point = surfacePoint(candidates[math.random(1, #candidates)])
 		if point and self:FarFromOthers(point) then
-			const seed = GunRules.PlantAt(point, self.Pool[math.random(1, #self.Pool)])
+			const seed = GunRules.PlantAt(point, self.Pool[math.random(1, #self.Pool)], "WeaponSpawn")
 			if seed then
 				table.insert(self.Spawned, seed)
 				return true
@@ -151,6 +151,32 @@ function WeaponSpawnService:IsActive(): boolean
 	return self.Enabled
 end
 
+function WeaponSpawnService:RandomPoint(avoid: { BasePart }, separation: number): Vector3?
+	const candidates = self:Candidates()
+	if #candidates == 0 then
+		return nil
+	end
+
+	for _ = 1, POINT_RETRIES do
+		const point = surfacePoint(candidates[math.random(1, #candidates)])
+		if not point or not self:FarFromOthers(point) then
+			continue
+		end
+
+		local clear = true
+		for _, part in avoid do
+			if (part.Position - point).Magnitude < separation then
+				clear = false
+				break
+			end
+		end
+		if clear then
+			return point
+		end
+	end
+	return nil
+end
+
 function WeaponSpawnService:SpawnExtra(): BasePart?
 	const candidates = self:Candidates()
 	if #candidates == 0 or #self.Pool == 0 then
@@ -160,7 +186,7 @@ function WeaponSpawnService:SpawnExtra(): BasePart?
 	for _ = 1, POINT_RETRIES do
 		const point = surfacePoint(candidates[math.random(1, #candidates)])
 		if point and self:FarFromOthers(point) then
-			const seed = GunRules.PlantAt(point, self.Pool[math.random(1, #self.Pool)])
+			const seed = GunRules.PlantAt(point, self.Pool[math.random(1, #self.Pool)], "CropDrop")
 			if seed then
 				table.insert(self.Spawned, seed)
 			end

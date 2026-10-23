@@ -11,7 +11,7 @@ local Modux = require(ServerScriptService.server.Modux)
 const KICK_MESSAGE = "Nao foi possivel encontrar um lobby. Tente entrar novamente."
 
 const RouterService = Modux.Service("RouterService", {
-	Require = { "PlayerService", "ServerRoleService", "MatchRegistryService", "TeleportGateway", "SquadStore" },
+	Require = { "NetService", "PlayerService", "ServerRoleService", "MatchRegistryService", "TeleportGateway", "SquadStore" },
 	Priority = 860,
 })
 
@@ -96,11 +96,24 @@ function RouterService:TryRoute(player: Player): (boolean, string?)
 	return self.Dependencies.TeleportGateway:Teleport({ player }, accessCode, { ReturnLobby = key })
 end
 
+function RouterService:WaitForClient(player: Player)
+	const net = self.Dependencies.NetService
+	const deadline = os.clock() + MatchmakingSettings.RouterLoadTimeout
+	while player:IsDescendantOf(Players) and not net:IsReady(player) and os.clock() < deadline do
+		task.wait(0.1)
+	end
+	task.wait(MatchmakingSettings.RouterSettleDelay)
+end
+
 function RouterService:Route(player: Player)
 	if self.Routing[player] or not player:IsDescendantOf(Players) then
 		return
 	end
 	self.Routing[player] = true
+
+	if (self.Attempts[player] or 0) == 0 then
+		self:WaitForClient(player)
+	end
 
 	while player:IsDescendantOf(Players) do
 		const attempts = (self.Attempts[player] or 0) + 1

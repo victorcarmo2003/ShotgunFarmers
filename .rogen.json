@@ -38,6 +38,13 @@
 					}
 				}
 			},
+			"StarterPlayer": {
+				"StarterPlayerScripts": {
+					"FarmSkinBoot": {
+						"$path": "boot/FarmSkinBoot.client.luau"
+					}
+				}
+			},
 			"ServerScriptService": {
 				"ServerPackages": {
 					"$path": "ServerPackages"

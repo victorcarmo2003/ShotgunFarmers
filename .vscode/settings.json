@@ -21,4 +21,5 @@
     "syncteam.port": 1550,
     "discord.enabled": true,
     "discord.idleTimeout": 0,
+    "stylua.targetReleaseVersion": "latest",
 }

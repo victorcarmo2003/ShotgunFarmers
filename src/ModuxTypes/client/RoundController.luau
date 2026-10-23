@@ -20,6 +20,7 @@ export type Public = {
 	HideSummary: (self: Public) -> (),
 	MountSummary: (self: Public) -> (),
 	Label: (self: Public) -> string,
+	Clock: (self: Public) -> string,
 	TargetGray: (self: Public) -> number,
 	StepGray: (self: Public, deltaTime: number) -> (),
 }

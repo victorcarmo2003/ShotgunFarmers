@@ -6,6 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 local OptionsCatalog = require(ReplicatedStorage.shared.Options.OptionsCatalog)
 local Vide = require(ReplicatedStorage.Packages.Vide)
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
+local FarmPalette = require(StarterPlayer.StarterPlayerScripts.client.Interface.FarmPalette)
 local Crosshair = require(StarterPlayer.StarterPlayerScripts.client.Weapon.Crosshair)
 local OptionsScreen = require(StarterPlayer.StarterPlayerScripts.client.Options.OptionsScreen)
 
@@ -66,10 +67,6 @@ end
 
 function OptionsController:ToggleCrouch(): boolean
 	return self:Get("ToggleCrouch") >= 2
-end
-
-function OptionsController:ReticleAmmo(): boolean
-	return self:Get("ReticleAmmo") >= 2
 end
 
 function OptionsController:KeyName(id: string): string
@@ -453,7 +450,16 @@ end)
 
 OptionsController:OnStart(function(self)
 	self.Dependencies.InputController
-		:Bind({ Name = "Options", Key = Enum.KeyCode.M, Priority = 10 })
+		:Bind({
+			Name = "Options",
+			Key = Enum.KeyCode.M,
+			Priority = 10,
+			Touch = {
+				Text = "OPTIONS",
+				Color = FarmPalette.Grape,
+				Order = 3,
+			},
+		})
 		.OnPress(function()
 			self:Toggle()
 		end)

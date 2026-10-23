@@ -17,6 +17,9 @@ const create = Vide.create
 
 const TICK_RATE = 60
 const CENTER = Vector2.new(0.5, 0.5)
+const LENS_DOT_RATIO = 1.5
+const OVERLAY_LINE_RATIO = 2 / 3
+const OVERLAY_DOT_RATIO = 7 / 6
 
 local warned = false
 
@@ -80,6 +83,8 @@ function ScopeController:Setup()
 	self.ViewShown = false :: boolean
 	self.MirrorOn = false :: boolean
 	self.LensAttached = false :: boolean
+	self.LensShown = 1 :: number
+	self.AppliedThickness = 0 :: number
 	self.KickX = 0 :: number
 	self.KickY = 0 :: number
 	self.KickRoll = 0 :: number
@@ -157,6 +162,10 @@ function ScopeController:StepKick(deltaTime: number)
 	if settled then
 		self:ResetKick()
 	end
+end
+
+function ScopeController:LineThickness(): number
+	return math.round(self.Dependencies.OptionsController:Get("ScopeLineThickness"))
 end
 
 function ScopeController:Fov(): number?
@@ -263,9 +272,6 @@ function ScopeController:SchedulePreload()
 end
 
 function ScopeController:LensVisibility(alpha: number): number
-	if self.Dependencies.ArmsController:IsShootAimPlaying() then
-		return 0
-	end
 	local closeness = 1
 	const camera = workspace.CurrentCamera
 	const lens = self.Lens
@@ -307,11 +313,15 @@ function ScopeController:Frame(deltaTime: number)
 
 	const aiming = self.Dependencies.ArmsController.IsAiming()
 	const target = if self.Model ~= nil and aiming then 1 else 0
+	const step = math.min(deltaTime, ScopeSettings.TransitionMaxStep)
 	local raw = self.Raw
-	const stepSize = deltaTime / ScopeSettings.TransitionSeconds
-	raw = if raw < target then math.min(target, raw + stepSize) else math.max(target, raw - stepSize)
+	if raw < target then
+		raw = math.min(target, raw + step / ScopeSettings.AimInSeconds)
+	elseif raw > target then
+		raw = math.max(target, raw - step / ScopeSettings.AimOutSeconds)
+	end
 	self.Raw = raw
-	const alpha = raw * raw * (3 - 2 * raw)
+	const alpha = raw * raw * raw * (raw * (raw * 6 - 15) + 10)
 
 	if self.Kicking then
 		self:StepKick(deltaTime)
@@ -333,36 +343,51 @@ function ScopeController:Frame(deltaTime: number)
 			const lensScale = ScopeSettings.LensKickScale / math.max(lensFraction, 0.05)
 			lens.SetKick(Vector2.new(self.KickX, self.KickY) * lensScale, self.KickRoll)
 		end
-		lens.Render(self:LensVisibility(alpha))
+		const thickness = self:LineThickness()
+		if thickness ~= self.AppliedThickness then
+			self.AppliedThickness = thickness
+			lens.SetReticle(thickness, math.round(thickness * LENS_DOT_RATIO))
+		end
+		const shootTarget = if self.Dependencies.ArmsController:IsShootAimPlaying() then 0 else 1
+		const blend = 1 - math.exp(-ScopeSettings.LensFadeSpeed * step)
+		local lensShown = self.LensShown + (shootTarget - self.LensShown) * blend
+		if math.abs(shootTarget - lensShown) < 0.002 then
+			lensShown = shootTarget
+		end
+		self.LensShown = lensShown
+		const lensVisibility = self:LensVisibility(alpha)
+		lens.Render(lensVisibility * lensShown, lensVisibility > 0 and shootTarget > 0)
 		const lensCharacters = self.LensCharacters
-		if lensCharacters and alpha < 1 then
+		if lensCharacters then
 			lensCharacters.Step()
 		end
 	end
 
-	if alpha > 0 then
-		if not self.ViewShown then
-			self.ViewShown = true
-			view.SetBaseFov(self.Dependencies.OptionsController:Get("Fov"))
-			view.Show()
-			self.Active(true)
-		end
+	if not self.ViewShown then
+		self.ViewShown = true
+		view.Show()
+	end
 
-		const fraction, baseCenter = self:ScopeGeometry(alpha)
-		const center = baseCenter + kickOffset * alpha
+	const visible = alpha > 0
+	if visible ~= self.Active() then
+		if visible then
+			view.SetBaseFov(self.Dependencies.OptionsController:Get("Fov"))
+		end
+		self.Active(visible)
+	end
+
+	const fraction, baseCenter = self:ScopeGeometry(alpha)
+	const center = baseCenter + kickOffset * alpha
+	if visible then
 		self.OverlayFraction(fraction)
 		self.OverlayCenter(center)
 		self.OverlayAlpha(alpha)
 		self.OverlayRotation((self.KickRoll + shakeRoll) * alpha)
-		view.Render(alpha, fraction, center)
+	end
+	view.Render(alpha, fraction, center)
 
-		for _, characters in self.Characters do
-			characters.Step()
-		end
-	elseif self.ViewShown then
-		self.ViewShown = false
-		view.Hide()
-		self.Active(false)
+	for _, characters in self.Characters do
+		characters.Step()
 	end
 
 	self.KickApplied = self.Kicking
@@ -397,6 +422,8 @@ function ScopeController:StartRendering(model: Model)
 
 	self.Rendering = true
 	self.Raw = 0
+	self.LensShown = 1
+	view.SetBaseFov(self.Dependencies.OptionsController:Get("Fov"))
 
 	const gunData = self.Dependencies.WeaponController:GunData()
 	const scope = if gunData then gunData.Scope else nil
@@ -499,6 +526,12 @@ function ScopeController:Mount(playerGui: PlayerGui)
 				Alpha = self.OverlayAlpha,
 				HousingColor = self.OverlayHousing,
 				Rotation = self.OverlayRotation,
+				Thickness = function()
+					return math.max(1, math.round(self:LineThickness() * OVERLAY_LINE_RATIO))
+				end,
+				DotSize = function()
+					return math.round(self:LineThickness() * OVERLAY_DOT_RATIO)
+				end,
 			}),
 		})
 	end, playerGui)

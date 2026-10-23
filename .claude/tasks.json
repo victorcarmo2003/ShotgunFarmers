@@ -692,7 +692,7 @@
       "id": "task-ui-006",
       "title": "Arte dos cards de modo (GameSelection)",
       "description": "2026-10-08: auditoria profunda. GameSelectionScreen: os 4 cards (QUICK-PLAY/FFA/TDM/PRACTICE) têm 'Preview' preto vazio. Precisa imagem por modo (rbxassetid).",
-      "column": "todo",
+      "column": "awaiting-approval",
       "tags": [
         "ui",
         "gameselection",
@@ -700,7 +700,7 @@
       ],
       "priority": "high",
       "createdAt": "2026-10-08",
-      "updatedAt": "2026-10-08"
+      "updatedAt": "2026-10-13"
     },
     {
       "id": "task-ui-007",
@@ -1134,6 +1134,419 @@
       "priority": "high",
       "createdAt": "2026-10-09",
       "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-heal-001",
+      "title": "Maçã dourada (cura)",
+      "description": "GoldenAppleService (src/GoldenApple) spawna Assets.Weapons.GoldenApple nas superfícies de spawn de arma (WeaponSpawnService:RandomPoint) durante combate, fora do Practice. Nasce como semente (GunRules.PlantAt com GunName GoldenApple): mesmo grow/timer/lifetime do SeedController, escala SEED_SCALE. Prompt EAT (Seed component) cura 50 HP só se vida < 100, toca Assets.Sounds.Bite na cabeça do jogador e some. Máx 2 ativas, uma a cada 20s. Outline do Highlight rainbow (SeedController:StepRainbows, RAINBOW_*). Comando Conch: spawn <seed> at cursor|position x y z|player <p>. Valores em GoldenAppleSettings.",
+      "column": "awaiting-approval",
+      "tags": [
+        "heal",
+        "server",
+        "shared",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-scope-001",
+      "title": "Suavizar aim in/out do scope e manter viewports pré-aquecidos",
+      "description": "ScopeView/ScopeLens não desligam mais SurfaceGui nem reparentam o plano a cada aim in/out: ficam montados enquanto a arma com scope está na mão, alpha 0 = transparência (PrewarmTransparency 0.995, câmera e personagens atualizados sempre). Corrige reticula azul (céu) enquanto o ViewportFrame redesenhava. Transição com AimInSeconds/AimOutSeconds, smootherstep e clamp de deltaTime (TransitionMaxStep) para hitch não pular; visibilidade da lente suavizada (LensFadeSpeed). Testar no Studio: aim in/out repetido, atirar mirando, troca de arma. Extra: máscara de vidro da lente segue visibilidade real (sem atraso) para não furar as faixas; efeitos de tela (ScreenHeal/Fire/Hit) do VFXController afastados proporcional ao FOV + ZOffset, para não encher a tela com FOV do scope.",
+      "column": "awaiting-approval",
+      "tags": [
+        "scope",
+        "weapon",
+        "client",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-09",
+      "updatedAt": "2026-10-09"
+    },
+    {
+      "id": "task-shop-001",
+      "title": "Loja de skins (pack Cow): compra, posse e equipar",
+      "description": "SkinCatalog + ShopScreen paginada com abas GUNS/THROWABLES. Compra com moedas (Gems, 300 por skin ~5 partidas) via Net Shop.BuySkin; Robux via GamePass por skin (SkinCatalog GAMEPASS_IDS, todos 0 ate o chefe criar; botao mostra Coming soon enquanto 0; 15 Robux). Profile: OwnedSkins/EquippedSkins (Template, Net, ProfileService, ProfileController). Equipar via Shop.EquipSkin; atributo Skin_<Arma> no Player; skin aplicada no viewmodel (ArmsController), visual para outros (Equipment) e projetil (ThrowableController). Onionnade/Pinapple trocam mesh via MeshPart:ApplyMesh com Assets.SkinMeshes (existe so no place do Studio: salvar o place). Pendente: preencher GAMEPASS_IDS, testar compra/equip/gamepass no Studio, skins para armas sem textura no pack. Crop Drop/2x XP/Revival fora da loja (grants intactos). Codigos: CodeCatalog (LAUNCH = 5000 moedas, LAUNCHXP = 250 XP), resgate unico por jogador (Profile.RedeemedCodes), Net Shop.RedeemCode, UI na loja (botao CODE abre painel no lugar da loja com TextBox focado). Aba BOOSTS na loja com Revival/2X XP/Crop Drop (Robux via dev product). CODE removido da aba Customize.",
+      "column": "awaiting-approval",
+      "tags": [
+        "shop",
+        "client",
+        "shared"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-13",
+      "updatedAt": "2026-10-13"
+    },
+    {
+      "id": "task-bot-001",
+      "title": "Bots: registro, tipos Fighter e Net Bot",
+      "description": "BotTypes (Bot/Fighter), BotRegistryService (GameID via IDService:Reserve/Release com reuso de IDs, vida/dano, RayHit por esferas cabeça/torso/pernas, sinais Added/Removing/Died), namespace Lync Bot (Roster replicate + Frames unreliable) registrado em Libs/Net, BotSettings.",
+      "column": "awaiting-approval",
+      "tags": [
+        "bot-system",
+        "server",
+        "shared"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-20",
+      "updatedAt": "2026-10-20"
+    },
+    {
+      "id": "task-bot-002",
+      "title": "BotService: ocupação, troca bot<->player, avatar de amigos",
+      "description": "Alvo = GameModes.GetMaxPlayers (FFA 10, TDM/Chicken 20), só em Match público fora de Practice. Player entra: remove bot do time mais pesado (desempate pelo time do player), menor score/morto primeiro; linha do bot some (zera). Player sai: bot volta após FillDelay. Skin = HumanoidDescription de amigo de algum player do servidor (GetFriendsAsync), fallback cores aleatórias. Nome gerado (disfarçado). Rig template em ReplicatedStorage.BotRigs. Testar no Studio com ForceRole=Match/ForceMode/ForceMap e multi-client (amigos só funcionam com UserId real; em Studio cai no fallback).",
+      "column": "awaiting-approval",
+      "tags": [
+        "bot-system",
+        "server"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-20",
+      "updatedAt": "2026-10-20"
+    },
+    {
+      "id": "task-bot-003",
+      "title": "BotService: IA simples e movimento server-authoritative",
+      "description": "Simulação cinemática no server a 20 Hz (Pathfinding + raycast de chão/parede, gravidade, step 2.5), think 5 Hz: alvo visível mais próximo, reação 0.35-0.75s, erro de mira 3.5°, strafe, arma Hitscan aleatória com munição infinita, respawn em RespawnDelay, respawn geral no MapChanged, parado fora de Combat. Snapshots gravados p/ rewind. Ajustar BotSettings após playtest (dificuldade).",
+      "column": "awaiting-approval",
+      "tags": [
+        "bot-system",
+        "server"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-20",
+      "updatedAt": "2026-10-20"
+    },
+    {
+      "id": "task-bot-004",
+      "title": "Integração de combate/placar com Fighter",
+      "description": "TeamService, MatchStatsService (ping fake, sem medalha p/ bot), HitService (dano/kill/announce/cone/rewind com InterpolationDelay p/ bots, ApplyHits), Gun.Hit.Target, SpawnService (bots contam como inimigos no spawn), ThrowableService (blast/zona/proximidade/impacto direto/shrapnel em bots), CareerService (kill em bot dá XP normal; bot nunca recebe XP; placement inclui bots), SnapshotService:RecordFrame.",
+      "column": "awaiting-approval",
+      "tags": [
+        "bot-system",
+        "server"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-20",
+      "updatedAt": "2026-10-20"
+    },
+    {
+      "id": "task-bot-005",
+      "title": "Cliente: BotController + adaptações",
+      "description": "BotController clona rig em workspace.Bots, interpola (0.1s), anima Idle/Run/Fall + Hold da arma, arma visual, ragdoll local na morte. HitController reivindica alvo por atributo GameID do model; KillFeed, Leaderstats/KillRanking (nome + thumbnail do avatar), VFX (tiro/som do bot), DeathCamera (foco no bot que matou). Testar no Studio: bots visíveis/animados, hit marker em bot, kill feed, Tab.",
+      "column": "awaiting-approval",
+      "tags": [
+        "bot-system",
+        "client"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-20",
+      "updatedAt": "2026-10-20"
+    },
+    {
+      "id": "task-bot-006",
+      "title": "Bots: ajustes do playtest (mira, arranque, suavidade, outline de time)",
+      "description": "Corrigido 'Rows does not hold record -N' (TeamService atribuía time dentro de MatchStats:Add e o Changed fazia PushRow antes do Rows:add). Mira com mais erro (AimError 6, +3 andando, +2 acima de 80 studs). Bots planejam rota já no spawn e durante fases sem combate, e andam direto ao destino enquanto o Pathfinding calcula. Movimento com aceleração (Acceleration 8), corte de waypoints, estado de queda só acima de FallStateSpeed; cliente com giro suave (TurnSpeed), extrapolação curta e velocidade da animação de corrida proporcional. TeamOutlineController: Highlight Occluded só outline na cor do time (Red/Blue; FFA vermelho) em bots e players remotos, só em partida. | Playtest 2: bots travados/amontoados em parede. Navegação refeita: rota que falha não vira linha reta (tenta outro destino), atalho direto só com caminho livre, string-pulling de waypoints, deslizar na parede, pulo em waypoint Jump e em obstáculo até JumpHeight, separação entre bots, detecção de falta de progresso com fuga aleatória, destinos de patrulha a 25+ studs. Outline: corrigido bot sem highlight (ModelAdded disparava antes do model ficar vivo). | Playtest 3: bots sempre em movimento (combate: strafe constante com troca de lado 0.5-1.4s, avança/recua até ~45% do alcance, busca cover quando vida < 55 ou 15% de chance, sacode no cover; patrulha mantém embalo enquanto calcula rota e serpenteia ±22°). Patrulha explora o mapa todo com viés de bordas (60% ponto aleatório no bounding box do mapa, 55% deles na faixa de 25% da borda). Skin: bot esperava 0 s pela lista de amigos (async) e caía no fallback; agora espera até 4 s e re-skina bots genéricos quando a lista chega; rig nomeado UserId_AvatarId e cliente troca o modelo quando o avatar muda; warn se GetFriendsAsync falhar. | Playtest 4: placar de time (TeamScore) sobrepunha os cards do KillRanking. Placar Red/Blue agora vai nas pontas da faixa do KillRanking (props Teams/Red/Blue/LocalTeam), TDM mostra top 4 de cada time agrupados (vermelho à esquerda, azul à direita); TeamScore removido do LeaderstatsController.",
+      "column": "awaiting-approval",
+      "tags": [
+        "bot-system",
+        "client",
+        "server",
+        "playtest"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-20",
+      "updatedAt": "2026-10-20"
+    },
+    {
+      "id": "task-input-006",
+      "title": "Botões mobile: MENU (practice), SCORE (tab) e OPTIONS",
+      "description": "Binding ganhou campo Touch (Text/Color/Order/Toggle/Visible); InputController.TouchMenus alimenta barra de botões circulares no topo direito do MobileControlsUI (mesmo visual de FIRE/AIM/CROUCH, cores FarmPalette). MENU só aparece no Practice (PracticeController.Available); SCORE alterna o leaderboard; OPTIONS abre settings. Testar no Studio com emulador mobile.",
+      "column": "awaiting-approval",
+      "tags": [
+        "input",
+        "mobile",
+        "client",
+        "playtest"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-20",
+      "updatedAt": "2026-10-20"
+    },
+    {
+      "id": "task-map-006",
+      "title": "Integrar mapa de treino (Practice)",
+      "description": "Pedido do Dots pré-lançamento: mapa de treino novo está sendo feito por ele (\"jajá fica pronto\"). Quando chegar: colocar em ServerStorage.Maps, registrar em src/Match/shared/Maps.luau para o modo Practice, conferir Farmland/WeaponSpawn/spawns e tirar print para task-map-007. BLOQUEADO: aguardando o mapa.",
+      "column": "todo",
+      "tags": [
+        "map",
+        "practice",
+        "server",
+        "launch"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-lobby-001",
+      "title": "Trocar cenário do lobby",
+      "description": "Pedido do Dots: \"muda o lobby\" / \"mudar o cenário do lobby\". Substituir o cenário atual do lobby no place (Studio). Confirmar com ele se já existe cenário novo pronto ou se é pra montar. Conferir câmera/posições do LobbyScreen depois da troca.",
+      "column": "todo",
+      "tags": [
+        "lobby",
+        "map",
+        "client",
+        "launch"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-ui-020",
+      "title": "Corrigir nomes errados no jogo",
+      "description": "Pedido do Dots: \"os nomes estão errados\" (dito duas vezes). Já trocado em 2026-10-22: título do loading e nome do projeto Rojo para PLANT AND SHOOT; nenhum \"Shotgun Farmers\" restante em src/. PENDENTE: confirmar com o Dots quais nomes (jogo no place/Creator Dashboard, armas em GunsData, mapas em Maps.luau, modos em GameModes.luau) e aplicar.",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "naming",
+        "shared",
+        "launch"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-loading-001",
+      "title": "Tela de carregamento ainda é a antiga",
+      "description": "Pedido do Dots: \"a tela de carregamento também tá a antiga\". boot/LoadingScreen.client.luau já tem título PLANT AND SHOOT (2026-10-22). Verificar se o place publicado/Studio tem um LoadingScreen antigo em ReplicatedFirst sobrepondo o do Rojo, e confirmar com o Dots o visual esperado (posters, cores, logo).",
+      "column": "todo",
+      "tags": [
+        "ui",
+        "loading",
+        "client",
+        "launch"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-ui-021",
+      "title": "Remover modo Chicken da tela de criação de sala",
+      "description": "Pedido do Dots: tirar o modo galinha (Chicken) das opções em src/GameSelection/client/CreateRoomScreen.luau (e story). Não remover o modo de GameModes.luau/Maps.luau, só da seleção na criação de sala. Aceite: criar sala só oferece os outros modos. FEITO: entrada Chicken removida de MODES no CreateRoomScreen (só FFA e TDM) e de MatchmakingSettings.RoomModes (servidor recusa sala Chicken). QuickPlayModes, GameModes, Maps e o enum do Net ficaram intactos. Testar no Studio: tela Criar Sala mostra só FFA/TDM.",
+      "column": "awaiting-approval",
+      "tags": [
+        "ui",
+        "gameselection",
+        "client",
+        "launch"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-hit-001",
+      "title": "Contador de dano ao acertar",
+      "description": "Pedido do Dots: número de dano flutuante ao acertar um inimigo. Cliente: usar a resposta do Hit.Fire (HitController) para somar o dano por alvo e mostrar o número perto do alvo (BillboardGui ou ScreenGui projetado), cor diferente para headshot. Agrupar pellets do mesmo tiro num número só.",
+      "column": "todo",
+      "tags": [
+        "hit",
+        "ui",
+        "client",
+        "launch"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-hit-002",
+      "title": "Indicador de hit e crosshair ao mirar",
+      "description": "Pedido do Dots: hitmarker ao acertar e crosshair ao mirar (ADS). Conferir o comportamento atual do Crosshair (src/Weapon) em hip e ADS antes de mexer. Aceite: hitmarker aparece em hip e ADS, crosshair visível ao apertar AIM.",
+      "column": "todo",
+      "tags": [
+        "hit",
+        "weapon",
+        "ui",
+        "client",
+        "launch"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-map-007",
+      "title": "Adicionar imagem dos mapas",
+      "description": "Pedido do Dots: imagem de cada mapa (seleção/voto). Combinado: tirar print normal dentro de cada mapa no Studio, subir como Decal e colocar o asset id em src/Match/shared/Maps.luau. Incluir o mapa de treino quando task-map-006 sair.",
+      "column": "todo",
+      "tags": [
+        "map",
+        "ui",
+        "shared",
+        "launch"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-analytics-001",
+      "title": "Infra de funis (AnalyticsService)",
+      "description": "Base para os funis pedidos pelo Dots. Criar src/Analytics/server/AnalyticsTrackingService envolvendo AnalyticsService:LogFunnelStepEvent (funis recorrentes com funnelSessionId) e LogCustomEvent/LogOnboardingFunnelStepEvent para desistências. API: Step(player, funnel, step, session?), Drop(player, funnel, reason). Garantir step só avança (não repetir passo por sessão). Não precisa Net (tudo server). Limpar sessões em PlayerRemoving. FEITO (nome final FunnelService): src/Analytics/shared/Funnels.luau define os 9 funis e passos (FunnelName); src/Analytics/server/FunnelService.luau (Priority 898, Require PlayerService). API: Step(player, funnel, stepName, fields?) loga LogFunnelStepEvent com funnelSessionId, passo 1 abre sessão nova, passo repetido/atrasado é ignorado, último passo fecha a sessão; Drop(player, funnel, reason, fields?) loga evento custom \"<Funil>Drop\" com motivo e último passo; Event(player, name, value?, fields?) para extras; Begin/Resume/Current/End para atravessar teleporte (Current vai no TeleportData, Resume no servidor da partida). fields = até 3 strings (CustomField01-03, cortadas em 50 chars). Export/Import serializam sessões por UserId para o TeleportData. Funnels.Debug imprime no Output só no Studio. Ainda sem chamadas: os funis 002-010 ligam os passos.",
+      "column": "awaiting-approval",
+      "tags": [
+        "analytics",
+        "server",
+        "launch"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-analytics-002",
+      "title": "Funil 1: Matchmaking até spawn",
+      "description": "depends:task-analytics-001. Play (modo) -> Begin -> FindTarget (servidor achado/reservado) -> TeleportGateway:Teleport -> admitido no servidor da partida -> spawnou em combate. Sessão por busca (repete). Desistências: Cancel, SearchTimeout (45s), TeleportInitFailed, AdmissionProblem. Passos 5-6 rodam no servidor da partida: passar o funnelSessionId no TeleportData. Funil técnico mais importante. FEITO em MatchmakingService (Require FunnelService): Play (campos entrada Play/CreateRoom/JoinRoom/JoinMatch + modo; líder ao pedir, resto do squad quando a busca começa) -> SearchBegin -> TargetFound -> TeleportFired (sessão vai no TeleportData[\"Funnel\"] por UserId) -> Admitted (ResumeFunnel lê GetJoinData no servidor da partida) -> SpawnedInCombat (primeiro CharacterAdded, campo = status da rodada). Drops: Rejected, Cancel, SearchTimeout, FindFailed, TeleportFailed, TeleportInitFailed, AdmissionProblem. No Studio o teleporte é simulado: só passos 1-4 aparecem no Output e a sessão é encerrada. Validar de verdade só publicado (AnalyticsService não envia do Studio): conferir no Creator Dashboard > Analytics > Funnels.",
+      "column": "awaiting-approval",
+      "tags": [
+        "analytics",
+        "matchmaking",
+        "server",
+        "launch"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-analytics-003",
+      "title": "Funil 2: Loop de plantio",
+      "description": "depends:task-analytics-001. Por jogador por partida: spawn com arma inicial (MapVoteService:Deal) -> primeira semente plantada pelos próprios tiros -> semente colhível (COLLECT_TIME_THRESHOLD) -> colheu -> colheu arma nova (Equipment:Grant, não só munição) -> kill com arma colhida -> 3+ kills com armas colhidas. Eventos extras: % sementes que expiram em 30s sem coleta, % colhidas por outro jogador (adicionar atributo PlantedBy na semente, não existe hoje), origem da semente (tiro, WeaponSpawn, caixa de reestoque, Crop Drop), taxa de plantio por arma. FEITO: src/Analytics/server/PlantLoopService.luau (só em servidor Match fora do Practice). GunRules.PlantAt ganhou (source, planter) e grava atributos SeedSource e PlantedBy (UserId) na semente; origens: Shot (tiro e projétil), WeaponSpawn, CropDrop, Restock, GoldenApple, Admin. Ganchos: Equipment:Respawn -> Respawned (SpawnedWithWeapon só no 1º spawn com arma inicial da partida); Seed OnInit/tick/expira/coleta -> Planted/Harvestable/Expired/Harvested (Collect agora retorna se deu arma nova); MatchStatsService.Killed -> kill com arma colhida (arma equipada colhida nesta vida). Sessão termina em MatchEnded. Extras agregados por jogador e enviados no fim da partida/saída como eventos custom com valor = contagem: SeedPlanted {origem, arma}, SeedExpired {origem, arma}, SeedHarvested {origem, arma, Own/Other/World}, SeedLostToOther {arma}. Limitação: sementes sem dono (WeaponSpawn/Restock/CropDrop) que expiram não geram evento (AnalyticsService exige um player).",
+      "column": "awaiting-approval",
+      "tags": [
+        "analytics",
+        "seed",
+        "server",
+        "launch"
+      ],
+      "priority": "high",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-analytics-004",
+      "title": "Funil 3: Rodadas consecutivas",
+      "description": "depends:task-analytics-001. Entrou no servidor da partida -> jogou até o fim (MatchEnded) -> viu resumo -> votou no mapa (CastVote) -> rodada 2 -> rodada 3 -> rodada 5. Saídas: ReturnToLobby ou fechou o jogo. Dimensões: resultado (Victory/Defeat/Draw), colocação, bots vs humanos. FEITO: src/Analytics/server/RoundsFunnelService.luau (servidor Match fora do Practice). JoinedMatch {modo} ao entrar; FinishedRound {resultado, colocação \"2/8\", WithBots/HumansOnly} e SawSummary via novo sinal CareerService.Resolved (SendSummary agora retorna se enviou; \"viu\" = resumo entregue a cliente pronto, sem ack do cliente); VotedMap via novo sinal MapVoteService.Voted; Round2/3/5 contando MatchStarted com o jogador presente (entrar no meio da partida conta como rodada 1). Saídas: Drop ReturnToLobby (MatchmakingService:ReturnToLobby) ou Left (PlayerRemoving), com o último resultado no campo extra.",
+      "column": "awaiting-approval",
+      "tags": [
+        "analytics",
+        "round",
+        "server",
+        "launch"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-analytics-005",
+      "title": "Funil 4: Morte até Revive",
+      "description": "depends:task-analytics-001. Morreu (fora do Practice) -> viu oferta (sem tokens = R$ 9) -> apertou F -> prompt de compra -> ProcessReceipt Revival -> reviveu -> kill em até 30s. Atenção: janela da oferta é RespawnDelay = 3s; o funil mede se 3s basta. Passos de UI vêm do cliente (DeathCameraController): precisa de packet cliente->servidor com validação. FEITO: src/Analytics/server/ReviveFunnelService.luau. Novo packet genérico Analytics.Track (src/Analytics/shared/Net.luau, registrado em Libs/Net) + FunnelController no cliente; servidor aceita só passos em Funnels.ClientSteps, com cooldown 0.25s e validador por funil (Revive: jogador precisa estar morto). Died {Tokens/Robux} via VitalService.Died; SawOffer, PressedRevive {Tokens/Robux} e PromptOpened do DeathCameraController; Purchased via novo sinal ShopService.Granted; Revived via novo sinal ShopService.Revived (disparado antes do Respawn); KillAfterRevive em até 30s. Drops: Respawned (voltou sem reviver), PromptClosed (PromptProductPurchaseFinished sem compra), NoKill (30s sem kill). Caminho com token pula Prompt/Purchased.",
+      "column": "awaiting-approval",
+      "tags": [
+        "analytics",
+        "shop",
+        "server",
+        "client",
+        "launch"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-analytics-006",
+      "title": "Funil 5: Loja Robux (DevProducts)",
+      "description": "depends:task-analytics-001. Abriu loja -> clicou item (CropDrop/DoubleXp/Revival) -> prompt -> ProcessReceipt -> item usado. Passo 5: Crop Drop comprado no lobby fica pendente até a partida (UsePendingDrop); medir tempo de espera. Passos de UI via packet do cliente. FEITO: src/Analytics/server/ShopFunnelService.luau. Cliente (LobbyController): OpenedShop ao abrir a tela Shop, ClickedItem {item} e PromptOpened {item} em BuyRobux (só DevProducts; gamepass de skin fica no funil 6). Purchased {grant} via ShopService.Granted (só se veio de uma sessão de loja, para revive comprado na tela de morte não contar); ItemUsed {grant, segundos} via novo sinal ShopService.Used (DoubleXp na hora, Revival ao reviver, CropDrop quando UsePendingDrop dispara) + evento ItemUseWait com valor = segundos de espera. Drop PromptClosed. FunnelService agora exporta vários funis (Matchmaking + RobuxShop) e marcas de horário (Mark/TakeMark) no TeleportData, então Crop Drop comprado no lobby mede a espera no servidor da partida.",
+      "column": "awaiting-approval",
+      "tags": [
+        "analytics",
+        "shop",
+        "server",
+        "client",
+        "launch"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-analytics-007",
+      "title": "Funil 6: Skins",
+      "description": "depends:task-analytics-001. Abriu Cosmetics -> inspecionou arma (WeaponInspector) -> tentou comprar (BuySkin) -> comprou -> equipou -> jogou partida com a skin. Medir à parte quantas vezes dá \"Not enough coins\" no passo 3 (sinal de preço vs ganho de gems). FEITO: src/Analytics/server/SkinFunnelService.luau. Cliente (LobbyController): OpenedCosmetics ao abrir a tela Customize, InspectedWeapon {arma} em Inspect, TriedBuy {skin} antes do prompt de gamepass (servidor valida que a skin tem gamepass). Servidor: TriedBuy {skin, Gems} em toda tentativa de BuySkin via novo sinal ShopService.SkinAttempted + evento SkinBuyFailed {motivo, skin} quando recusa (conta os \"Not enough coins\"); Bought {skin, Gems/Robux} via SkinBought (BuySkin e gamepass) já marca Equipped, porque a compra equipa; Equipped também via SkinEquipped (EquipSkin). PlayedWithSkin {qtd} no fim da rodada (CareerService.Resolved) se houver skin equipada; a sessão Skins vai no TeleportData. Compra feita direto da tela Shop sem abrir Customize só gera o evento, não avança o funil.",
+      "column": "awaiting-approval",
+      "tags": [
+        "analytics",
+        "cosmetics",
+        "server",
+        "client",
+        "launch"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-analytics-008",
+      "title": "Funil 7: Party e convites",
+      "description": "depends:task-analytics-001. Abriu Friends -> Invite -> convite aceito (Respond) -> entrou no lobby do líder (JoinLobby) -> jogaram juntos -> ainda juntos na rodada 3. Depois comparar retenção D1/D7 party vs solo (marcar jogador com atributo/evento de party). FEITO: src/Analytics/server/PartyFunnelService.luau, funil do ponto de vista de quem convida. OpenedFriends (cliente, tela Friends); Invited via novo sinal InviteService.Sent; InviteAccepted via novo sinal InviteService.Answered (resposta chega no servidor de quem convidou); outras respostas viram Drop (Declined/Expired/Unavailable/Failed); JoinedLeaderLobby quando o convidado aparece no lobby; PlayedTogether quando, no servidor da partida, há colega do mesmo squad (config Squads) presente; TogetherRound3 na 3ª rodada iniciada com colega presente. Sessão Party vai no TeleportData. Para party vs solo: evento MatchSquad {Party/Solo} uma vez por jogador por servidor de partida; a comparação D1/D7 em si precisa ser feita no dashboard (segmentar por esse evento), o código não calcula retenção.",
+      "column": "awaiting-approval",
+      "tags": [
+        "analytics",
+        "party",
+        "server",
+        "launch"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-analytics-009",
+      "title": "Funil 8: Salas privadas",
+      "description": "depends:task-analytics-001. CreateRoom ou JoinRoom (código) -> código válido -> outra pessoa entrou -> partida começou (servidor segura até 60s) -> 2+ humanos na partida. FEITO: no lobby, MatchmakingService:CreateRoom/JoinRoom registram CreatedOrJoined {Create+modo | Join} e CodeValid {Create|Join} quando a sala é criada/achada; Drops Rejected (Validate recusou) e InvalidCode (código não existe/sala cheia/falha ao criar). Sessão PrivateRoom vai no TeleportData. Servidor da partida: src/Analytics/server/RoomFunnelService.luau (ativo só se a config tem Code) registra OtherJoined {qtd} quando há 2+ jogadores, MatchStarted {qtd} na 1ª rodada e TwoHumans se 2+ humanos nesse momento (bots não contam). Não encontrei a espera de 60s no código; o passo MatchStarted só mede quando a 1ª rodada começa.",
+      "column": "awaiting-approval",
+      "tags": [
+        "analytics",
+        "gameselection",
+        "server",
+        "launch"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-analytics-010",
+      "title": "Funil 9: Practice até partida real",
+      "description": "depends:task-analytics-001. Entrou no Practice -> equipou arma (PracticeNet.Equip) -> saiu -> jogou partida real. Mostra se o Practice prepara ou vira beco sem saída. 10º funil reservado (ex.: Quests quando tiver lógica no servidor). FEITO sem serviço novo: MatchmakingService registra EnteredPractice ao admitir no servidor de Practice, LeftPractice no ReturnToLobby saindo do Practice, PlayedRealMatch {modo} ao admitir num servidor de partida que não é Practice; Drop Left se fechar o jogo no Practice sem voltar ao lobby. PracticeService:Equip registra EquippedWeapon {arma} (Require FunnelService). A sessão Practice viaja Practice -> lobby (TeleportData no ReturnToLobby, lido pelo lobby em OnPlayerAdded/ActivateLobby) -> partida (Export no teleporte da busca).",
+      "column": "awaiting-approval",
+      "tags": [
+        "analytics",
+        "practice",
+        "server",
+        "launch"
+      ],
+      "priority": "low",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
     }
   ]
 }

@@ -4,6 +4,7 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local GoldenAppleSettings = require(ReplicatedStorage.shared.GoldenApple.GoldenAppleSettings)
 local WeaponSounds = require(ReplicatedStorage.shared.Weapon.WeaponSounds)
 local SeedSettings = require(ReplicatedStorage.shared.Seed.SeedSettings)
 local Fonts = require(ReplicatedStorage.shared.Interface.Fonts)
@@ -28,6 +29,8 @@ export type SeedState = {
 	Velocity: number,
 	Stages: { Model }?,
 	StageScale: number,
+	StartScale: number,
+	EndScale: number,
 }
 
 export type Timer = { Gui: BillboardGui, Anchor: Attachment, Label: TextLabel, Expires: number, Shown: number }
@@ -111,6 +114,8 @@ local function prepare(model: Model): Model
 	return model
 end
 
+const weaponSeeds: { [string]: Model } = {}
+
 local function seedTemplate(name: string): Model?
 	const assets = ReplicatedStorage:FindFirstChild("Assets")
 	const seeds = assets and assets:FindFirstChild("Seeds")
@@ -119,16 +124,50 @@ local function seedTemplate(name: string): Model?
 		return template
 	end
 
-	return nil
+	const cached = weaponSeeds[name]
+	if cached then
+		return cached
+	end
+
+	const weapons = assets and assets:FindFirstChild("Weapons")
+	const weapon = weapons and weapons:FindFirstChild(name)
+	if not weapon then
+		return nil
+	end
+
+	local model: Model
+	if weapon:IsA("Model") then
+		model = weapon:Clone()
+	elseif weapon:IsA("BasePart") then
+		model = Instance.new("Model")
+		model.Name = name
+		const part = weapon:Clone()
+		part.Parent = model
+		model.PrimaryPart = part
+	else
+		return nil
+	end
+
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("JointInstance") or descendant:IsA("Script") or descendant:IsA("LocalScript") then
+			descendant:Destroy()
+		end
+	end
+	const box, size = model:GetBoundingBox()
+	model.WorldPivot = CFrame.new(box.Position - Vector3.new(0, size.Y / 2, 0))
+	weaponSeeds[name] = model
+	return model
 end
 
 function SeedController:Setup()
 	self.Active = {} :: { [BasePart]: SeedState }
 	self.Finished = {} :: { [BasePart]: boolean }
 	self.Timers = {} :: { [BasePart]: Timer }
+	self.Rainbows = {} :: { [BasePart]: { Highlight } }
 end
 
 function SeedController:Forget(dirt: BasePart)
+	self.Rainbows[dirt] = nil
 	self.Active[dirt] = nil
 	self.Finished[dirt] = nil
 	const timer = self.Timers[dirt]
@@ -188,6 +227,39 @@ function SeedController:StepTimers(now: number)
 	end
 end
 
+local function isApple(dirt: Instance): boolean
+	return dirt:GetAttribute("GunName") == GoldenAppleSettings.ASSET_NAME
+end
+
+local function appleHighlights(model: Model): { Highlight }
+	const highlights: { Highlight } = {}
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("Highlight") then
+			descendant.OutlineTransparency = GoldenAppleSettings.OUTLINE_TRANSPARENCY
+			descendant.FillColor = GoldenAppleSettings.FLASH_COLOR
+			table.insert(highlights, descendant)
+		end
+	end
+	return highlights
+end
+
+function SeedController:StepRainbows(now: number)
+	const color = Color3.fromHSV(
+		(now * GoldenAppleSettings.RAINBOW_SPEED) % 1,
+		GoldenAppleSettings.RAINBOW_SATURATION,
+		GoldenAppleSettings.RAINBOW_VALUE
+	)
+	const pulse = (math.sin(now * GoldenAppleSettings.FLASH_SPEED * math.pi * 2) + 1) / 2
+	const fill = GoldenAppleSettings.FLASH_MAX_TRANSPARENCY
+		+ (GoldenAppleSettings.FLASH_MIN_TRANSPARENCY - GoldenAppleSettings.FLASH_MAX_TRANSPARENCY) * pulse
+	for _, highlights in self.Rainbows do
+		for _, highlight in highlights do
+			highlight.OutlineColor = color
+			highlight.FillTransparency = fill
+		end
+	end
+end
+
 function SeedController:Render(dirt: BasePart)
 	if self.Active[dirt] or self.Finished[dirt] then
 		return
@@ -195,32 +267,40 @@ function SeedController:Render(dirt: BasePart)
 
 	const gunName = dirt:GetAttribute("GunName")
 	const plantedAt = dirt:GetAttribute("PlantedAt")
+	const apple = isApple(dirt)
 	const gunData = if type(gunName) == "string" then GetGun.ByName(gunName) else nil
-	if not gunData or type(plantedAt) ~= "number" then
+	if (not gunData and not apple) or type(plantedAt) ~= "number" then
 		warn(`[SeedController] semente sem GunName/PlantedAt valido em {dirt:GetFullName()}`)
 		return
 	end
 
-	const stages, stageScale = stageModels(gunData.SeedModel)
-	const template = if stages then stages[1] else seedTemplate(gunData.SeedModel)
+	const seedModel = if gunData then gunData.SeedModel else GoldenAppleSettings.ASSET_NAME
+	const stages, stageScale = stageModels(seedModel)
+	const template = if stages then stages[1] else seedTemplate(seedModel)
 	if not template then
-		if not warnedTemplates[gunData.SeedModel] then
-			warnedTemplates[gunData.SeedModel] = true
-			warn(`[SeedController] SeedModel "{gunData.SeedModel}" nao esta em ReplicatedStorage.Assets.Seeds`)
+		if not warnedTemplates[seedModel] then
+			warnedTemplates[seedModel] = true
+			warn(`[SeedController] SeedModel "{seedModel}" nao esta em ReplicatedStorage.Assets.Seeds`)
 		end
 		self.Finished[dirt] = true
 		return
 	end
 
-	const width = dirt.Size.X
+	const surface = dirt.Position + Vector3.yAxis * (dirt.Size.X / 2)
+	const width = dirt.Size.X + SeedSettings.DIRT_DEPTH
 	const startDirtSize = Vector3.new(width, SeedSettings.DIRT_START_DIAMETER, SeedSettings.DIRT_START_DIAMETER)
 	const endDirtSize = Vector3.new(width, SeedSettings.DIRT_END_DIAMETER, SeedSettings.DIRT_END_DIAMETER)
 	dirt.Size = startDirtSize
+	dirt.CFrame = dirt.CFrame.Rotation + (surface - Vector3.yAxis * (width / 2))
 
 	const initialStage = stageAt(workspace:GetServerTimeNow() - plantedAt)
 	const shown = if stages then stages[math.max(initialStage, 1)] else template
 	const seedInstance = prepare(shown:Clone())
-	const surface = dirt.Position + Vector3.yAxis * (width / 2)
+	if apple then
+		self.Rainbows[dirt] = appleHighlights(seedInstance)
+	end
+	const endScale = if apple then GoldenAppleSettings.SEED_SCALE else SeedSettings.SEED_END_SCALE
+	const startScale = SeedSettings.SEED_START_SCALE * endScale / SeedSettings.SEED_END_SCALE
 	const startCFrame = CFrame.new(surface)
 	const endCFrame = CFrame.new(surface + Vector3.new(0, SeedSettings.SEED_RISE_HEIGHT, 0))
 	const initialGrowth = if stages then (if initialStage <= 0 then SeedSettings.STAGE_SPROUT_GROWTH else 1)
@@ -240,6 +320,8 @@ function SeedController:Render(dirt: BasePart)
 		Velocity = 0,
 		Stages = stages,
 		StageScale = stageScale,
+		StartScale = startScale,
+		EndScale = endScale,
 	}
 	self:ApplyGrowth(self.Active[dirt])
 
@@ -279,10 +361,7 @@ function SeedController:ApplyGrowth(state: SeedState)
 	end
 	const rise = math.clamp(growth, 0, 1)
 	state.SeedInstance:PivotTo(state.StartCFrame:Lerp(state.EndCFrame, rise))
-	state.SeedInstance:ScaleTo(math.max(
-		SeedSettings.SEED_START_SCALE + (SeedSettings.SEED_END_SCALE - SeedSettings.SEED_START_SCALE) * growth,
-		0.01
-	))
+	state.SeedInstance:ScaleTo(math.max(state.StartScale + (state.EndScale - state.StartScale) * growth, 0.01))
 end
 
 function SeedController:StepSpring(state: SeedState): boolean
@@ -326,6 +405,7 @@ function SeedController:Step()
 	end
 
 	self:StepTimers(now)
+	self:StepRainbows(now)
 end
 
 SeedController:OnInit(function(self)
@@ -335,7 +415,7 @@ end)
 SeedController:OnStart(function(self)
 	ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
 		const parent = prompt.Parent
-		if parent and CollectionService:HasTag(parent, TAG) then
+		if parent and CollectionService:HasTag(parent, TAG) and not isApple(parent) then
 			WeaponSounds.Play2D(SeedSettings.PICKUP_SOUND)
 		end
 	end)

@@ -32,7 +32,15 @@ export type PendingShot = {
 	Flame: boolean,
 }
 
-export type Screen = { Part: BasePart, Loops: { ParticleEmitter }, Bursts: { Burst }, ActiveUntil: number, Looping: boolean }
+export type Screen = {
+	Part: BasePart,
+	Loops: { ParticleEmitter },
+	Bursts: { Burst },
+	Offsets: { [ParticleEmitter]: number },
+	Depth: number,
+	ActiveUntil: number,
+	Looping: boolean,
+}
 
 const FOLDER_NAME = "Bullets"
 const POOL_SIZE = 10
@@ -42,6 +50,7 @@ const REMOTE_CULL_DISTANCE = 350
 const VIEWMODEL_Z_OFFSET = 1.5
 const IMPACT_SURFACE_OFFSET = 0.05
 const SCREEN_DEPTH = 2.5
+const SCREEN_REFERENCE_FOV = 70
 const SCREEN_THICKNESS = 0.1
 const SCREEN_BURST_SECONDS = 1.6
 const SCREEN_FIRE_START = 12
@@ -56,7 +65,7 @@ const remoteParams = RaycastParams.new()
 remoteParams.FilterType = Enum.RaycastFilterType.Exclude
 
 const VFXController = Modux.Controller("VFXController", {
-	Require = { "ArmsController", "MovementController", "ProjectileController", "SurfaceUIController" },
+	Require = { "ArmsController", "BotController", "MovementController", "ProjectileController", "SurfaceUIController" },
 	Priority = 470,
 })
 
@@ -285,7 +294,10 @@ function VFXController:PlayShot(
 	local impacts = 0
 	for _, pellet in pellets do
 		if gunData.FireMode == "Hitscan" then
-			self.Dependencies.ProjectileController:Shoot(start, pellet.EndPos, set.Tracer, speed)
+			self.Dependencies.ProjectileController:Shoot(start, pellet.EndPos, set.Tracer, speed, pellet.Control)
+			if set.Streak then
+				self.Dependencies.ProjectileController:Streak(start, pellet.EndPos, pellet.Control)
+			end
 		end
 
 		if impacts < MAX_IMPACTS_PER_SHOT and pellet.Kind ~= "None" then
@@ -393,22 +405,29 @@ end
 
 local function kindOf(result: RaycastResult): WeaponVFX.PelletKind
 	const model = result.Instance:FindFirstAncestorOfClass("Model")
-	if model and Players:GetPlayerFromCharacter(model) then
+	if model and (Players:GetPlayerFromCharacter(model) or typeof(model:GetAttribute("GameID")) == "number") then
 		return if result.Instance.Name == "Head" then "Head" else "Player"
 	end
 
 	return "Wall"
 end
 
+function VFXController:ShooterCharacter(id: number): Model?
+	const shooter = playerByGameID(id)
+	if shooter then
+		return if shooter == Players.LocalPlayer then nil else shooter.Character
+	end
+	return self.Dependencies.BotController:ModelOf(id)
+end
+
 function VFXController:OnShotSound(packet: WeaponNet.ShotSound)
-	const shooter = playerByGameID(packet.ShooterID)
 	const gunData = GetGun.ByID(packet.GunID)
-	if not shooter or shooter == Players.LocalPlayer or not gunData then
+	if not gunData then
 		return
 	end
 
 	const soundName = WeaponSounds.ShootName(gunData.DisplayName)
-	const character = shooter.Character
+	const character = self:ShooterCharacter(packet.ShooterID)
 	if soundName == "" or not character then
 		return
 	end
@@ -424,13 +443,12 @@ function VFXController:OnShotSound(packet: WeaponNet.ShotSound)
 end
 
 function VFXController:OnRemoteShot(packet: HitNet.Shot)
-	const shooter = playerByGameID(packet.ShooterID)
 	const gunData = GetGun.ByID(packet.GunID)
-	if not shooter or shooter == Players.LocalPlayer or not gunData then
+	if not gunData then
 		return
 	end
 
-	const character = shooter.Character
+	const character = self:ShooterCharacter(packet.ShooterID)
 	const root = if character then character:FindFirstChild("HumanoidRootPart") else nil
 	if not character or not root or not root:IsA("BasePart") or not cameraNear(packet.Origin) then
 		return
@@ -473,8 +491,14 @@ function VFXController:OnRemoteShot(packet: HitNet.Shot)
 			const cast = Ballistics.Cast(gunData, packet.Origin, heading, remoteParams)
 			const result = cast.Result
 			const pellet: WeaponVFX.Pellet = if result
-				then { EndPos = result.Position, Normal = result.Normal, Kind = kindOf(result), Delay = cast.Travel }
-				else { EndPos = cast.EndPos, Normal = -heading, Kind = "None", Delay = cast.Travel }
+				then {
+					EndPos = result.Position,
+					Normal = result.Normal,
+					Kind = kindOf(result),
+					Delay = cast.Travel,
+					Control = cast.Control,
+				}
+				else { EndPos = cast.EndPos, Normal = -heading, Kind = "None", Delay = cast.Travel, Control = cast.Control }
 			table.insert(pellets, pellet)
 		end
 	end
@@ -566,7 +590,15 @@ function VFXController:ScreenFor(name: string): Screen?
 	const part = template:Clone()
 	inert(part)
 
-	const screen: Screen = { Part = part, Loops = {}, Bursts = {}, ActiveUntil = 0, Looping = false }
+	const screen: Screen = {
+		Part = part,
+		Loops = {},
+		Bursts = {},
+		Offsets = {},
+		Depth = SCREEN_DEPTH,
+		ActiveUntil = 0,
+		Looping = false,
+	}
 	for _, descendant in part:GetDescendants() do
 		if not descendant:IsA("ParticleEmitter") then
 			continue
@@ -574,6 +606,7 @@ function VFXController:ScreenFor(name: string): Screen?
 
 		descendant.LockedToPart = true
 		descendant.Enabled = false
+		screen.Offsets[descendant] = descendant.ZOffset
 		if descendant:GetAttribute(WeaponVFX.LOOP_ATTRIBUTE) == true then
 			table.insert(screen.Loops, descendant)
 		else
@@ -587,11 +620,20 @@ function VFXController:ScreenFor(name: string): Screen?
 end
 
 function VFXController:PlaceScreen(screen: Screen, camera: Camera)
-	const height = 2 * SCREEN_DEPTH * math.tan(math.rad(camera.FieldOfView) * 0.5)
+	const tangent = math.tan(math.rad(camera.FieldOfView) * 0.5)
+	const depth = SCREEN_DEPTH * math.tan(math.rad(SCREEN_REFERENCE_FOV) * 0.5) / math.max(tangent, 1e-3)
+	if math.abs(depth - screen.Depth) > 1e-3 then
+		screen.Depth = depth
+		const pull = depth - SCREEN_DEPTH
+		for emitter, offset in screen.Offsets do
+			emitter.ZOffset = offset + pull
+		end
+	end
+	const height = 2 * depth * tangent
 	const viewport = camera.ViewportSize
 	const aspect = if viewport.Y > 0 then viewport.X / viewport.Y else 16 / 9
 	screen.Part.Size = Vector3.new(height * aspect, height, SCREEN_THICKNESS)
-	screen.Part.CFrame = camera.CFrame * CFrame.new(0, 0, -SCREEN_DEPTH)
+	screen.Part.CFrame = camera.CFrame * CFrame.new(0, 0, -depth)
 end
 
 function VFXController:ScreenBurst(name: string)

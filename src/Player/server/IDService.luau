@@ -10,11 +10,26 @@ function IDService:Setup()
 	self.PlayerIDs = {} :: { [Player]: number }
 
 	self.IDPlayers = {} :: { [number]: Player }
+
+	self.Free = {} :: { number }
 end
 
 function IDService:GetNextID(): number
+	if #self.Free > 0 then
+		return table.remove(self.Free, 1) :: number
+	end
 	self.NextID += 1
 	return self.NextID
+end
+
+function IDService:Reserve(): number
+	return self:GetNextID()
+end
+
+function IDService:Release(id: number)
+	if self.IDPlayers[id] == nil and not table.find(self.Free, id) then
+		table.insert(self.Free, id)
+	end
 end
 
 function IDService:RegisterPlayer(player: Player): number
@@ -44,6 +59,7 @@ function IDService:Unregister(player: Player)
 	end
 	self.PlayerIDs[player] = nil
 	self.IDPlayers[id] = nil
+	self:Release(id)
 end
 
 IDService:OnInit(function(self)

@@ -10,6 +10,8 @@ function ProfileController:Setup()
 	self.Gems = Vide.source(0) :: Vide.Source<number>
 
 	self.Gamepasses = Vide.source({}) :: Vide.Source<{ [string]: boolean }>
+	self.OwnedSkins = Vide.source({}) :: Vide.Source<{ [string]: boolean }>
+	self.EquippedSkins = Vide.source({}) :: Vide.Source<{ [string]: string }>
 	self.Item = Vide.source({}) :: Vide.Source<{ [string]: number }>
 	self.UnlockedItems = Vide.source({}) :: Vide.Source<{ [number]: boolean }>
 	self.UnlockedClasses = Vide.source({}) :: Vide.Source<{ [number]: boolean }>
@@ -43,6 +45,8 @@ ProfileController:OnInit(function(self)
 		self.Gems(data.Gems)
 
 		self.Gamepasses(data.Gamepasses)
+		self.OwnedSkins(data.OwnedSkins)
+		self.EquippedSkins(data.EquippedSkins)
 		self.Item(data.Item)
 		self.UnlockedItems(data.UnlockedItems)
 		self.UnlockedClasses(data.UnlockedClasses)

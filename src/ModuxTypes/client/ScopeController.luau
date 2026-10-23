@@ -10,6 +10,7 @@ local ScopeViewmodel = require(StarterPlayer.StarterPlayerScripts.client.Weapon.
 
 export type Public = {
 	Active: Vide.Source<boolean>,
+	AppliedThickness: number,
 	Characters: { ScopeCharacters.ScopeCharacters },
 	KickApplied: boolean,
 	KickRoll: number,
@@ -22,6 +23,7 @@ export type Public = {
 	Lens: ScopeLens.ScopeLens?,
 	LensAttached: boolean,
 	LensCharacters: ScopeCharacters.ScopeCharacters?,
+	LensShown: number,
 	MapReady: boolean,
 	MirrorOn: boolean,
 	Mirrors: { ScopeViewmodel.ScopeViewmodel },
@@ -45,6 +47,7 @@ export type Public = {
 	StepShake: (self: Public, deltaTime: number) -> (Vector2, number),
 	ResetKick: (self: Public) -> (),
 	StepKick: (self: Public, deltaTime: number) -> (),
+	LineThickness: (self: Public) -> number,
 	Fov: (self: Public) -> number?,
 	HeldModel: (self: Public) -> Model?,
 	ReleaseMap: (self: Public) -> (),

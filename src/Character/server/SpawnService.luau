@@ -3,7 +3,10 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local MatchSettings = require(ReplicatedStorage.shared.Match.MatchSettings)
+local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
 local Modux = require(ServerScriptService.server.Modux)
+
+type Fighter = BotTypes.Fighter
 
 const SPAWN_WAIT_TIMEOUT = 2
 
@@ -24,7 +27,7 @@ type RecentSpawn = {
 }
 
 const SpawnService = Modux.Service("SpawnService", {
-	Require = { "PlayerService", "ServerRoleService", "EnvironmentService", "TeamService" },
+	Require = { "BotRegistryService", "PlayerService", "ServerRoleService", "EnvironmentService", "TeamService" },
 	Priority = 780,
 })
 
@@ -144,11 +147,20 @@ function SpawnService:Resolve(point: Vector3, part: BasePart): Resolved?
 	}
 end
 
-function SpawnService:GetEnemyPositions(player: Player): { Vector3 }
-	const team = self.Dependencies.TeamService:GetTeam(player)
+function SpawnService:GetEnemyPositions(fighter: Fighter): { Vector3 }
+	const team = self.Dependencies.TeamService:GetTeam(fighter)
 	const positions: { Vector3 } = {}
+	for _, bot in self.Dependencies.BotRegistryService:All() do
+		if bot == fighter or not bot.Alive then
+			continue
+		end
+		if team and self.Dependencies.TeamService:GetTeam(bot) == team then
+			continue
+		end
+		table.insert(positions, bot.Position)
+	end
 	for _, other in Players:GetPlayers() do
-		if other == player then
+		if other == fighter then
 			continue
 		end
 		if team and self.Dependencies.TeamService:GetTeam(other) == team then
@@ -176,7 +188,7 @@ function SpawnService:PruneRecent()
 	self.RecentSpawns = kept
 end
 
-function SpawnService:PickSpawn(player: Player, parts: { BasePart }): CFrame?
+function SpawnService:PickSpawn(fighter: Fighter, parts: { BasePart }): CFrame?
 	if #parts == 0 then
 		return nil
 	end
@@ -218,7 +230,7 @@ function SpawnService:PickSpawn(player: Player, parts: { BasePart }): CFrame?
 			pool = valid
 		end
 
-		const enemies = self:GetEnemyPositions(player)
+		const enemies = self:GetEnemyPositions(fighter)
 		if #enemies == 0 then
 			chosen = pool[math.random(1, #pool)]
 		else
@@ -366,19 +378,19 @@ function SpawnService:GetLobbyDestination(player: Player): CFrame?
 	return if part then part.CFrame + MatchSettings.SpawnOffset else nil
 end
 
-function SpawnService:GetMatchDestination(player: Player): CFrame?
-	const team = self.Dependencies.TeamService:GetTeam(player)
+function SpawnService:GetMatchDestination(fighter: Fighter): CFrame?
+	const team = self.Dependencies.TeamService:GetTeam(fighter)
 	if team then
 		const teamPart = self.Dependencies.EnvironmentService:GetTeamSpawn(team)
 		if teamPart then
-			const teamSpawn = self:PickSpawn(player, { teamPart })
+			const teamSpawn = self:PickSpawn(fighter, { teamPart })
 			if teamSpawn then
 				return teamSpawn
 			end
 		end
 	end
 
-	return self:PickSpawn(player, self.Dependencies.EnvironmentService:GetFFASpawns())
+	return self:PickSpawn(fighter, self.Dependencies.EnvironmentService:GetFFASpawns())
 end
 
 function SpawnService:GetDestination(player: Player): CFrame?

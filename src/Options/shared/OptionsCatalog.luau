@@ -67,6 +67,7 @@ OptionsCatalog.Sliders = {
 	{ Id = "ControllerSensitivity", Label = "CONTROLLER SENSITIVITY", Min = 0.1, Max = 2, Default = 1 },
 	{ Id = "AimSensitivity", Label = "AIM SENSITIVITY", Min = 0.2, Max = 1.5, Default = 1 },
 	{ Id = "SniperSensitivity", Label = "SNIPER SENSITIVITY", Min = 0.2, Max = 1.5, Default = 1 },
+	{ Id = "ScopeLineThickness", Label = "SCOPE LINE THICKNESS", Min = 1, Max = 10, Default = 6, Step = 1 },
 	{ Id = "Fov", Label = "FOV", Min = 60, Max = 110, Default = 70 },
 } :: { Slider }
 
@@ -79,7 +80,6 @@ OptionsCatalog.Choices = {
 	{ Id = "Language", Label = "LANGUAGE", Options = { "ENGLISH", "PORTUGUÊS" }, Default = 1 },
 	{ Id = "ToggleCrouch", Label = "TOGGLE CROUCH", Options = { "OFF", "ON" }, Default = 2 },
 	{ Id = "InvertY", Label = "INVERT Y", Options = { "OFF", "ON" }, Default = 1 },
-	{ Id = "ReticleAmmo", Label = "AMMO AT CROSSHAIR", Options = { "OFF", "ON" }, Default = 2 },
 } :: { Choice }
 
 OptionsCatalog.Keybinds = {

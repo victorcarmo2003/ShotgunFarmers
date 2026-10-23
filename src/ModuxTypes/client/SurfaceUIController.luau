@@ -3,9 +3,10 @@
 export type PanelConfig = {
 	Depth: number?,
 	Rotation: Vector3?,
+	Edge: number?,
 }
 type EffectState = { Trauma: number, Seed: number }
-type Panel = { Part: Part, Offset: CFrame }
+type Panel = { Part: Part, Offset: CFrame, Config: PanelConfig }
 
 export type Public = {
 	Effects: { [Part]: { [string]: EffectState } },

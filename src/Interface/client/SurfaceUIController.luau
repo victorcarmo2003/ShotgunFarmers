@@ -6,15 +6,18 @@ local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
 export type PanelConfig = {
 	Depth: number?,
 	Rotation: Vector3?,
+	Edge: number?,
 }
 
 type EffectState = { Trauma: number, Seed: number }
 
-type Panel = { Part: Part, Offset: CFrame }
+type Panel = { Part: Part, Offset: CFrame, Config: PanelConfig }
 
 const RENDER_BIND_NAME = "SurfaceUIController_UpdatePanels"
 const RENDER_PRIORITY = Enum.RenderPriority.Camera.Value + 1
 const REFERENCE_DEPTH = 3
+const REFERENCE_FOV = 70
+const EDGE_MARGIN = 0.94
 
 const SHAKE_DECAY = 2.5
 const SHAKE_FREQUENCY = 12
@@ -40,7 +43,7 @@ local function resolveSize(): Vector2
 	end
 
 	const aspectRatio = camera.ViewportSize.X / camera.ViewportSize.Y
-	const height = 2 * REFERENCE_DEPTH * math.tan(math.rad(camera.FieldOfView) / 2)
+	const height = 2 * REFERENCE_DEPTH * math.tan(math.rad(REFERENCE_FOV) / 2)
 	return Vector2.new(height * aspectRatio, height)
 end
 
@@ -48,11 +51,22 @@ local function applySize(part: Part, size: Vector2)
 	part.Size = Vector3.new(size.X, size.Y, 0.05)
 end
 
-local function buildOffset(config: PanelConfig): CFrame
+local function buildOffset(config: PanelConfig, size: Vector2): CFrame
 	const rotation = config.Rotation or Vector3.zero
 	const depth = config.Depth or REFERENCE_DEPTH
-	return CFrame.new(0, 0, -depth)
-		* CFrame.Angles(math.rad(rotation.X), math.rad(rotation.Y), math.rad(rotation.Z))
+	const angles = CFrame.Angles(math.rad(rotation.X), math.rad(rotation.Y), math.rad(rotation.Z))
+	const edge = config.Edge
+	if not edge then
+		return CFrame.new(0, 0, -depth) * angles
+	end
+
+	const halfWidth = size.X / 2
+	const edgeX = edge * halfWidth * (depth / REFERENCE_DEPTH) * EDGE_MARGIN
+	return CFrame.new(edgeX, 0, -depth) * angles * CFrame.new(-edge * halfWidth, 0, 0)
+end
+
+local function zoomFactor(fieldOfView: number): number
+	return math.tan(math.rad(REFERENCE_FOV) / 2) / math.tan(math.rad(fieldOfView) / 2)
 end
 
 local function shakeOffsetFor(state: EffectState, deltaTime: number): CFrame
@@ -84,7 +98,8 @@ function SurfaceUIController:New(name: string, config: PanelConfig?): Part?
 
 	const part = Instance.new("Part")
 	part.Name = name
-	applySize(part, resolveSize())
+	const size = resolveSize()
+	applySize(part, size)
 	part.Anchored = true
 	part.CanCollide = false
 	part.CanQuery = false
@@ -93,7 +108,9 @@ function SurfaceUIController:New(name: string, config: PanelConfig?): Part?
 	part.Transparency = 1
 	part.Parent = camera
 
-	self.Panels[name] = { Part = part, Offset = buildOffset(config or {}) }
+	const panelConfig: PanelConfig = config or {}
+	const panel: Panel = { Part = part, Offset = buildOffset(panelConfig, size), Config = panelConfig }
+	self.Panels[name] = panel
 
 	return part
 end
@@ -154,11 +171,13 @@ SurfaceUIController:OnStart(function(self)
 			const size = resolveSize()
 			for _, panel in self.Panels do
 				applySize(panel.Part, size)
+				panel.Offset = buildOffset(panel.Config, size)
 			end
 		end
 
 		const tilt = CFrame.Angles(0, 0, math.rad(self.Dependencies.CameraController.CurrentTilt * TILT_RESPONSE))
 		const cameraCFrame = camera:GetRenderCFrame() * tilt
+		const zoom = zoomFactor(camera.FieldOfView)
 		for _, panel in self.Panels do
 			local offset = CFrame.identity
 			const effects = self.Effects[panel.Part]
@@ -168,7 +187,9 @@ SurfaceUIController:OnStart(function(self)
 				end
 			end
 
-			panel.Part.CFrame = cameraCFrame * panel.Offset * offset
+			const placement = panel.Offset * offset
+			const position = placement.Position
+			panel.Part.CFrame = cameraCFrame * CFrame.new(position.X, position.Y, position.Z * zoom) * placement.Rotation
 		end
 	end)
 

@@ -7,7 +7,11 @@ local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
 local MedalSettings = require(ReplicatedStorage.shared.KillFeed.MedalSettings)
 local StatsNet = require(ReplicatedStorage.shared.Stats.Net)
 local StatsSettings = require(ReplicatedStorage.shared.Stats.StatsSettings)
+local BotSettings = require(ReplicatedStorage.shared.Bot.BotSettings)
+local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
 local Modux = require(ServerScriptService.server.Modux)
+
+type Fighter = BotTypes.Fighter
 
 export type PlayerStats = {
 	Kills: number,
@@ -27,10 +31,18 @@ const MAX_COUNT = 65535
 const MAX_SCORE = 1000000
 const MAX_PING = 9999
 
-const runs: { [Player]: Run } = {}
+const runs: { [Fighter]: Run } = {}
 
 const MatchStatsService = Modux.Service("MatchStatsService", {
-	Require = { "PlayerService", "ServerRoleService", "RoundService", "VitalService", "NetService", "TeamService" },
+	Require = {
+		"BotRegistryService",
+		"PlayerService",
+		"ServerRoleService",
+		"RoundService",
+		"VitalService",
+		"NetService",
+		"TeamService",
+	},
 	Priority = 650,
 })
 
@@ -39,13 +51,13 @@ local function tenths(score: number): number
 end
 
 function MatchStatsService:Setup()
-	self.Stats = {} :: { [Player]: PlayerStats }
-	self.Pending = {} :: { [Player]: { [Player]: boolean } }
+	self.Stats = {} :: { [Fighter]: PlayerStats }
+	self.Pending = {} :: { [Fighter]: { [Fighter]: boolean } }
 	self.Active = false :: boolean
 	self.Totals = { Red = 0, Blue = 0 } :: Totals
-	self.Killed = self.Libs.Signal.new() :: SignalLib.Signal<Player, Player, boolean, { Player }>
-	self.Died = self.Libs.Signal.new() :: SignalLib.Signal<Player>
-	self.Damaged = self.Libs.Signal.new() :: SignalLib.Signal<Player, Player, number>
+	self.Killed = self.Libs.Signal.new() :: SignalLib.Signal<Fighter, Fighter, boolean, { Fighter }>
+	self.Died = self.Libs.Signal.new() :: SignalLib.Signal<Fighter>
+	self.Damaged = self.Libs.Signal.new() :: SignalLib.Signal<Fighter, Fighter, number>
 	self.MatchStarted = self.Libs.Signal.new() :: SignalLib.Signal<>
 	self.MatchEnded = self.Libs.Signal.new() :: SignalLib.Signal<>
 end
@@ -54,29 +66,29 @@ function MatchStatsService:IsActive(): boolean
 	return self.Active
 end
 
-function MatchStatsService:Get(player: Player): PlayerStats?
-	return self.Stats[player]
+function MatchStatsService:Get(fighter: Fighter): PlayerStats?
+	return self.Stats[fighter]
 end
 
-function MatchStatsService:TeamOf(player: Player): StatsNet.Team
-	const team = self.Dependencies.TeamService:GetTeam(player)
+function MatchStatsService:TeamOf(fighter: Fighter): StatsNet.Team
+	const team = self.Dependencies.TeamService:GetTeam(fighter)
 	return if team == "Red" or team == "Blue" then team else "None"
 end
 
-function MatchStatsService:PushRow(player: Player)
-	const stats = self.Stats[player]
+function MatchStatsService:PushRow(fighter: Fighter)
+	const stats = self.Stats[fighter]
 	if not stats or not self.Dependencies.NetService:IsRunning() then
 		return
 	end
 
-	self.Libs.Net.Stats.Rows:update(player.UserId, {
+	self.Libs.Net.Stats.Rows:update(fighter.UserId, {
 		Kills = math.min(stats.Kills, MAX_COUNT),
 		Deaths = math.min(stats.Deaths, MAX_COUNT),
 		Assists = math.min(stats.Assists, MAX_COUNT),
 		Headshots = math.min(stats.Headshots, MAX_COUNT),
 		Score = math.min(stats.Score, MAX_SCORE),
 		Ping = stats.Ping,
-		Team = self:TeamOf(player),
+		Team = self:TeamOf(fighter),
 	})
 end
 
@@ -94,8 +106,8 @@ end
 function MatchStatsService:RecomputeTotals()
 	local red = 0
 	local blue = 0
-	for player, stats in self.Stats do
-		const team = self.Dependencies.TeamService:GetTeam(player)
+	for fighter, stats in self.Stats do
+		const team = self.Dependencies.TeamService:GetTeam(fighter)
 		if team == "Red" then
 			red += stats.Score
 		elseif team == "Blue" then
@@ -112,11 +124,17 @@ function MatchStatsService:RecomputeTotals()
 	self:PublishTotals(self.Dependencies.NetService.Audience)
 end
 
-function MatchStatsService:Add(player: Player)
-	if not self.Active or self.Stats[player] ~= nil or not player:IsDescendantOf(Players) then
+function MatchStatsService:Add(fighter: Fighter)
+	if not self.Active or self.Stats[fighter] ~= nil then
 		return
 	end
 
+	const player = BotTypes.AsPlayer(fighter)
+	if player and not player:IsDescendantOf(Players) then
+		return
+	end
+
+	const team = self:TeamOf(fighter)
 	const stats: PlayerStats = {
 		Kills = 0,
 		Deaths = 0,
@@ -126,22 +144,27 @@ function MatchStatsService:Add(player: Player)
 		Damage = 0,
 		Ping = 0,
 	}
-	self.Stats[player] = stats
+	self.Stats[fighter] = stats
+
+	const bot = BotTypes.AsBot(fighter)
+	if bot then
+		stats.Ping = bot.Ping
+	end
 
 	if self.Dependencies.NetService:IsRunning() then
-		self.Libs.Net.Stats.Rows:add(player.UserId, {
+		self.Libs.Net.Stats.Rows:add(fighter.UserId, {
 			Kills = 0,
 			Deaths = 0,
 			Assists = 0,
 			Headshots = 0,
 			Score = 0,
-			Ping = 0,
-			Team = self:TeamOf(player),
+			Ping = stats.Ping,
+			Team = team,
 		})
 	end
 end
 
-local function advanceRun(killer: Player): Run
+local function advanceRun(killer: Fighter): Run
 	const now = os.clock()
 	const existing = runs[killer]
 	const run: Run = existing or { Streak = 0, Multi = 0, LastKill = -math.huge }
@@ -152,35 +175,36 @@ local function advanceRun(killer: Player): Run
 	return run
 end
 
-function MatchStatsService:Medal(killer: Player, isHeadshot: boolean)
+function MatchStatsService:Medal(killer: Fighter, isHeadshot: boolean)
 	const run = advanceRun(killer)
 
+	const player = BotTypes.AsPlayer(killer)
 	const netService = self.Dependencies.NetService
-	if not netService:IsRunning() or not netService:IsReady(killer) then
+	if not player or not netService:IsRunning() or not netService:IsReady(player) then
 		return
 	end
 
-	self.Libs.Net.KillFeed.Medal:fireClient(killer, {
+	self.Libs.Net.KillFeed.Medal:fireClient(player, {
 		Headshot = isHeadshot,
 		Multi = math.clamp(run.Multi, 1, MedalSettings.MaxMulti),
 		Streak = math.min(run.Streak, MedalSettings.MaxStreak),
 	})
 end
 
-function MatchStatsService:Remove(player: Player)
-	runs[player] = nil
-	self.Pending[player] = nil
+function MatchStatsService:Remove(fighter: Fighter)
+	runs[fighter] = nil
+	self.Pending[fighter] = nil
 	for _, attackers in self.Pending do
-		attackers[player] = nil
+		attackers[fighter] = nil
 	end
 
-	if self.Stats[player] == nil then
+	if self.Stats[fighter] == nil then
 		return
 	end
 
-	self.Stats[player] = nil
-	if self.Dependencies.NetService:IsRunning() and self.Libs.Net.Stats.Rows:get(player.UserId) then
-		self.Libs.Net.Stats.Rows:remove(player.UserId)
+	self.Stats[fighter] = nil
+	if self.Dependencies.NetService:IsRunning() and self.Libs.Net.Stats.Rows:get(fighter.UserId) then
+		self.Libs.Net.Stats.Rows:remove(fighter.UserId)
 	end
 	self:RecomputeTotals()
 end
@@ -189,14 +213,14 @@ function MatchStatsService:Reset()
 	table.clear(self.Pending)
 	table.clear(runs)
 
-	for player, stats in self.Stats do
+	for fighter, stats in self.Stats do
 		stats.Kills = 0
 		stats.Deaths = 0
 		stats.Assists = 0
 		stats.Headshots = 0
 		stats.Score = 0
 		stats.Damage = 0
-		self:PushRow(player)
+		self:PushRow(fighter)
 	end
 
 	self:RecomputeTotals()
@@ -207,14 +231,17 @@ function MatchStatsService:Activate()
 	for _, player in Players:GetPlayers() do
 		self:Add(player)
 	end
+	for _, bot in self.Dependencies.BotRegistryService:All() do
+		self:Add(bot)
+	end
 	self:RecomputeTotals()
 end
 
-function MatchStatsService:ClearPending(victim: Player)
+function MatchStatsService:ClearPending(victim: Fighter)
 	self.Pending[victim] = nil
 end
 
-function MatchStatsService:RecordDamage(attacker: Player, victim: Player, amount: number)
+function MatchStatsService:RecordDamage(attacker: Fighter, victim: Fighter, amount: number)
 	if not self.Active or attacker == victim or amount <= 0 then
 		return
 	end
@@ -235,7 +262,7 @@ function MatchStatsService:RecordDamage(attacker: Player, victim: Player, amount
 	self.Damaged:Fire(attacker, victim, amount)
 end
 
-function MatchStatsService:RecordKill(killer: Player, victim: Player, isHeadshot: boolean)
+function MatchStatsService:RecordKill(killer: Fighter, victim: Fighter, isHeadshot: boolean)
 	if not self.Active or killer == victim then
 		return
 	end
@@ -252,7 +279,7 @@ function MatchStatsService:RecordKill(killer: Player, victim: Player, isHeadshot
 	end
 	self:PushRow(killer)
 
-	const assisters: { Player } = {}
+	const assisters: { Fighter } = {}
 	const attackers = self.Pending[victim]
 	if attackers then
 		for attacker in attackers do
@@ -272,7 +299,7 @@ function MatchStatsService:RecordKill(killer: Player, victim: Player, isHeadshot
 	self.Killed:Fire(killer, victim, isHeadshot, assisters)
 end
 
-function MatchStatsService:RecordDeath(victim: Player)
+function MatchStatsService:RecordDeath(victim: Fighter)
 	if not self.Active then
 		return
 	end
@@ -289,11 +316,14 @@ function MatchStatsService:RecordDeath(victim: Player)
 end
 
 function MatchStatsService:UpdatePing()
-	for player, stats in self.Stats do
-		const ping = math.clamp(math.round(player:GetNetworkPing() * 1000), 0, MAX_PING)
+	for fighter, stats in self.Stats do
+		const player = BotTypes.AsPlayer(fighter)
+		const ping = if player
+			then math.clamp(math.round(player:GetNetworkPing() * 1000), 0, MAX_PING)
+			else math.clamp(stats.Ping + math.random(-6, 6), BotSettings.PingMin, BotSettings.PingMax)
 		if ping ~= stats.Ping then
 			stats.Ping = ping
-			self:PushRow(player)
+			self:PushRow(fighter)
 		end
 	end
 end
@@ -324,8 +354,22 @@ MatchStatsService:OnInit(function(self)
 		self:ClearPending(player)
 	end)
 
-	self.Dependencies.TeamService.Changed:Connect(function(player)
-		self:PushRow(player)
+	const botRegistry = self.Dependencies.BotRegistryService
+
+	botRegistry.Added:Connect(function(bot)
+		self:Add(bot)
+	end)
+
+	botRegistry.Removing:Connect(function(bot)
+		self:Remove(bot)
+	end)
+
+	botRegistry.Died:Connect(function(bot)
+		self:RecordDeath(bot)
+	end)
+
+	self.Dependencies.TeamService.Changed:Connect(function(fighter)
+		self:PushRow(fighter)
 		self:RecomputeTotals()
 	end)
 end)

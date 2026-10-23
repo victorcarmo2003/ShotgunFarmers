@@ -8,6 +8,9 @@ return Lync.define("Profile", {
 
 		Gamepasses = Lync.map(Lync.str(1, 10), Lync.bool(), 0, 64),
 
+		OwnedSkins = Lync.map(Lync.str(1, 32), Lync.bool(), 0, 128),
+		EquippedSkins = Lync.map(Lync.str(1, 32), Lync.str(1, 32), 0, 64),
+
 		Item = Lync.map(Lync.str(1, 32), Lync.int(0, 65535), 0, 256),
 		UnlockedItems = Lync.map(Lync.int(0, 65535), Lync.bool(), 0, 256),
 		UnlockedClasses = Lync.map(Lync.int(0, 65535), Lync.bool(), 0, 64),

@@ -6,7 +6,11 @@ local CareerSettings = require(ReplicatedStorage.shared.Career.CareerSettings)
 local GameModes = require(ReplicatedStorage.shared.Match.GameModes)
 local Progression = require(ReplicatedStorage.shared.Career.Progression)
 local WeaponSounds = require(ReplicatedStorage.shared.Weapon.WeaponSounds)
+local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
+local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
 local Modux = require(ServerScriptService.server.Modux)
+
+type Fighter = BotTypes.Fighter
 
 export type Delta = {
 	Xp: number?,
@@ -38,9 +42,10 @@ const CareerService = Modux.Service("CareerService", {
 
 function CareerService:Setup()
 	self.PendingDamage = {} :: { [Player]: number }
-	self.KillLog = {} :: { [Player]: { [Player]: { number } } }
+	self.KillLog = {} :: { [Player]: { [Fighter]: { number } } }
 	self.Disposers = {} :: { [Player]: () -> () }
 	self.Sessions = {} :: { [Player]: Session }
+	self.Resolved = self.Libs.Signal.new() :: SignalLib.Signal<Player, WeaponSounds.Outcome, number, number, boolean>
 end
 
 function CareerService:SessionOf(player: Player, level: number): Session
@@ -148,7 +153,7 @@ function CareerService:Award(player: Player, delta: Delta)
 	})
 end
 
-function CareerService:RegisterKill(killer: Player, victim: Player): boolean
+function CareerService:RegisterKill(killer: Player, victim: Fighter): boolean
 	const now = os.clock()
 	local victims = self.KillLog[killer]
 	if not victims then
@@ -176,12 +181,13 @@ function CareerService:RegisterKill(killer: Player, victim: Player): boolean
 	return true
 end
 
-function CareerService:OnKilled(killer: Player, victim: Player, isHeadshot: boolean, assisters: { Player })
+function CareerService:OnKilled(killerFighter: Fighter, victim: Fighter, isHeadshot: boolean, assisters: { Fighter })
+	const killer = BotTypes.AsPlayer(killerFighter)
 	if not self:Counts() then
 		return
 	end
 
-	const rewarded = self:RegisterKill(killer, victim)
+	const rewarded = if killer then self:RegisterKill(killer, victim) else true
 	local killerXp = 0
 	local killerGems = 0
 	if rewarded then
@@ -189,9 +195,15 @@ function CareerService:OnKilled(killer: Player, victim: Player, isHeadshot: bool
 		killerGems = CareerSettings.KILL_GEMS + (if isHeadshot then CareerSettings.HEADSHOT_GEMS else 0)
 	end
 
-	self:Award(killer, { Kills = 1, Headshots = if isHeadshot then 1 else 0, Xp = killerXp, Gems = killerGems })
+	if killer then
+		self:Award(killer, { Kills = 1, Headshots = if isHeadshot then 1 else 0, Xp = killerXp, Gems = killerGems })
+	end
 
-	for _, assister in assisters do
+	for _, assisterFighter in assisters do
+		const assister = BotTypes.AsPlayer(assisterFighter)
+		if not assister then
+			continue
+		end
 		self:Award(assister, {
 			Assists = 1,
 			Xp = if rewarded then CareerSettings.ASSIST_XP else 0,
@@ -200,14 +212,16 @@ function CareerService:OnKilled(killer: Player, victim: Player, isHeadshot: bool
 	end
 end
 
-function CareerService:OnDied(victim: Player)
-	if self:Counts() then
+function CareerService:OnDied(fighter: Fighter)
+	const victim = BotTypes.AsPlayer(fighter)
+	if victim and self:Counts() then
 		self:Award(victim, { Deaths = 1 })
 	end
 end
 
-function CareerService:OnDamaged(attacker: Player, _victim: Player, amount: number)
-	if self:Counts() then
+function CareerService:OnDamaged(fighter: Fighter, _victim: Fighter, amount: number)
+	const attacker = BotTypes.AsPlayer(fighter)
+	if attacker and self:Counts() then
 		self.PendingDamage[attacker] = (self.PendingDamage[attacker] or 0) + amount
 	end
 end
@@ -237,8 +251,9 @@ function CareerService:Winners(): { [Player]: boolean }
 		end
 
 		const winning = if red > blue then "Red" else "Blue"
-		for player in stats.Stats do
-			if self.Dependencies.TeamService:GetTeam(player) == winning then
+		for fighter in stats.Stats do
+			const player = BotTypes.AsPlayer(fighter)
+			if player and self.Dependencies.TeamService:GetTeam(player) == winning then
 				winners[player] = true
 			end
 		end
@@ -260,8 +275,9 @@ function CareerService:Winners(): { [Player]: boolean }
 	end)
 	const threshold = scores[math.min(CareerSettings.WINNERS_IN_FFA, #scores)]
 
-	for player, playerStats in stats.Stats do
-		if playerStats.Score >= threshold then
+	for fighter, playerStats in stats.Stats do
+		const player = BotTypes.AsPlayer(fighter)
+		if player and playerStats.Score >= threshold then
 			winners[player] = true
 		end
 	end
@@ -293,21 +309,23 @@ function CareerService:OnMatchEnded()
 	const placements = self:Placements()
 	for _, player in Players:GetPlayers() do
 		const outcome: WeaponSounds.Outcome = if draw then "Draw" elseif winners[player] then "Victory" else "Defeat"
-		self:SendSummary(player, outcome, placements, counted)
+		const sent = self:SendSummary(player, outcome, placements, counted)
+		self.Resolved:Fire(player, outcome, placements[player] or 0, self:CountPlaced(placements), sent)
 	end
 	table.clear(self.Sessions)
 end
 
-function CareerService:Placements(): { [Player]: number }
-	const ordered: { Player } = {}
+function CareerService:Placements(): { [Fighter]: number }
+	const ordered: { Fighter } = {}
 	const stats = self.Dependencies.MatchStatsService.Stats
-	for player in stats do
-		if player:IsDescendantOf(Players) then
-			table.insert(ordered, player)
+	for fighter in stats do
+		const player = BotTypes.AsPlayer(fighter)
+		if not player or player:IsDescendantOf(Players) then
+			table.insert(ordered, fighter)
 		end
 	end
 
-	table.sort(ordered, function(first: Player, second: Player): boolean
+	table.sort(ordered, function(first: Fighter, second: Fighter): boolean
 		const a = stats[first]
 		const b = stats[second]
 		if a.Score ~= b.Score then
@@ -316,32 +334,37 @@ function CareerService:Placements(): { [Player]: number }
 		return a.Kills > b.Kills
 	end)
 
-	const placements: { [Player]: number } = {}
-	for index, player in ordered do
-		placements[player] = index
+	const placements: { [Fighter]: number } = {}
+	for index, fighter in ordered do
+		placements[fighter] = index
 	end
 	return placements
+end
+
+function CareerService:CountPlaced(placements: { [Fighter]: number }): number
+	local total = 0
+	for _ in placements do
+		total += 1
+	end
+	return total
 end
 
 function CareerService:SendSummary(
 	player: Player,
 	outcome: WeaponSounds.Outcome,
-	placements: { [Player]: number },
+	placements: { [Fighter]: number },
 	counted: boolean
-)
+): boolean
 	const netService = self.Dependencies.NetService
 	const profile = self.Dependencies.ProfileService:Get(player)
 	if not profile or not netService:IsRunning() or not netService:IsReady(player) then
-		return
+		return false
 	end
 
 	const level = profile.Level()
 	const session = self:SessionOf(player, level)
 	const playerStats = self.Dependencies.MatchStatsService.Stats[player]
-	local total = 0
-	for _ in placements do
-		total += 1
-	end
+	const total = self:CountPlaced(placements)
 
 	self.Libs.Net.Career.Summary:fireClient(player, {
 		Outcome = outcome,
@@ -359,6 +382,7 @@ function CareerService:SendSummary(
 		XpMax = Progression.XpForLevel(level),
 		Counted = counted,
 	})
+	return true
 end
 
 function CareerService:Forget(player: Player)

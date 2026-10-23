@@ -12,6 +12,7 @@ export type Public = {
 	FarFromOthers: (self: Public, point: Vector3) -> boolean,
 	SpawnOne: (self: Public) -> boolean,
 	IsActive: (self: Public) -> boolean,
+	RandomPoint: (self: Public, avoid: { BasePart }, separation: number) -> Vector3?,
 	SpawnExtra: (self: Public) -> BasePart?,
 	CropDrop: (self: Public, duration: number, interval: number, maxSeeds: number) -> boolean,
 	Fill: (self: Public, limit: number) -> (),

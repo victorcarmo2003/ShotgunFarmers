@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local SkinCatalog = require(ReplicatedStorage.shared.Shop.SkinCatalog)
 local GunRules = require(ServerScriptService.server.Weapon.GunRules)
 local Modux = require(ServerScriptService.server.Modux)
 
@@ -26,7 +27,7 @@ const SLOT_BY_POSE_KIND: { [GetGun.PoseKind]: SlotIndex } = {
 	Melee = 3,
 }
 
-const Equipment = Modux.Component("Equipment", { Tag = "Equipment", Require = { "NetService", "MapVoteService" } })
+const Equipment = Modux.Component("Equipment", { Tag = "Equipment", Require = { "NetService", "MapVoteService", "PlantLoopService" } })
 
 local function createWeaponInstance(gunName: string): Model
 	const model = Instance.new("Model")
@@ -73,7 +74,7 @@ local function warnOnce(key: string, message: string)
 	warn(`[Equipment] {message}`)
 end
 
-local function attachWeaponVisual(character: Model, gunData: GetGun.GunData): Model?
+local function attachWeaponVisual(character: Model, gunData: GetGun.GunData, owner: Player): Model?
 	const assets = ReplicatedStorage:FindFirstChild("Assets")
 	const weapons = assets and assets:FindFirstChild("Weapons")
 	const asset = weapons and weapons:FindFirstChild(gunData.DisplayName)
@@ -88,6 +89,10 @@ local function attachWeaponVisual(character: Model, gunData: GetGun.GunData): Mo
 	end
 
 	const visual = asset:Clone() :: Model
+	const skin = SkinCatalog.ForPlayer(owner, gunData.DisplayName)
+	if skin then
+		SkinCatalog.Apply(visual, skin, "1k")
+	end
 	for _, descendant in visual:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			descendant.CanCollide = false
@@ -325,7 +330,7 @@ end
 
 function Equipment:MountVisual(character: Model, gunName: GetGun.GunNames, gunData: GetGun.GunData)
 	task.spawn(function()
-		const visual = attachWeaponVisual(character, gunData)
+		const visual = attachWeaponVisual(character, gunData, self.Owner)
 		if not self.Destroyed and self.Owner.Character == character and self.Equipped == gunName then
 			self.Visual = visual
 		elseif visual then
@@ -451,7 +456,9 @@ function Equipment:Respawn()
 	self:ResetAmmo()
 
 	const starting = self.Dependencies.MapVoteService:TakeStart(self.Owner)
-	if starting and self:SetSlot(starting, true) then
+	const dealt = starting ~= nil and self:SetSlot(starting, true)
+	self.Dependencies.PlantLoopService:Respawned(self.Owner, if dealt then starting else nil)
+	if dealt then
 		return
 	end
 

@@ -5,16 +5,19 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local GameModes = require(ReplicatedStorage.shared.Match.GameModes)
 local MatchSettings = require(ReplicatedStorage.shared.Match.MatchSettings)
 local SignalLib = require(ReplicatedStorage.shared.Libs.Signal)
+local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
 local Modux = require(ServerScriptService.server.Modux)
 
+type Fighter = BotTypes.Fighter
+
 const TeamService = Modux.Service("TeamService", {
-	Require = { "PlayerService", "ServerRoleService" },
+	Require = { "BotRegistryService", "PlayerService", "ServerRoleService" },
 	Priority = 785,
 })
 
 function TeamService:Setup()
-	self.Teams = {} :: { [Player]: string }
-	self.Changed = self.Libs.Signal.new() :: SignalLib.Signal<Player, string?>
+	self.Teams = {} :: { [Fighter]: string }
+	self.Changed = self.Libs.Signal.new() :: SignalLib.Signal<Fighter, string?>
 end
 
 function TeamService:IsTeamMode(): boolean
@@ -65,33 +68,43 @@ function TeamService:PickTeam(): string
 	return best
 end
 
-function TeamService:Assign(player: Player)
-	if self.Teams[player] ~= nil or not player:IsDescendantOf(Players) or not self:IsTeamMode() then
+function TeamService:Assign(fighter: Fighter)
+	if self.Teams[fighter] ~= nil or not self:IsTeamMode() then
+		return
+	end
+
+	const player = BotTypes.AsPlayer(fighter)
+	if player and not player:IsDescendantOf(Players) then
 		return
 	end
 
 	const teamName = self:PickTeam()
-	self.Teams[player] = teamName
-	player:SetAttribute("Team", teamName)
-	self.Changed:Fire(player, teamName)
+	self.Teams[fighter] = teamName
+	if player then
+		player:SetAttribute("Team", teamName)
+	end
+	self.Changed:Fire(fighter, teamName)
 end
 
-function TeamService:Release(player: Player)
-	if self.Teams[player] == nil then
+function TeamService:Release(fighter: Fighter)
+	if self.Teams[fighter] == nil then
 		return
 	end
 
-	self.Teams[player] = nil
-	player:SetAttribute("Team", nil)
-	self.Changed:Fire(player, nil)
+	self.Teams[fighter] = nil
+	const player = BotTypes.AsPlayer(fighter)
+	if player then
+		player:SetAttribute("Team", nil)
+	end
+	self.Changed:Fire(fighter, nil)
 end
 
-function TeamService:GetTeam(player: Player): string?
-	self:Assign(player)
-	return self.Teams[player]
+function TeamService:GetTeam(fighter: Fighter): string?
+	self:Assign(fighter)
+	return self.Teams[fighter]
 end
 
-function TeamService:SameTeam(first: Player, second: Player): boolean
+function TeamService:SameTeam(first: Fighter, second: Fighter): boolean
 	const firstTeam = self:GetTeam(first)
 	return firstTeam ~= nil and firstTeam == self:GetTeam(second)
 end
@@ -105,6 +118,10 @@ TeamService:OnInit(function(self)
 
 	self.Dependencies.PlayerService.PlayerRemoving:Connect(function(player)
 		self:Release(player)
+	end)
+
+	self.Dependencies.BotRegistryService.Removing:Connect(function(bot)
+		self:Release(bot)
 	end)
 end)
 

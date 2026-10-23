@@ -5,12 +5,14 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local StarterPlayer = game:GetService("StarterPlayer")
 local Modux = require(StarterPlayer.StarterPlayerScripts.client.Modux)
+local Ballistics = require(ReplicatedStorage.shared.Weapon.Ballistics)
 
 export type Bullet = {
 	Part: BasePart,
 	Template: string,
 	StartPos: Vector3,
 	EndPos: Vector3,
+	Control: Vector3?,
 	StartTime: number,
 	Speed: number,
 	Linger: number,
@@ -19,11 +21,21 @@ export type Bullet = {
 
 export type TracerPool = { Free: { BasePart }, Count: number, Linger: number }
 
+export type Streak = { Beam: Beam, Start: Attachment, Finish: Attachment, CreatedAt: number }
+
 const BULLET_SPEED = 1200
 const BULLET_LINGER_TIME = 3
 const DEFAULT_TRACER = "bullet_trail"
 const MAX_TRACERS_PER_TEMPLATE = 48
 const BEAM_LINGER = 0.03
+
+const CURVE_SEGMENTS = 24
+const CURVE_MIN_BEND = 0.05
+
+const STREAK_LIFETIME = 0.8
+const STREAK_WIDTH = 0.12
+const STREAK_COLOR = Color3.fromRGB(255, 245, 210)
+const STREAK_TRANSPARENCY = 0.15
 
 const FLAME_PUFFS = 2
 const FLAME_LIFETIME = 0.3
@@ -36,6 +48,7 @@ const ProjectileController = Modux.Controller("ProjectileController", { Priority
 function ProjectileController:Setup()
 	self.AllBullets = {} :: { Bullet }
 	self.Pools = {} :: { [string]: TracerPool }
+	self.Streaks = {} :: { Streak }
 end
 
 local function bulletFolder(): Folder
@@ -134,7 +147,18 @@ function ProjectileController:Release(bullet: Bullet)
 	end
 end
 
-function ProjectileController:Shoot(startPos: Vector3, endPos: Vector3, tracer: string?, speed: number?)
+local function curveControl(startPos: Vector3, endPos: Vector3, control: Vector3?): Vector3?
+	if not control then
+		return nil
+	end
+	const midpoint = (startPos + endPos) / 2
+	const chord = endPos - startPos
+	const offset = control - midpoint
+	const along = if chord.Magnitude > 1e-4 then chord.Unit * offset:Dot(chord.Unit) else Vector3.zero
+	return if (offset - along).Magnitude > CURVE_MIN_BEND then control else nil
+end
+
+function ProjectileController:Shoot(startPos: Vector3, endPos: Vector3, tracer: string?, speed: number?, control: Vector3?)
 	local name = tracer or DEFAULT_TRACER
 	local part, linger = self:Acquire(name)
 	if not part and name ~= DEFAULT_TRACER then
@@ -155,10 +179,74 @@ function ProjectileController:Shoot(startPos: Vector3, endPos: Vector3, tracer: 
 		Template = name,
 		StartPos = startPos,
 		EndPos = endPos,
+		Control = curveControl(startPos, endPos, control),
 		StartTime = os.clock(),
 		Speed = speed or BULLET_SPEED,
 		Linger = linger,
 	})
+end
+
+local function axisFrame(position: Vector3, axis: Vector3): CFrame
+	const unit = if axis.Magnitude > 1e-4 then axis.Unit else Vector3.xAxis
+	const helper = if math.abs(unit.Y) > 0.99 then Vector3.xAxis else Vector3.yAxis
+	const up = helper:Cross(unit).Unit:Cross(unit)
+	return CFrame.fromMatrix(position, unit, up)
+end
+
+function ProjectileController:Streak(startPos: Vector3, endPos: Vector3, control: Vector3?)
+	const bend = curveControl(startPos, endPos, control)
+
+	const start = Instance.new("Attachment")
+	start.Parent = workspace.Terrain
+
+	const finish = Instance.new("Attachment")
+	finish.Parent = workspace.Terrain
+
+	if bend then
+		start.WorldCFrame = axisFrame(startPos, bend - startPos)
+		finish.WorldCFrame = axisFrame(endPos, endPos - bend)
+	else
+		start.WorldPosition = startPos
+		finish.WorldPosition = endPos
+	end
+
+	const beam = Instance.new("Beam")
+	beam.Attachment0 = start
+	beam.Attachment1 = finish
+	beam.Color = ColorSequence.new(STREAK_COLOR)
+	beam.LightEmission = 1
+	beam.LightInfluence = 0
+	beam.FaceCamera = true
+	beam.Segments = if bend then CURVE_SEGMENTS else 1
+	if bend then
+		beam.CurveSize0 = (bend - startPos).Magnitude * 2 / 3
+		beam.CurveSize1 = (endPos - bend).Magnitude * 2 / 3
+	end
+	beam.Width0 = STREAK_WIDTH
+	beam.Width1 = STREAK_WIDTH
+	beam.Transparency = NumberSequence.new(STREAK_TRANSPARENCY)
+	beam.Parent = start
+
+	table.insert(self.Streaks, { Beam = beam, Start = start, Finish = finish, CreatedAt = os.clock() })
+end
+
+function ProjectileController:StepStreaks(now: number)
+	for index = #self.Streaks, 1, -1 do
+		const streak = self.Streaks[index]
+		const alpha = (now - streak.CreatedAt) / STREAK_LIFETIME
+		if alpha >= 1 then
+			streak.Start:Destroy()
+			streak.Finish:Destroy()
+			table.remove(self.Streaks, index)
+			continue
+		end
+
+		const fade = STREAK_TRANSPARENCY + (1 - STREAK_TRANSPARENCY) * alpha * alpha
+		streak.Beam.Transparency = NumberSequence.new(fade)
+		const width = STREAK_WIDTH * (1 - alpha * 0.5)
+		streak.Beam.Width0 = width
+		streak.Beam.Width1 = width
+	end
 end
 
 function ProjectileController:Flame(origin: Vector3, direction: Vector3, range: number, spread: number)
@@ -197,6 +285,7 @@ end
 
 function ProjectileController:Step()
 	const now = os.clock()
+	self:StepStreaks(now)
 
 	for index = #self.AllBullets, 1, -1 do
 		const bullet = self.AllBullets[index]
@@ -205,7 +294,10 @@ function ProjectileController:Step()
 		const alpha = if duration > 0 then math.clamp((now - bullet.StartTime) / duration, 0, 1) else 1
 
 		if alpha < 1 then
-			bullet.Part.Position = bullet.StartPos:Lerp(bullet.EndPos, alpha)
+			const control = bullet.Control
+			bullet.Part.Position = if control
+				then Ballistics.Bezier(bullet.StartPos, control, bullet.EndPos, alpha)
+				else bullet.StartPos:Lerp(bullet.EndPos, alpha)
 			continue
 		end
 

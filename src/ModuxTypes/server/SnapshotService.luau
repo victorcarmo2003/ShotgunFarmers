@@ -18,6 +18,7 @@ export type Public = {
 	Recorded: { [Player]: number },
 	Setup: (self: Public) -> (),
 	RegisterSnapshot: (self: Public, player: Player, frame: SnapshotFrame) -> (),
+	RecordFrame: (self: Public, targetID: number, frame: SnapshotFrame) -> (),
 	GetHistory: (self: Public, targetID: number) -> { SnapshotFrame }?,
 	GetRewoundPosition: (self: Public, targetID: number, atTime: number) -> Vector3?,
 	ClearHistory: (self: Public, targetID: number) -> (),

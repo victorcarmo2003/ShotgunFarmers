@@ -20,7 +20,7 @@ return {
 		BulletSpeed = 700,
 		BulletDrop = 0.05,
 		SeedModel = "Shotgun",
-		SeedChance = 0.3,
+		SeedChance = 0.05,
 	},
 	["Sniperagus"] = {
 		ID = 102,
@@ -50,7 +50,7 @@ return {
 		Damage = 100,
 		Spread = 1,
 		Bullets = 1,
-		FireRate = 3,
+		FireRate = 2,
 		Knockback = 60,
 		ImageID = "rbxassetid://133876161200159",
 		AnimationSet = "Carrocket",
@@ -274,7 +274,7 @@ return {
 		FireRate = 0.6,
 		Knockback = 0,
 		ImageID = "rbxassetid://123458505840785",
-		AnimationSet = "Shovel",
+		AnimationSet = "Hoe",
 		PoseKind = "Melee",
 		HeadshotMultiplier = 1,
 		Range = 6,
@@ -313,7 +313,7 @@ return {
 		HeadshotMultiplier = 1,
 		Range = 0,
 		FireMode = "Throw",
-		SeedModel = "",
+		SeedModel = "Bananarang",
 		WeldTo = "Torso",
 	},
 	["Lemonade"] = {
@@ -331,7 +331,7 @@ return {
 		HeadshotMultiplier = 1,
 		Range = 0,
 		FireMode = "Throw",
-		SeedModel = "",
+		SeedModel = "Lemonade",
 		WeldTo = "Torso",
 	},
 	["Moolotov"] = {
@@ -349,7 +349,7 @@ return {
 		HeadshotMultiplier = 1,
 		Range = 0,
 		FireMode = "Throw",
-		SeedModel = "",
+		SeedModel = "Moolotov",
 		WeldTo = "Torso",
 	},
 	["Onionnade"] = {
@@ -367,7 +367,7 @@ return {
 		HeadshotMultiplier = 1,
 		Range = 0,
 		FireMode = "Throw",
-		SeedModel = "",
+		SeedModel = "Onionnade",
 		WeldTo = "Torso",
 	},
 	["Pinapple"] = {
@@ -385,7 +385,7 @@ return {
 		HeadshotMultiplier = 1,
 		Range = 0,
 		FireMode = "Throw",
-		SeedModel = "",
+		SeedModel = "Pinapple",
 		WeldTo = "Torso",
 	},
 }

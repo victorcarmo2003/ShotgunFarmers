@@ -1,10 +1,12 @@
 --!strict
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
 
 export type Pellet = { TargetID: number, HitPart: number }
-export type Hit = { Player: Player, HitPart: number, Distance: number }
+export type Hit = { Target: BotTypes.Fighter, HitPart: number, Distance: number }
 
 export type Public = {
 	Instance: Instance,

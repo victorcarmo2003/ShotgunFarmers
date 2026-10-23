@@ -2,13 +2,25 @@
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local AdminService = require(ServerScriptService.server.ModuxTypes.AdminService)
+local FunnelService = require(ServerScriptService.server.ModuxTypes.FunnelService)
+local PartyFunnelService = require(ServerScriptService.server.ModuxTypes.PartyFunnelService)
+local PlantLoopService = require(ServerScriptService.server.ModuxTypes.PlantLoopService)
+local ReviveFunnelService = require(ServerScriptService.server.ModuxTypes.ReviveFunnelService)
+local RoomFunnelService = require(ServerScriptService.server.ModuxTypes.RoomFunnelService)
+local RoundsFunnelService = require(ServerScriptService.server.ModuxTypes.RoundsFunnelService)
+local ShopFunnelService = require(ServerScriptService.server.ModuxTypes.ShopFunnelService)
+local SkinFunnelService = require(ServerScriptService.server.ModuxTypes.SkinFunnelService)
+local BotRegistryService = require(ServerScriptService.server.ModuxTypes.BotRegistryService)
+local BotService = require(ServerScriptService.server.ModuxTypes.BotService)
 local CareerService = require(ServerScriptService.server.ModuxTypes.CareerService)
 local CharacterService = require(ServerScriptService.server.ModuxTypes.CharacterService)
 local Movement = require(ServerScriptService.server.ModuxTypes.Movement)
 local MovementService = require(ServerScriptService.server.ModuxTypes.MovementService)
 local SpawnService = require(ServerScriptService.server.ModuxTypes.SpawnService)
 local DayNightService = require(ServerScriptService.server.ModuxTypes.DayNightService)
+local GoldenAppleService = require(ServerScriptService.server.ModuxTypes.GoldenAppleService)
 local HitService = require(ServerScriptService.server.ModuxTypes.HitService)
+local LavaService = require(ServerScriptService.server.ModuxTypes.LavaService)
 local OnlineService = require(ServerScriptService.server.ModuxTypes.OnlineService)
 local EnvironmentService = require(ServerScriptService.server.ModuxTypes.EnvironmentService)
 local GameStateService = require(ServerScriptService.server.ModuxTypes.GameStateService)
@@ -31,6 +43,7 @@ local ProfileService = require(ServerScriptService.server.ModuxTypes.ProfileServ
 local MapVoteService = require(ServerScriptService.server.ModuxTypes.MapVoteService)
 local RoundFreezeService = require(ServerScriptService.server.ModuxTypes.RoundFreezeService)
 local RoundService = require(ServerScriptService.server.ModuxTypes.RoundService)
+local RestockService = require(ServerScriptService.server.ModuxTypes.RestockService)
 local Seed = require(ServerScriptService.server.ModuxTypes.Seed)
 local ShopService = require(ServerScriptService.server.ModuxTypes.ShopService)
 local SnapshotService = require(ServerScriptService.server.ModuxTypes.SnapshotService)
@@ -48,12 +61,24 @@ local ZoneService = require(ServerScriptService.server.ModuxTypes.ZoneService)
 
 export type AllServices = {
 	AdminService: AdminService.Public,
+	FunnelService: FunnelService.Public,
+	PartyFunnelService: PartyFunnelService.Public,
+	PlantLoopService: PlantLoopService.Public,
+	ReviveFunnelService: ReviveFunnelService.Public,
+	RoomFunnelService: RoomFunnelService.Public,
+	RoundsFunnelService: RoundsFunnelService.Public,
+	ShopFunnelService: ShopFunnelService.Public,
+	SkinFunnelService: SkinFunnelService.Public,
+	BotRegistryService: BotRegistryService.Public,
+	BotService: BotService.Public,
 	CareerService: CareerService.Public,
 	CharacterService: CharacterService.Public,
 	MovementService: MovementService.Public,
 	SpawnService: SpawnService.Public,
 	DayNightService: DayNightService.Public,
+	GoldenAppleService: GoldenAppleService.Public,
 	HitService: HitService.Public,
+	LavaService: LavaService.Public,
 	OnlineService: OnlineService.Public,
 	EnvironmentService: EnvironmentService.Public,
 	GameStateService: GameStateService.Public,
@@ -76,6 +101,7 @@ export type AllServices = {
 	MapVoteService: MapVoteService.Public,
 	RoundFreezeService: RoundFreezeService.Public,
 	RoundService: RoundService.Public,
+	RestockService: RestockService.Public,
 	ShopService: ShopService.Public,
 	SnapshotService: SnapshotService.Public,
 	MatchStatsService: MatchStatsService.Public,

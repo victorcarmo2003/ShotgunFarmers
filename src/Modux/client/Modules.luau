@@ -4,7 +4,10 @@ local StarterPlayer = game:GetService("StarterPlayer")
 
 return {
 	StarterPlayer.StarterPlayerScripts.client.Admin.AdminController,
+	StarterPlayer.StarterPlayerScripts.client.Analytics.FunnelController,
 	StarterPlayer.StarterPlayerScripts.client.Audio.MusicController,
+	StarterPlayer.StarterPlayerScripts.client.Bot.BotController,
+	StarterPlayer.StarterPlayerScripts.client.Bot.TeamOutlineController,
 	StarterPlayer.StarterPlayerScripts.client.Camera.CameraController,
 	StarterPlayer.StarterPlayerScripts.client.Camera.ColorCorrectionController,
 	StarterPlayer.StarterPlayerScripts.client.Camera.DeathCameraController,
@@ -33,6 +36,7 @@ return {
 	StarterPlayer.StarterPlayerScripts.client.Profile.ProfileController,
 	StarterPlayer.StarterPlayerScripts.client.Round.RoundController,
 	StarterPlayer.StarterPlayerScripts.client.Round.VoteController,
+	StarterPlayer.StarterPlayerScripts.client.Seed.RestockController,
 	StarterPlayer.StarterPlayerScripts.client.Seed.SeedController,
 	StarterPlayer.StarterPlayerScripts.client.Shop.ShopController,
 	StarterPlayer.StarterPlayerScripts.client.Snapshot.SnapshotController,
