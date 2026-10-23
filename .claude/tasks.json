@@ -1308,7 +1308,7 @@
     {
       "id": "task-ui-020",
       "title": "Corrigir nomes errados no jogo",
-      "description": "Pedido do Dots: \"os nomes estão errados\" (dito duas vezes). Já trocado em 2026-10-22: título do loading e nome do projeto Rojo para PLANT AND SHOOT; nenhum \"Shotgun Farmers\" restante em src/. PENDENTE: confirmar com o Dots quais nomes (jogo no place/Creator Dashboard, armas em GunsData, mapas em Maps.luau, modos em GameModes.luau) e aplicar.",
+      "description": "Pedido do Dots: \"os nomes estão errados\" (dito duas vezes). Já trocado em 2026-10-22: título do loading e nome do projeto Rojo para PLANT AND SHOOT; nenhum \"Shotgun Farmers\" restante em src/. PENDENTE: confirmar com o Dots quais nomes (jogo no place/Creator Dashboard, armas em GunsData, mapas em Maps.luau, modos em GameModes.luau) e aplicar. 2026-10-23: mapa de lava (chave WildWest) passou a exibir \"Magma Foundry\" (Maps.luau DisplayName + story do VoteMenu); a chave interna WildWest ficou porque é o nome do modelo em ServerStorage.Maps, do preset de lighting e das configs de partida.",
       "column": "todo",
       "tags": [
         "ui",

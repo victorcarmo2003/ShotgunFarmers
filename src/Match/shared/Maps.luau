@@ -30,7 +30,7 @@ const Maps: { [string]: Map } = {
 		Boundary = { "CERCAS", "CERCA", "MUROPEDRA" },
 	},
 	WildWest = {
-		DisplayName = "Wild West",
+		DisplayName = "Magma Foundry",
 		Image = "rbxassetid://87983370462029",
 		Modes = { "FFA", "TDM", "Chicken" },
 		Lighting = "WildWest",

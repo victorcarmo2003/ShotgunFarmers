@@ -22,7 +22,7 @@ return UILabs.CreateVideStory({
 		Options = function()
 			return {
 				{ Name = "HappyFarm", DisplayName = "Happy Farm", Image = "rbxassetid://88677777226273", Votes = props.controls.HappyFarm() },
-				{ Name = "WildWest", DisplayName = "Wild West", Image = "rbxassetid://87983370462029", Votes = props.controls.WildWest() },
+				{ Name = "WildWest", DisplayName = "Magma Foundry", Image = "rbxassetid://87983370462029", Votes = props.controls.WildWest() },
 			}
 		end,
 		MyVote = function()
