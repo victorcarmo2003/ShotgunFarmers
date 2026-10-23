@@ -1,6 +1,7 @@
 --!strict
 
 export type Public = {
+	CommandRound: (self: Public, action: string) -> (),
 	CommandGive: (self: Public, kind: string, target: Player, value: any) -> (),
 	CommandKill: (self: Public, target: Player, reason: string?) -> (),
 	CommandTakeDamage: (self: Public, target: Player, amount: number) -> (),

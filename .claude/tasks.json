@@ -1547,6 +1547,20 @@
       "priority": "low",
       "createdAt": "2026-10-23",
       "updatedAt": "2026-10-23"
+    },
+    {
+      "id": "task-admin-001",
+      "title": "Comando de admin para pular fases da rodada",
+      "description": "Para testar votação de mapa, fim de partida, resumo e funis sem esperar os 180s da partida. Comando Conch `round skip` (próxima fase), `round end` (vai para Intermission, encerra a partida) e `round vote` (vai até Vote). RoundService:Skip(target?) avança pelas fases com Advance, então MatchEnded, resumo e abertura da votação disparam normalmente e fases puladas pelas regras (ex.: Vote no Practice) continuam puladas. Só funciona com a rodada ativa (servidor Match). Testar no Studio: ForceRole = Match, ForceMode = FFA, F2 abre o console, `round vote`.",
+      "column": "awaiting-approval",
+      "tags": [
+        "admin",
+        "round",
+        "server"
+      ],
+      "priority": "medium",
+      "createdAt": "2026-10-23",
+      "updatedAt": "2026-10-23"
     }
   ]
 }

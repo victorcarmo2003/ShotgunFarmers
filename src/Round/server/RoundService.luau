@@ -70,6 +70,25 @@ function RoundService:Advance()
 	self:Enter(ORDER[index])
 end
 
+function RoundService:Skip(target: Status?): boolean
+	if not self.Active then
+		return false
+	end
+
+	if not target then
+		self:Advance()
+		return true
+	end
+
+	for _ = 1, #ORDER do
+		if self.Status() == target then
+			return true
+		end
+		self:Advance()
+	end
+	return self.Status() == target
+end
+
 function RoundService:Publish(to: Lync.Recipient)
 	if not self.Dependencies.NetService:IsRunning() then
 		return

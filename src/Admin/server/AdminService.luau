@@ -20,9 +20,19 @@ const spawnParams = RaycastParams.new()
 spawnParams.FilterType = Enum.RaycastFilterType.Exclude
 
 const AdminService = Modux.Service("AdminService", {
-	Require = { "GoldenAppleService", "IDService", "PlayerService", "ProfileService", "SnapshotService" },
+	Require = { "GoldenAppleService", "IDService", "PlayerService", "ProfileService", "RoundService", "SnapshotService" },
 	Priority = 640,
 })
+
+function AdminService:CommandRound(action: string)
+	const round = self.Dependencies.RoundService
+	const target = if action == "end" then "Intermission" elseif action == "vote" then "Vote" else nil
+	if not round:Skip(target) then
+		conch.log("error", if target then `nao foi possivel ir para {target} (rodada inativa ou fase pulada)` else "rodada inativa neste servidor")
+		return
+	end
+	conch.log("success", `fase atual: {round.Status()}`)
+end
 
 function AdminService:CommandGive(kind: string, target: Player, value: any)
 	const equipment = self.Components.Equipment:Get(target)
@@ -300,6 +310,21 @@ function AdminService:Register()
 		end,
 		callback = function(_data: string, target: Player, rejoin: boolean?)
 			self:CommandWipe(target, rejoin)
+		end,
+	})
+
+	conch.register("round", {
+		permissions = { "admin" },
+		description = "Pula a fase da rodada (skip), termina a partida (end) ou vai para a votacao (vote)",
+		arguments = function()
+			return conch.args.overload({
+				{ conch.args.literal("skip") } :: { any },
+				{ conch.args.literal("end") } :: { any },
+				{ conch.args.literal("vote") } :: { any },
+			})
+		end,
+		callback = function(action: string)
+			self:CommandRound(action)
 		end,
 	})
 

@@ -19,6 +19,7 @@ export type Public = {
 	ShouldHold: (self: Public) -> boolean,
 	Enter: (self: Public, status: Status) -> (),
 	Advance: (self: Public) -> (),
+	Skip: (self: Public, target: Status?) -> boolean,
 	Publish: (self: Public, to: Lync.Recipient) -> (),
 }
 
