@@ -29,10 +29,10 @@ const MODES: { { Mode: Mode, Label: string, X: number } } = {
 }
 
 const MODE_IMAGES: { [Mode]: string } = {
-	QuickPlay = "rbxassetid://90339424446992",
-	FFA = "rbxassetid://83633686102846",
-	TDM = "rbxassetid://96105075737080",
-	Practice = "rbxassetid://70939426168058",
+	QuickPlay = "rbxassetid://104716099154838",
+	FFA = "rbxassetid://126747008957669",
+	TDM = "rbxassetid://111471542879575",
+	Practice = "rbxassetid://84069052356367",
 }
 
 const MODE_COLORS: { [Mode]: Color3 } = {
@@ -218,10 +218,10 @@ local function modeCard(props: Props, mode: Mode, text: string, x: number): Fram
 				create "ImageLabel" {
 					Name = "Cover",
 					Position = UDim2.fromScale(0, 0),
-					Size = inside(162, 243, 162, 185),
+					Size = UDim2.fromScale(1, 1),
 					BackgroundTransparency = 1,
 					Image = MODE_IMAGES[mode],
-					ScaleType = Enum.ScaleType.Stretch,
+					ScaleType = Enum.ScaleType.Crop,
 				},
 			},
 
