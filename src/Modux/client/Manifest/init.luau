@@ -15,6 +15,7 @@ local UnlockCameraController = require(StarterPlayer.StarterPlayerScripts.client
 local CareerController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.CareerController)
 local AnimateController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.AnimateController)
 local MovementController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.MovementController)
+local DamageNumberController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.DamageNumberController)
 local HitController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.HitController)
 local ProjectileController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.ProjectileController)
 local InputController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.InputController)
@@ -62,6 +63,7 @@ export type AllControllers = {
 	CareerController: CareerController.Public,
 	AnimateController: AnimateController.Public,
 	MovementController: MovementController.Public,
+	DamageNumberController: DamageNumberController.Public,
 	HitController: HitController.Public,
 	ProjectileController: ProjectileController.Public,
 	InputController: InputController.Public,

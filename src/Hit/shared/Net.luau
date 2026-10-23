@@ -28,6 +28,14 @@ return Lync.define("Hit", {
 		})
 	),
 
+	Dealt = Lync.packet(Lync.struct({
+		TargetID = Lync.int(0, 255),
+		Position = Lync.vec3(Lync.quant(-4096, 4096, 0.25)),
+		Amount = Lync.int(0, 4095),
+		Headshot = Lync.bool(),
+		Killed = Lync.bool(),
+	})),
+
 	Shot = Lync.packet(Lync.struct({
 		ShooterID = Lync.int(0, 255),
 		GunID = Lync.int(0, 255),

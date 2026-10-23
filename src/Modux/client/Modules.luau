@@ -17,6 +17,7 @@ return {
 	StarterPlayer.StarterPlayerScripts.client.Career.CareerController,
 	StarterPlayer.StarterPlayerScripts.client.Character.AnimateController,
 	StarterPlayer.StarterPlayerScripts.client.Character.MovementController,
+	StarterPlayer.StarterPlayerScripts.client.Hit.DamageNumberController,
 	StarterPlayer.StarterPlayerScripts.client.Hit.HitController,
 	StarterPlayer.StarterPlayerScripts.client.Hit.ProjectileController,
 	StarterPlayer.StarterPlayerScripts.client.Input.InputController,

@@ -145,14 +145,17 @@ function HitService:SpendFireToken(player: Player): boolean
 	return true
 end
 
-function HitService:DealDamage(shooter: Fighter, target: Fighter, damage: number): (boolean, boolean)
+function HitService:DealDamage(shooter: Fighter, target: Fighter, damage: number, isHeadshot: boolean?): (boolean, boolean)
+	const position = BotTypes.Position(target)
 	const bot = BotTypes.AsBot(target)
 	if bot then
 		if not bot.Alive then
 			return false, false
 		end
-		self.Dependencies.MatchStatsService:RecordDamage(shooter, bot, math.min(damage, bot.Health + bot.Armor))
+		const botDealt = math.min(damage, bot.Health + bot.Armor)
+		self.Dependencies.MatchStatsService:RecordDamage(shooter, bot, botDealt)
 		const _, botKilled = self.Dependencies.BotRegistryService:Damage(bot, damage)
+		self:NotifyDealt(shooter, bot.GameID, position, botDealt, isHeadshot == true, botKilled)
 		return true, botKilled
 	end
 
@@ -166,7 +169,28 @@ function HitService:DealDamage(shooter: Fighter, target: Fighter, damage: number
 	const killed = not vital:TakeDamage(damage)
 	self.Dependencies.MatchStatsService:RecordDamage(shooter, player, dealt)
 	self:NotifyDamaged(shooter, player, dealt)
+	const gameID = player:GetAttribute("GameID")
+	self:NotifyDealt(shooter, if typeof(gameID) == "number" then gameID else 0, position, dealt, isHeadshot == true, killed)
 	return true, killed
+end
+
+function HitService:NotifyDealt(shooter: Fighter, targetID: number, position: Vector3?, amount: number, isHeadshot: boolean, killed: boolean)
+	const shooterPlayer = BotTypes.AsPlayer(shooter)
+	const netService = self.Dependencies.NetService
+	if not shooterPlayer or not position or amount <= 0 then
+		return
+	end
+	if not netService:IsRunning() or not netService:IsReady(shooterPlayer) then
+		return
+	end
+
+	self.Libs.Net.Hit.Dealt:fireClient(shooterPlayer, {
+		TargetID = math.clamp(targetID, 0, 255),
+		Position = position,
+		Amount = math.clamp(math.round(amount), 0, 4095),
+		Headshot = isHeadshot,
+		Killed = killed,
+	})
 end
 
 function HitService:NotifyDamaged(shooter: Fighter, target: Player, amount: number)
@@ -351,7 +375,7 @@ function HitService:HitDamage(gunData: GetGun.GunData, hit: ResolvedHit): number
 end
 
 function HitService:ApplyHit(shooter: Fighter, hit: ResolvedHit, gunData: GetGun.GunData, gunName: string, origin: Vector3)
-	const dealt, killed = self:DealDamage(shooter, hit.Target, self:HitDamage(gunData, hit))
+	const dealt, killed = self:DealDamage(shooter, hit.Target, self:HitDamage(gunData, hit), hit.HitPart == Body.Head)
 	if not dealt then
 		return
 	end

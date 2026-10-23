@@ -1353,8 +1353,8 @@
     {
       "id": "task-hit-001",
       "title": "Contador de dano ao acertar",
-      "description": "Pedido do Dots: número de dano flutuante ao acertar um inimigo. Cliente: usar a resposta do Hit.Fire (HitController) para somar o dano por alvo e mostrar o número perto do alvo (BillboardGui ou ScreenGui projetado), cor diferente para headshot. Agrupar pellets do mesmo tiro num número só.",
-      "column": "todo",
+      "description": "Pedido do Dots: número de dano flutuante ao acertar um inimigo. Cliente: usar a resposta do Hit.Fire (HitController) para somar o dano por alvo e mostrar o número perto do alvo (BillboardGui ou ScreenGui projetado), cor diferente para headshot. Agrupar pellets do mesmo tiro num número só. FEITO: novo packet Hit.Dealt (servidor -> quem causou o dano) disparado em HitService:DealDamage, que agora recebe isHeadshot; cobre tiro, projétil, explosão, estilhaço e fogo (ThrowableService passa o headshot). Cliente: DamageNumberController (src/Hit/client) agrupa por alvo enquanto os acertos chegam em até 0.6s (pellets e rajadas somam num número só com pop), some 0.8s depois do último acerto subindo e esmaecendo. Componente DamageNumber + story: branco normal, amarelo headshot, vermelho quando matou. BillboardGui AlwaysOnTop num Attachment em workspace.Terrain, até 250 studs. Testar no Studio contra bot ou 2 jogadores.",
+      "column": "awaiting-approval",
       "tags": [
         "hit",
         "ui",

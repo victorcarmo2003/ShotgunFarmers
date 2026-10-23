@@ -121,7 +121,7 @@ function ThrowableService:Hurt(owner: Player, victim: Fighter, amount: number, g
 		return
 	end
 
-	const _, killed = self.Dependencies.HitService:DealDamage(owner, victim, damage)
+	const _, killed = self.Dependencies.HitService:DealDamage(owner, victim, damage, isHeadshot == true)
 	if killed and victim ~= owner and ownerPresent then
 		self.Dependencies.MatchStatsService:RecordKill(owner, victim, isHeadshot == true)
 		self.Dependencies.HitService:Announce(owner, victim, gunName, isHeadshot == true)
