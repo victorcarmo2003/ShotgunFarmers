@@ -21,7 +21,6 @@ export type Props = {
 const MODES: { { Mode: RoomMode, Label: string } } = {
 	{ Mode = "FFA", Label = "FFA" },
 	{ Mode = "TDM", Label = "TDM" },
-	{ Mode = "Chicken", Label = "CHICKEN" },
 }
 
 const COLUMN_X = { 150, 345, 540, 735 }

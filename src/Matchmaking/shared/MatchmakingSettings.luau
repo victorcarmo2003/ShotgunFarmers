@@ -32,7 +32,7 @@ return {
 	RoomCodeLength = 5,
 	RoomCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
 	RoomCodeAttempts = 6,
-	RoomModes = { "FFA", "TDM", "Chicken" },
+	RoomModes = { "FFA", "TDM" },
 	RoomListLimit = 30,
 	RoomListCooldown = 2,
 }
