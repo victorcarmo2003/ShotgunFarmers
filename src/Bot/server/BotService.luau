@@ -9,6 +9,7 @@ local BotSettings = require(ReplicatedStorage.shared.Bot.BotSettings)
 local GameModes = require(ReplicatedStorage.shared.Match.GameModes)
 local GetBodyPart = require(ReplicatedStorage.shared.Hit.GetBodyPart)
 local GetGun = require(ReplicatedStorage.shared.Weapon.GetGun)
+local LavaSettings = require(ReplicatedStorage.shared.Lava.LavaSettings)
 local MatchSettings = require(ReplicatedStorage.shared.Match.MatchSettings)
 local WeaponSounds = require(ReplicatedStorage.shared.Weapon.WeaponSounds)
 local BotTypes = require(ServerScriptService.server.Bot.BotTypes)
@@ -64,6 +65,9 @@ groundParams.RespectCanCollide = true
 
 const sightParams = RaycastParams.new()
 sightParams.FilterType = Enum.RaycastFilterType.Exclude
+
+const lavaParams = RaycastParams.new()
+lavaParams.FilterType = Enum.RaycastFilterType.Include
 
 const shotParams = RaycastParams.new()
 shotParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -764,7 +768,7 @@ function BotService:MapPoint(): Vector3?
 	const origin = center:PointToWorldSpace(Vector3.new(x, 0, z))
 	groundParams.FilterDescendantsInstances = self:CharacterFilter()
 	const hit = workspace:Raycast(Vector3.new(origin.X, top, origin.Z), Vector3.new(0, -(size.Y + 20), 0), groundParams)
-	if not hit or hit.Normal.Y < 0.7 then
+	if not hit or hit.Normal.Y < 0.7 or self:OnLava(hit.Position + Vector3.new(0, BotSettings.RootHeight, 0)) then
 		return nil
 	end
 	if bounds.FloorTop > -math.huge and hit.Position.Y > bounds.FloorTop + BotSettings.MaxWanderRise then
@@ -844,6 +848,7 @@ function BotService:RequestPath(bot: Bot, brain: Brain, goal: Vector3, now: numb
 			AgentCanJump = true,
 			AgentCanClimb = false,
 			WaypointSpacing = BotSettings.WaypointSpacing,
+			Costs = { [LavaSettings.PATH_LABEL] = math.huge },
 		})
 		const ok = pcall(function()
 			path:ComputeAsync(start, goal)
@@ -988,6 +993,15 @@ function BotService:Ground(position: Vector3, filter: { Instance }, height: numb
 	const origin = self:Feet(position) + Vector3.new(0, rise + 0.5, 0)
 	const hit = workspace:Raycast(origin, Vector3.new(0, -(rise + 10), 0), groundParams)
 	return if hit then hit.Position.Y + BotSettings.RootHeight else nil
+end
+
+function BotService:RefreshLava()
+	lavaParams.FilterDescendantsInstances = CollectionService:GetTagged(LavaSettings.TAG)
+end
+
+function BotService:OnLava(position: Vector3): boolean
+	const origin = self:Feet(position) + Vector3.new(0, LavaSettings.PROBE_RISE, 0)
+	return workspace:Raycast(origin, Vector3.new(0, -LavaSettings.PROBE_DEPTH, 0), lavaParams) ~= nil
 end
 
 function BotService:Wall(position: Vector3, step: Vector3, filter: { Instance }): RaycastResult?
@@ -1141,6 +1155,12 @@ function BotService:Move(bot: Bot, brain: Brain, filter: { Instance }, dt: numbe
 		if rise and rise - position.Y > BotSettings.StepHeight then
 			blocked = true
 		end
+	end
+
+	if not blocked and step.Magnitude > 0 and self:OnLava(position + step) and not self:OnLava(position) then
+		step = Vector3.zero
+		brain.Velocity = Vector3.zero
+		brain.StuckSince = brain.StuckSince or now
 	end
 
 	if blocked then
@@ -1470,6 +1490,14 @@ BotService:OnStart(function(self)
 	for _, player in Players:GetPlayers() do
 		self:LoadFriends(player)
 	end
+
+	self:RefreshLava()
+	CollectionService:GetInstanceAddedSignal(LavaSettings.TAG):Connect(function()
+		self:RefreshLava()
+	end)
+	CollectionService:GetInstanceRemovedSignal(LavaSettings.TAG):Connect(function()
+		self:RefreshLava()
+	end)
 
 	self.Dependencies.ServerRoleService:OnReady(function()
 		self.Dependencies.EnvironmentService:OnReady(function()

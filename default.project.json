@@ -96,6 +96,12 @@
 						"optional": "src/KillFeed/shared"
 					}
 				},
+				"Lava": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/Lava/shared"
+					}
+				},
 				"Libs": {
 					"$ignoreUnknownInstances": false,
 					"$path": {

@@ -1,25 +1,38 @@
 --!strict
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local BotSettings = require(ReplicatedStorage.shared.Bot.BotSettings)
+local LavaSettings = require(ReplicatedStorage.shared.Lava.LavaSettings)
 local Modux = require(ServerScriptService.server.Modux)
 
-const TAG = "LavaFloor"
-const DAMAGE_PER_SECOND = 30
-const TICK_RATE = 10
-const FEET_PROBE = Vector3.new(2, 1, 2)
-const FEET_OFFSET = 0.5
-
 const LavaService = Modux.Service("LavaService", {
-	Require = { "VitalService" },
+	Require = { "BotRegistryService", "VitalService" },
 	Priority = 260,
 })
 
 function LavaService:Setup()
-	const params = OverlapParams.new()
+	const params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
-	params.RespectCanCollide = false
-	self.Params = params :: OverlapParams
+	self.Params = params :: RaycastParams
+end
+
+function LavaService:Mark(instance: Instance)
+	if not instance:IsA("BasePart") or instance:FindFirstChildOfClass("PathfindingModifier") then
+		return
+	end
+
+	const modifier = Instance.new("PathfindingModifier")
+	modifier.Label = LavaSettings.PATH_LABEL
+	modifier.PassThrough = false
+	modifier.Parent = instance
+end
+
+function LavaService:Touching(feet: Vector3, lava: { Instance }): boolean
+	self.Params.FilterDescendantsInstances = lava
+	const origin = feet + Vector3.new(0, LavaSettings.PROBE_RISE, 0)
+	return workspace:Raycast(origin, Vector3.new(0, -LavaSettings.PROBE_DEPTH, 0), self.Params) ~= nil
 end
 
 function LavaService:IsOnLava(character: Model, lava: { Instance }): boolean
@@ -29,19 +42,17 @@ function LavaService:IsOnLava(character: Model, lava: { Instance }): boolean
 		return false
 	end
 
-	const depth = humanoid.HipHeight + root.Size.Y / 2 + FEET_OFFSET
-	const feet = root.CFrame * CFrame.new(0, -depth, 0)
-	self.Params.FilterDescendantsInstances = lava
-	return #workspace:GetPartBoundsInBox(feet, FEET_PROBE, self.Params) > 0
+	const legs = if humanoid.RigType == Enum.HumanoidRigType.R6 then LavaSettings.R6_LEG_HEIGHT else humanoid.HipHeight
+	return self:Touching(root.Position - Vector3.new(0, legs + root.Size.Y / 2, 0), lava)
 end
 
 function LavaService:Step()
-	const lava = CollectionService:GetTagged(TAG)
+	const lava = CollectionService:GetTagged(LavaSettings.TAG)
 	if #lava == 0 then
 		return
 	end
 
-	const damage = DAMAGE_PER_SECOND / TICK_RATE
+	const damage = LavaSettings.DAMAGE_PER_SECOND / LavaSettings.TICK_RATE
 	for _, player in Players:GetPlayers() do
 		const character = player.Character
 		if not character or self.Dependencies.VitalService:IsDead(player) then
@@ -55,14 +66,30 @@ function LavaService:Step()
 			vital:TakeDamage(damage)
 		end
 	end
+
+	const registry = self.Dependencies.BotRegistryService
+	for _, bot in registry:All() do
+		if bot.Alive and self:Touching(bot.Position - Vector3.new(0, BotSettings.RootHeight, 0), lava) then
+			registry:Damage(bot, damage)
+		end
+	end
 end
 
 LavaService:OnInit(function(self)
 	self:Setup()
 end)
 
+LavaService:OnStart(function(self)
+	for _, instance in CollectionService:GetTagged(LavaSettings.TAG) do
+		self:Mark(instance)
+	end
+	CollectionService:GetInstanceAddedSignal(LavaSettings.TAG):Connect(function(instance)
+		self:Mark(instance)
+	end)
+end)
+
 LavaService:OnTick(function(self)
 	self:Step()
-end, TICK_RATE)
+end, LavaSettings.TICK_RATE)
 
 return LavaService

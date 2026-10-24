@@ -88,6 +88,8 @@ export type Public = {
 	Juke: (self: Public, brain: Brain, now: number) -> (),
 	CoverPoint: (self: Public, bot: Bot, threat: Vector3, filter: { Instance }) -> Vector3?,
 	Ground: (self: Public, position: Vector3, filter: { Instance }, height: number?) -> number?,
+	RefreshLava: (self: Public) -> (),
+	OnLava: (self: Public, position: Vector3) -> boolean,
 	Wall: (self: Public, position: Vector3, step: Vector3, filter: { Instance }) -> RaycastResult?,
 	Separation: (self: Public, bot: Bot) -> Vector3,
 	Steer: (self: Public, bot: Bot, brain: Brain, filter: { Instance }, now: number) -> (Vector3, number, boolean),
