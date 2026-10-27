@@ -40,6 +40,7 @@ local PlayerBillboardService = require(ServerScriptService.server.ModuxTypes.Pla
 local PlayerService = require(ServerScriptService.server.ModuxTypes.PlayerService)
 local PracticeService = require(ServerScriptService.server.ModuxTypes.PracticeService)
 local ProfileService = require(ServerScriptService.server.ModuxTypes.ProfileService)
+local RankService = require(ServerScriptService.server.ModuxTypes.RankService)
 local MapVoteService = require(ServerScriptService.server.ModuxTypes.MapVoteService)
 local RoundFreezeService = require(ServerScriptService.server.ModuxTypes.RoundFreezeService)
 local RoundService = require(ServerScriptService.server.ModuxTypes.RoundService)
@@ -98,6 +99,7 @@ export type AllServices = {
 	PlayerService: PlayerService.Public,
 	PracticeService: PracticeService.Public,
 	ProfileService: ProfileService.Public,
+	RankService: RankService.Public,
 	MapVoteService: MapVoteService.Public,
 	RoundFreezeService: RoundFreezeService.Public,
 	RoundService: RoundService.Public,

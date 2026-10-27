@@ -212,6 +212,21 @@ return function(props: Props): Frame
 						end,
 					},
 
+					createTopButton {
+						Name = "Ranks",
+						Selected = isSelected("Ranks"),
+						LayoutOrder = 0,
+						Size = SIDE_SIZE,
+						BackgroundTransparency = 1,
+						BackgroundColor3 = Color3.new(0, 0, 0),
+						Text = "RANKS",
+						Activated = function()
+							if props.OnNavigate then
+								props.OnNavigate("Ranks")
+							end
+						end,
+					},
+
 					create "UIListLayout" {
 						FillDirection = Enum.FillDirection.Horizontal,
 						HorizontalAlignment = Enum.HorizontalAlignment.Right,

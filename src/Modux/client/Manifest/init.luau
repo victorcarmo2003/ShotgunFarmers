@@ -33,6 +33,7 @@ local SensitivityController = require(StarterPlayer.StarterPlayerScripts.client.
 local PartyController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.PartyController)
 local PracticeController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.PracticeController)
 local ProfileController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.ProfileController)
+local RankController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.RankController)
 local RoundController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.RoundController)
 local VoteController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.VoteController)
 local RestockController = require(StarterPlayer.StarterPlayerScripts.client.ModuxTypes.RestockController)
@@ -81,6 +82,7 @@ export type AllControllers = {
 	PartyController: PartyController.Public,
 	PracticeController: PracticeController.Public,
 	ProfileController: ProfileController.Public,
+	RankController: RankController.Public,
 	RoundController: RoundController.Public,
 	VoteController: VoteController.Public,
 	RestockController: RestockController.Public,

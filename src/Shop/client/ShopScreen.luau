@@ -641,7 +641,7 @@ return function(props: Props): Frame
 				elseif props.OnClose then
 					props.OnClose()
 				end
-			end, false),
+			end),
 		},
 	})
 end

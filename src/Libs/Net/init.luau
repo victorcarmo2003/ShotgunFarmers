@@ -23,6 +23,7 @@ return {
 	Options = require(ReplicatedStorage.shared.Options.Net),
 	Party = require(ReplicatedStorage.shared.Party.Net),
 	Profile = require(ReplicatedStorage.shared.Profile.Net),
+	Rank = require(ReplicatedStorage.shared.Rank.Net),
 	Round = require(ReplicatedStorage.shared.Round.Net),
 	Shop = require(ReplicatedStorage.shared.Shop.Net),
 	Snapshot = require(ReplicatedStorage.shared.Snapshot.Net),

@@ -16,6 +16,7 @@ local GameSelectionScreen = require(StarterPlayer.StarterPlayerScripts.client.Ga
 local CreateRoomScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.CreateRoomScreen)
 local JoinRoomScreen = require(StarterPlayer.StarterPlayerScripts.client.GameSelection.JoinRoomScreen)
 local CareerScreen = require(StarterPlayer.StarterPlayerScripts.client.Career.CareerScreen)
+local RanksScreen = require(StarterPlayer.StarterPlayerScripts.client.Rank.RanksScreen)
 local QuestsScreen = require(StarterPlayer.StarterPlayerScripts.client.Quests.QuestsScreen)
 local FriendsScreen = require(StarterPlayer.StarterPlayerScripts.client.Party.FriendsScreen)
 local SocialService = game:GetService("SocialService")
@@ -80,6 +81,8 @@ type ScreenProps = {
 	Xp: (() -> number)?,
 	XpMax: (() -> number)?,
 	Stats: (() -> { CareerScreen.Stat })?,
+	Boards: (() -> RanksScreen.Boards)?,
+	MyRanks: (() -> RanksScreen.Mine)?,
 	OnRedeem: ((id: string) -> ())?,
 	Status: (() -> string)?,
 	Friends: (() -> { FriendsScreen.Friend })?,
@@ -174,6 +177,16 @@ const SCREENS: { [string]: { Component: ScreenComponent, Camera: string? } } = {
 			})
 		end,
 	},
+	Ranks = {
+		Component = function(props: ScreenProps): Frame
+			return RanksScreen({
+				Visible = props.Visible,
+				OnClose = props.OnClose,
+				Boards = props.Boards,
+				Mine = props.MyRanks,
+			})
+		end,
+	},
 	Friends = {
 		Component = function(props: ScreenProps): Frame
 			return FriendsScreen({
@@ -208,6 +221,7 @@ const LobbyController = Modux.Controller("LobbyController", {
 		"CareerController",
 		"FunnelController",
 		"ProfileController",
+		"RankController",
 		"OnlineController",
 		"MatchmakingController",
 		"PartyController",
@@ -647,6 +661,7 @@ function LobbyController:MountScreen()
 
 	const gameState = self.Dependencies.GameStateController
 	const career = self.Dependencies.CareerController
+	const rank = self.Dependencies.RankController
 	const online = self.Dependencies.OnlineController
 	const playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 
@@ -758,6 +773,8 @@ function LobbyController:MountScreen()
 					Xp = career.Xp,
 					XpMax = career.XpMax,
 					Stats = career.Stats,
+					Boards = rank.Boards,
+					MyRanks = rank.Mine,
 				})
 			)
 		end

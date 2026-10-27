@@ -175,6 +175,12 @@
 						"optional": "src/Profile/shared"
 					}
 				},
+				"Rank": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/Rank/shared"
+					}
+				},
 				"Round": {
 					"$ignoreUnknownInstances": false,
 					"$path": {
@@ -498,6 +504,11 @@
 							"optional": "src/ModuxTypes/server/ProfileService.luau"
 						}
 					},
+					"RankService": {
+						"$path": {
+							"optional": "src/ModuxTypes/server/RankService.luau"
+						}
+					},
 					"RestockService": {
 						"$path": {
 							"optional": "src/ModuxTypes/server/RestockService.luau"
@@ -658,6 +669,12 @@
 					"$ignoreUnknownInstances": false,
 					"$path": {
 						"optional": "src/Profile/server"
+					}
+				},
+				"Rank": {
+					"$ignoreUnknownInstances": false,
+					"$path": {
+						"optional": "src/Rank/server"
 					}
 				},
 				"Round": {
@@ -870,6 +887,12 @@
 						"$ignoreUnknownInstances": false,
 						"$path": {
 							"optional": "src/Quests/client"
+						}
+					},
+					"Rank": {
+						"$ignoreUnknownInstances": false,
+						"$path": {
+							"optional": "src/Rank/client"
 						}
 					},
 					"Round": {

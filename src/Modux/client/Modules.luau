@@ -35,6 +35,7 @@ return {
 	StarterPlayer.StarterPlayerScripts.client.Party.PartyController,
 	StarterPlayer.StarterPlayerScripts.client.Practice.PracticeController,
 	StarterPlayer.StarterPlayerScripts.client.Profile.ProfileController,
+	StarterPlayer.StarterPlayerScripts.client.Rank.RankController,
 	StarterPlayer.StarterPlayerScripts.client.Round.RoundController,
 	StarterPlayer.StarterPlayerScripts.client.Round.VoteController,
 	StarterPlayer.StarterPlayerScripts.client.Seed.RestockController,

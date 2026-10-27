@@ -42,6 +42,7 @@ return {
 	ServerScriptService.server.Player.PlayerService,
 	ServerScriptService.server.Practice.PracticeService,
 	ServerScriptService.server.Profile.ProfileService,
+	ServerScriptService.server.Rank.RankService,
 	ServerScriptService.server.Round.MapVoteService,
 	ServerScriptService.server.Round.RoundFreezeService,
 	ServerScriptService.server.Round.RoundService,
