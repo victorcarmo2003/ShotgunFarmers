@@ -79,6 +79,7 @@ function ScopeController:Setup()
 	self.MapReady = false :: boolean
 	self.PreloadToken = 0 :: number
 	self.Rendering = false :: boolean
+	self.PrewarmUntil = 0 :: number
 	self.Raw = 0 :: number
 	self.ViewShown = false :: boolean
 	self.MirrorOn = false :: boolean
@@ -327,6 +328,8 @@ function ScopeController:Frame(deltaTime: number)
 		self:StepKick(deltaTime)
 	end
 
+	const prewarm = os.clock() < self.PrewarmUntil
+
 	const camera = workspace.CurrentCamera
 	local kickOffset = Vector2.zero
 	if camera and (self.Kicking or self.KickApplied) then
@@ -356,9 +359,10 @@ function ScopeController:Frame(deltaTime: number)
 		end
 		self.LensShown = lensShown
 		const lensVisibility = self:LensVisibility(alpha)
-		lens.Render(lensVisibility * lensShown, lensVisibility > 0 and shootTarget > 0)
+		const lensAlpha = lensVisibility * lensShown
+		lens.Render(lensAlpha, lensVisibility > 0 and shootTarget > 0, prewarm)
 		const lensCharacters = self.LensCharacters
-		if lensCharacters then
+		if lensCharacters and (lensAlpha > 0 or prewarm) then
 			lensCharacters.Step()
 		end
 	end
@@ -384,10 +388,12 @@ function ScopeController:Frame(deltaTime: number)
 		self.OverlayAlpha(alpha)
 		self.OverlayRotation((self.KickRoll + shakeRoll) * alpha)
 	end
-	view.Render(alpha, fraction, center)
+	view.Render(alpha, fraction, center, prewarm)
 
-	for _, characters in self.Characters do
-		characters.Step()
+	if visible or prewarm then
+		for _, characters in self.Characters do
+			characters.Step()
+		end
 	end
 
 	self.KickApplied = self.Kicking
@@ -421,6 +427,7 @@ function ScopeController:StartRendering(model: Model)
 	end
 
 	self.Rendering = true
+	self.PrewarmUntil = os.clock() + ScopeSettings.PrewarmSeconds
 	self.Raw = 0
 	self.LensShown = 1
 	view.SetBaseFov(self.Dependencies.OptionsController:Get("Fov"))

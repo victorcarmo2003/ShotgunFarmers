@@ -29,6 +29,7 @@ ScopeSettings.AimInSeconds = 0.3
 ScopeSettings.AimOutSeconds = 0.24
 ScopeSettings.TransitionMaxStep = 1 / 30
 ScopeSettings.PrewarmTransparency = 0.995
+ScopeSettings.PrewarmSeconds = 1
 ScopeSettings.LensFadeSpeed = 18
 ScopeSettings.MirrorThreshold = 0.9
 ScopeSettings.FallbackLensFraction = 0.12

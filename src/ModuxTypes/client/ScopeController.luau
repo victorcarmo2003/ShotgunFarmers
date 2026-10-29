@@ -34,6 +34,7 @@ export type Public = {
 	OverlayHousing: Vide.Source<Color3>,
 	OverlayRotation: Vide.Source<number>,
 	PreloadToken: number,
+	PrewarmUntil: number,
 	Raw: number,
 	Rendering: boolean,
 	ShakeSeed: number,

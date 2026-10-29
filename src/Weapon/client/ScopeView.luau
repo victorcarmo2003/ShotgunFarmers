@@ -20,7 +20,7 @@ export type ScopeView = {
 	SetBaseFov: (fov: number) -> (),
 	Show: () -> (),
 	Hide: () -> (),
-	Render: (alpha: number, fraction: number, center: Vector2) -> (),
+	Render: (alpha: number, fraction: number, center: Vector2, prewarm: boolean) -> (),
 	Destroy: () -> (),
 }
 
@@ -120,6 +120,7 @@ local function new(playerGui: PlayerGui): ScopeView
 
 	local hazeBase = 1
 	local lastAlpha = -1
+	local idle = false
 
 	gui.Parent = playerGui
 
@@ -165,6 +166,7 @@ local function new(playerGui: PlayerGui): ScopeView
 			strip.Frame.Visible = false
 		end
 		lastAlpha = -1
+		idle = false
 	end
 
 	local function place(strip: Strip, x: number, y: number, width: number, height: number, canvas: Vector2)
@@ -179,11 +181,22 @@ local function new(playerGui: PlayerGui): ScopeView
 		strip.Sky.Size = UDim2.fromOffset(canvas.X, canvas.Y)
 	end
 
-	local function render(alpha: number, fraction: number, center: Vector2)
+	local function render(alpha: number, fraction: number, center: Vector2, prewarm: boolean)
 		const camera = workspace.CurrentCamera
 		if not camera or plane.Parent ~= camera then
 			return
 		end
+
+		if alpha <= 0 and not prewarm then
+			if not idle then
+				idle = true
+				for _, strip in strips do
+					strip.Frame.Visible = false
+				end
+			end
+			return
+		end
+		idle = false
 
 		const viewportSize = camera.ViewportSize
 		const canvas = Vector2.new(

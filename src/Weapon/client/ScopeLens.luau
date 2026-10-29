@@ -20,7 +20,7 @@ export type ScopeLens = {
 	IsAttached: () -> boolean,
 	Apparent: () -> Apparent?,
 	SetKick: (offset: Vector2, roll: number) -> (),
-	Render: (visibility: number, masked: boolean) -> (),
+	Render: (visibility: number, masked: boolean, prewarm: boolean) -> (),
 	SetReticle: (thickness: number, dotSize: number) -> (),
 	Destroy: () -> (),
 }
@@ -363,7 +363,7 @@ local function new(playerGui: PlayerGui): ScopeLens
 		reticleFrame.Rotation = roll
 	end
 
-	local function render(visibility: number, masked: boolean)
+	local function render(visibility: number, masked: boolean, prewarm: boolean)
 		const camera = workspace.CurrentCamera
 		const lens = attachedLens
 		const joint = motor
@@ -398,7 +398,13 @@ local function new(playerGui: PlayerGui): ScopeLens
 			reticleTransparency(reticle)
 		end
 
-		viewportCamera.CFrame = camera.CFrame
+		const drawn = visibility > 0 or prewarm
+		if viewport.Visible ~= drawn then
+			viewport.Visible = drawn
+		end
+		if drawn then
+			viewportCamera.CFrame = camera.CFrame
+		end
 	end
 
 	local function setReticle(thickness: number, _dotSize: number)

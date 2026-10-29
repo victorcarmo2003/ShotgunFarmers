@@ -97,6 +97,8 @@ local function attachWeaponVisual(character: Model, gunData: GetGun.GunData, own
 		if descendant:IsA("BasePart") then
 			descendant.CanCollide = false
 			descendant.CanQuery = false
+			descendant.CanTouch = false
+			descendant.Massless = true
 		end
 	end
 
